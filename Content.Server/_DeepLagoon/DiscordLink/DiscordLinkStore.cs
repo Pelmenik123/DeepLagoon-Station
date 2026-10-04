@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Data.Sqlite;
@@ -28,6 +29,9 @@ public sealed class DiscordLinkStore : IDisposable
             CREATE TABLE IF NOT EXISTS discord_links (
                 discord_id TEXT PRIMARY KEY, ss14_uid TEXT NOT NULL UNIQUE,
                 username TEXT NOT NULL, linked_at INTEGER NOT NULL);
+            CREATE TABLE IF NOT EXISTS discord_launcher_enrollments (discord_id TEXT PRIMARY KEY, ss14_uid TEXT NOT NULL UNIQUE);
+            CREATE TABLE IF NOT EXISTS discord_link_history (discord_id TEXT PRIMARY KEY, ss14_uid TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS discord_link_revisions (ss14_uid TEXT PRIMARY KEY, revision INTEGER NOT NULL);
             CREATE TABLE IF NOT EXISTS discord_link_codes (
                 ss14_uid TEXT PRIMARY KEY, code_hash TEXT NOT NULL UNIQUE,
                 username TEXT NOT NULL, expires_at INTEGER NOT NULL, issued_at INTEGER NOT NULL);
@@ -58,9 +62,60 @@ public sealed class DiscordLinkStore : IDisposable
         return reader.Read() ? new Link(Guid.Parse(reader.GetString(0)), reader.GetString(1)) : null;
     }
 
+    /// <summary>Trusted OAuth backend only. Never grants whitelist or replaces an existing UID.</summary>
+    public Link EnrollLauncher(string discordId, string? discordUsername = null)
+    {
+        var existing = FindDiscord(discordId);
+        if (existing != null) return existing;
+        using var transaction = _db.BeginTransaction();
+        using (var check = Command("SELECT 1 FROM discord_launcher_enrollments WHERE discord_id=$id UNION ALL SELECT 1 FROM discord_link_history WHERE discord_id=$id", ("$id", discordId)))
+        {
+            check.Transaction = transaction;
+            if (check.ExecuteScalar() != null) throw new LinkException("enrollment_revoked");
+        }
+        var uid = Guid.NewGuid();
+        var username = "Lagoon_" + discordId; // Compatibility with older OAuth backends.
+        if (!string.IsNullOrWhiteSpace(discordUsername))
+        {
+            var nickname = new string(discordUsername.Where(c => c is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9' or '_' or '.').Take(30).ToArray());
+            if (nickname.Length == 0) nickname = "player";
+            for (var attempt = 0; ; attempt++)
+            {
+                var suffix = attempt == 0 ? "" : "_" + (attempt + 1);
+                username = "@" + nickname[..Math.Min(nickname.Length, 30 - suffix.Length)] + suffix;
+                using var check = Command("SELECT 1 FROM discord_links WHERE username=$name COLLATE NOCASE", ("$name", username));
+                check.Transaction = transaction;
+                if (check.ExecuteScalar() == null) break;
+            }
+        }
+        using (var insert = Command("INSERT INTO discord_links VALUES($id,$uid,$name,$now)", ("$id", discordId), ("$uid", uid.ToString()), ("$name", username), ("$now", _now())))
+        {
+            insert.Transaction = transaction;
+            insert.ExecuteNonQuery();
+        }
+        using (var record = Command("INSERT INTO discord_launcher_enrollments VALUES($id,$uid)", ("$id", discordId), ("$uid", uid.ToString())))
+        {
+            record.Transaction = transaction;
+            record.ExecuteNonQuery();
+        }
+        BumpRevision(uid);
+        transaction.Commit();
+        return new Link(uid, username);
+    }
+
     public void Unlink(string discordId, Guid uid)
     {
         using var transaction = _db.BeginTransaction();
+        using (var history = Command("INSERT OR IGNORE INTO discord_link_history VALUES($id,$uid)", ("$id", discordId), ("$uid", uid.ToString())))
+        {
+            history.Transaction = transaction;
+            history.ExecuteNonQuery();
+        }
+        using (var record = Command("INSERT OR IGNORE INTO discord_launcher_enrollments VALUES($id,$uid)", ("$id", discordId), ("$uid", uid.ToString())))
+        {
+            record.Transaction = transaction;
+            record.ExecuteNonQuery();
+        }
         using (var command = Command("DELETE FROM discord_links WHERE discord_id=$id AND ss14_uid=$uid", ("$id", discordId), ("$uid", uid.ToString())))
         {
             command.Transaction = transaction;
@@ -72,7 +127,81 @@ public sealed class DiscordLinkStore : IDisposable
             command.Transaction = transaction;
             command.ExecuteNonQuery();
         }
+        BumpRevision(uid);
         transaction.Commit();
+    }
+
+    public void AssertCurrent(string discordId, Guid uid, long linkedAt, long? revision = null)
+    {
+        using var command = Command("SELECT 1 FROM discord_links WHERE discord_id=$id AND ss14_uid=$uid AND linked_at=$at",
+            ("$id", discordId), ("$uid", uid.ToString()), ("$at", linkedAt));
+        if (command.ExecuteScalar() == null) throw new LinkException("stale_link");
+        if (revision != null)
+        {
+            using var version = Command("SELECT revision FROM discord_link_revisions WHERE ss14_uid=$uid", ("$uid", uid.ToString()));
+            if (Convert.ToInt64(version.ExecuteScalar() ?? 0L) != revision.Value) throw new LinkException("stale_link");
+        }
+    }
+
+    public Link ReassignDiscord(string source, string target, Guid expectedUid, long expectedLinkedAt, long? revision = null)
+    {
+        using var transaction = _db.BeginTransaction();
+        AssertCurrent(source, expectedUid, expectedLinkedAt, revision);
+        var link = FindDiscord(source)!;
+        if (source == target) return link;
+        if (FindDiscord(target) != null) throw new LinkException("already_linked");
+        using (var prior = Command("SELECT ss14_uid FROM discord_link_history WHERE discord_id=$id UNION ALL SELECT ss14_uid FROM discord_launcher_enrollments WHERE discord_id=$id", ("$id", target)))
+        {
+            prior.Transaction = transaction;
+            using var reader = prior.ExecuteReader();
+            while (reader.Read())
+                if (Guid.Parse(reader.GetString(0)) != expectedUid) throw new LinkException("identity_conflict");
+        }
+        foreach (var id in new[] { source, target })
+        {
+            using var history = Command("INSERT OR IGNORE INTO discord_link_history VALUES($id,$uid)", ("$id", id), ("$uid", expectedUid.ToString()));
+            history.Transaction = transaction;
+            history.ExecuteNonQuery();
+        }
+        using (var change = Command("UPDATE discord_links SET discord_id=$target,linked_at=$now WHERE discord_id=$source",
+                   ("$target", target), ("$source", source), ("$now", Math.Max(_now(), expectedLinkedAt + 1))))
+        {
+            change.Transaction = transaction;
+            change.ExecuteNonQuery();
+        }
+        using (var codes = Command("DELETE FROM discord_link_codes WHERE ss14_uid=$uid", ("$uid", expectedUid.ToString())))
+        {
+            codes.Transaction = transaction;
+            codes.ExecuteNonQuery();
+        }
+        BumpRevision(expectedUid);
+        transaction.Commit();
+        return link;
+    }
+
+    public Link RestoreDiscord(string discordId, Guid uid, string username)
+    {
+        using var transaction = _db.BeginTransaction();
+        if (FindDiscord(discordId) != null || IsLinked(uid)) throw new LinkException("already_linked");
+        var found = false;
+        using (var prior = Command("SELECT ss14_uid FROM discord_link_history WHERE discord_id=$id UNION ALL SELECT ss14_uid FROM discord_launcher_enrollments WHERE discord_id=$id", ("$id", discordId)))
+        {
+            prior.Transaction = transaction;
+            using var reader = prior.ExecuteReader();
+            while (reader.Read())
+            {
+                if (Guid.Parse(reader.GetString(0)) != uid) throw new LinkException("identity_conflict");
+                found = true;
+            }
+        }
+        if (!found) throw new LinkException("not_linked");
+        using var insert = Command("INSERT INTO discord_links VALUES($id,$uid,$name,$at)",
+            ("$id", discordId), ("$uid", uid.ToString()), ("$name", username), ("$at", _now()));
+        insert.Transaction = transaction;
+        insert.ExecuteNonQuery();
+        BumpRevision(uid);
+        transaction.Commit();
+        return new Link(uid, username);
     }
 
     public bool IsLinked(Guid uid)
@@ -128,6 +257,13 @@ public sealed class DiscordLinkStore : IDisposable
                 throw new LinkException("invalid_code");
             link = new Link(Guid.Parse(reader.GetString(0)), reader.GetString(1));
         }
+        using (var history = Command("SELECT ss14_uid FROM discord_link_history WHERE discord_id=$id UNION ALL SELECT ss14_uid FROM discord_launcher_enrollments WHERE discord_id=$id", ("$id", discordId)))
+        {
+            history.Transaction = transaction;
+            using var reader = history.ExecuteReader();
+            while (reader.Read())
+                if (Guid.Parse(reader.GetString(0)) != link.Uid) throw new LinkException("identity_conflict");
+        }
         using (var command = Command("INSERT INTO discord_links VALUES($id,$uid,$name,$now)",
                    ("$id", discordId), ("$uid", link.Uid.ToString()), ("$name", link.Username), ("$now", now)))
         {
@@ -139,9 +275,12 @@ public sealed class DiscordLinkStore : IDisposable
             command.Transaction = transaction;
             command.ExecuteNonQuery();
         }
+        BumpRevision(link.Uid);
         transaction.Commit();
         return link;
     }
+
+    private void BumpRevision(Guid uid) => Execute("INSERT INTO discord_link_revisions VALUES($uid,1) ON CONFLICT(ss14_uid) DO UPDATE SET revision=revision+1", ("$uid", uid.ToString()));
 
     private static string Hash(string code) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(code)));
     public void Dispose() => _db.Dispose();
