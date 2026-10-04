@@ -154,4 +154,17 @@ public sealed class DiscordLinkStoreTests
         store.Consume("1554565156657299598", store.Issue(uid, "Player"));
         Assert.That(store.FindDiscord("1554565156657299598")!.Uid, Is.EqualTo(uid));
     }
+
+    [Test]
+    public void RapidRestorationInvalidatesOldEditorRevision()
+    {
+        using var store = new DiscordLinkStore(_path, () => _now);
+        const string discord = "1554565156657299597";
+        var uid = store.EnrollLauncher(discord).Uid;
+        store.AssertCurrent(discord, uid, _now, 1);
+        store.Unlink(discord, uid);
+        store.RestoreDiscord(discord, uid, "Player");
+        Assert.That(() => store.AssertCurrent(discord, uid, _now, 1), Throws.TypeOf<DiscordLinkStore.LinkException>());
+        store.AssertCurrent(discord, uid, _now, 3);
+    }
 }

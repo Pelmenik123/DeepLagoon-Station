@@ -30,6 +30,7 @@ public sealed class DiscordLinkStore : IDisposable
                 username TEXT NOT NULL, linked_at INTEGER NOT NULL);
             CREATE TABLE IF NOT EXISTS discord_launcher_enrollments (discord_id TEXT PRIMARY KEY, ss14_uid TEXT NOT NULL UNIQUE);
             CREATE TABLE IF NOT EXISTS discord_link_history (discord_id TEXT PRIMARY KEY, ss14_uid TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS discord_link_revisions (ss14_uid TEXT PRIMARY KEY, revision INTEGER NOT NULL);
             CREATE TABLE IF NOT EXISTS discord_link_codes (
                 ss14_uid TEXT PRIMARY KEY, code_hash TEXT NOT NULL UNIQUE,
                 username TEXT NOT NULL, expires_at INTEGER NOT NULL, issued_at INTEGER NOT NULL);
@@ -83,6 +84,7 @@ public sealed class DiscordLinkStore : IDisposable
             record.Transaction = transaction;
             record.ExecuteNonQuery();
         }
+        BumpRevision(uid);
         transaction.Commit();
         return new Link(uid, username);
     }
@@ -111,20 +113,26 @@ public sealed class DiscordLinkStore : IDisposable
             command.Transaction = transaction;
             command.ExecuteNonQuery();
         }
+        BumpRevision(uid);
         transaction.Commit();
     }
 
-    public void AssertCurrent(string discordId, Guid uid, long linkedAt)
+    public void AssertCurrent(string discordId, Guid uid, long linkedAt, long? revision = null)
     {
         using var command = Command("SELECT 1 FROM discord_links WHERE discord_id=$id AND ss14_uid=$uid AND linked_at=$at",
             ("$id", discordId), ("$uid", uid.ToString()), ("$at", linkedAt));
         if (command.ExecuteScalar() == null) throw new LinkException("stale_link");
+        if (revision != null)
+        {
+            using var version = Command("SELECT revision FROM discord_link_revisions WHERE ss14_uid=$uid", ("$uid", uid.ToString()));
+            if (Convert.ToInt64(version.ExecuteScalar() ?? 0L) != revision.Value) throw new LinkException("stale_link");
+        }
     }
 
-    public Link ReassignDiscord(string source, string target, Guid expectedUid, long expectedLinkedAt)
+    public Link ReassignDiscord(string source, string target, Guid expectedUid, long expectedLinkedAt, long? revision = null)
     {
         using var transaction = _db.BeginTransaction();
-        AssertCurrent(source, expectedUid, expectedLinkedAt);
+        AssertCurrent(source, expectedUid, expectedLinkedAt, revision);
         var link = FindDiscord(source)!;
         if (source == target) return link;
         if (FindDiscord(target) != null) throw new LinkException("already_linked");
@@ -152,6 +160,7 @@ public sealed class DiscordLinkStore : IDisposable
             codes.Transaction = transaction;
             codes.ExecuteNonQuery();
         }
+        BumpRevision(expectedUid);
         transaction.Commit();
         return link;
     }
@@ -176,6 +185,7 @@ public sealed class DiscordLinkStore : IDisposable
             ("$id", discordId), ("$uid", uid.ToString()), ("$name", username), ("$at", _now()));
         insert.Transaction = transaction;
         insert.ExecuteNonQuery();
+        BumpRevision(uid);
         transaction.Commit();
         return new Link(uid, username);
     }
@@ -251,9 +261,12 @@ public sealed class DiscordLinkStore : IDisposable
             command.Transaction = transaction;
             command.ExecuteNonQuery();
         }
+        BumpRevision(link.Uid);
         transaction.Commit();
         return link;
     }
+
+    private void BumpRevision(Guid uid) => Execute("INSERT INTO discord_link_revisions VALUES($uid,1) ON CONFLICT(ss14_uid) DO UPDATE SET revision=revision+1", ("$uid", uid.ToString()));
 
     private static string Hash(string code) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(code)));
     public void Dispose() => _db.Dispose();

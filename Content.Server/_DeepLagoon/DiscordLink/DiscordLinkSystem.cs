@@ -250,7 +250,7 @@ public sealed class DiscordLinkSystem : EntitySystem
                             target.Any(c => !char.IsAsciiDigit(c)) || !ulong.TryParse(target, out var targetId) || targetId == 0 ||
                             !Guid.TryParse(request.ExpectedUid, out var expectedUid) || request.ExpectedLinkedAt == null)
                             return new ApiResult(HttpStatusCode.BadRequest, new { error = "invalid_request" });
-                        link = _store.ReassignDiscord(request.DiscordId, target, expectedUid, request.ExpectedLinkedAt.Value);
+                        link = _store.ReassignDiscord(request.DiscordId, target, expectedUid, request.ExpectedLinkedAt.Value, request.ExpectedRevision);
                         if (request.DiscordId != target)
                             foreach (var session in _players.Sessions.Where(s => s.UserId.UserId == link.Uid).ToArray())
                                 session.Channel.Disconnect("Discord link changed by administrator. Sign in again.");
@@ -294,7 +294,7 @@ public sealed class DiscordLinkSystem : EntitySystem
                         {
                             if (!Guid.TryParse(request.ExpectedUid, out var expectedUid) || request.ExpectedLinkedAt == null)
                                 return new ApiResult(HttpStatusCode.BadRequest, new { error = "invalid_request" });
-                            _store.AssertCurrent(request.DiscordId, expectedUid, request.ExpectedLinkedAt.Value);
+                            _store.AssertCurrent(request.DiscordId, expectedUid, request.ExpectedLinkedAt.Value, request.ExpectedRevision);
                         }
                         if (!request.HostAuthorized && await _database.GetAdminDataForAsync(new NetUserId(link.Uid)) != null)
                             return new ApiResult(HttpStatusCode.Forbidden, new { error = "admin_protected" });
@@ -343,6 +343,7 @@ public sealed class DiscordLinkSystem : EntitySystem
         [property: System.Text.Json.Serialization.JsonPropertyName("target_discord_id")] string? TargetDiscordId = null,
         [property: System.Text.Json.Serialization.JsonPropertyName("expected_uid")] string? ExpectedUid = null,
         [property: System.Text.Json.Serialization.JsonPropertyName("expected_linked_at")] long? ExpectedLinkedAt = null,
-        [property: System.Text.Json.Serialization.JsonPropertyName("username")] string? Username = null);
+        [property: System.Text.Json.Serialization.JsonPropertyName("username")] string? Username = null,
+        [property: System.Text.Json.Serialization.JsonPropertyName("expected_revision")] long? ExpectedRevision = null);
     private sealed record ApiResult(HttpStatusCode Status, object Body);
 }
