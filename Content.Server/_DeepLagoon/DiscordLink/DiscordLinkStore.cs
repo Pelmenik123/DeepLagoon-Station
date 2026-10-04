@@ -28,6 +28,7 @@ public sealed class DiscordLinkStore : IDisposable
             CREATE TABLE IF NOT EXISTS discord_links (
                 discord_id TEXT PRIMARY KEY, ss14_uid TEXT NOT NULL UNIQUE,
                 username TEXT NOT NULL, linked_at INTEGER NOT NULL);
+            CREATE TABLE IF NOT EXISTS discord_launcher_enrollments (discord_id TEXT PRIMARY KEY, ss14_uid TEXT NOT NULL UNIQUE);
             CREATE TABLE IF NOT EXISTS discord_link_codes (
                 ss14_uid TEXT PRIMARY KEY, code_hash TEXT NOT NULL UNIQUE,
                 username TEXT NOT NULL, expires_at INTEGER NOT NULL, issued_at INTEGER NOT NULL);
@@ -58,9 +59,41 @@ public sealed class DiscordLinkStore : IDisposable
         return reader.Read() ? new Link(Guid.Parse(reader.GetString(0)), reader.GetString(1)) : null;
     }
 
+    /// <summary>Trusted OAuth backend only. Never grants whitelist or replaces an existing UID.</summary>
+    public Link EnrollLauncher(string discordId)
+    {
+        var existing = FindDiscord(discordId);
+        if (existing != null) return existing;
+        using var transaction = _db.BeginTransaction();
+        using (var check = Command("SELECT 1 FROM discord_launcher_enrollments WHERE discord_id=$id", ("$id", discordId)))
+        {
+            check.Transaction = transaction;
+            if (check.ExecuteScalar() != null) throw new LinkException("enrollment_revoked");
+        }
+        var uid = Guid.NewGuid();
+        var username = "Lagoon_" + discordId;
+        using (var insert = Command("INSERT INTO discord_links VALUES($id,$uid,$name,$now)", ("$id", discordId), ("$uid", uid.ToString()), ("$name", username), ("$now", _now())))
+        {
+            insert.Transaction = transaction;
+            insert.ExecuteNonQuery();
+        }
+        using (var record = Command("INSERT INTO discord_launcher_enrollments VALUES($id,$uid)", ("$id", discordId), ("$uid", uid.ToString())))
+        {
+            record.Transaction = transaction;
+            record.ExecuteNonQuery();
+        }
+        transaction.Commit();
+        return new Link(uid, username);
+    }
+
     public void Unlink(string discordId, Guid uid)
     {
         using var transaction = _db.BeginTransaction();
+        using (var record = Command("INSERT OR IGNORE INTO discord_launcher_enrollments VALUES($id,$uid)", ("$id", discordId), ("$uid", uid.ToString())))
+        {
+            record.Transaction = transaction;
+            record.ExecuteNonQuery();
+        }
         using (var command = Command("DELETE FROM discord_links WHERE discord_id=$id AND ss14_uid=$uid", ("$id", discordId), ("$uid", uid.ToString())))
         {
             command.Transaction = transaction;

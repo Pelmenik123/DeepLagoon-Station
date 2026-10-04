@@ -36,6 +36,23 @@ public sealed class DiscordLinkStoreTests
     }
 
     [Test]
+    public void LauncherEnrollmentPreservesUidAndCannotRecreateRevokedIdentity()
+    {
+        using var store = new DiscordLinkStore(_path, () => _now);
+        var registered = store.EnrollLauncher("1554565156657299597");
+        Assert.That(store.EnrollLauncher("1554565156657299597").Uid, Is.EqualTo(registered.Uid));
+        Assert.That(store.IsLinked(registered.Uid), Is.True);
+        store.Unlink("1554565156657299597", registered.Uid);
+        Assert.That(() => store.EnrollLauncher("1554565156657299597"), Throws.TypeOf<DiscordLinkStore.LinkException>());
+        var officialUid = Guid.NewGuid();
+        var code = store.Issue(officialUid, "ExistingPlayer");
+        store.Consume("1554565156657299598", code);
+        Assert.That(store.EnrollLauncher("1554565156657299598").Uid, Is.EqualTo(officialUid));
+        store.Unlink("1554565156657299598", officialUid);
+        Assert.That(() => store.EnrollLauncher("1554565156657299598"), Throws.TypeOf<DiscordLinkStore.LinkException>());
+    }
+
+    [Test]
     public void CodeIsSingleUseAndMappingSurvivesRestart()
     {
         var uid = Guid.NewGuid();

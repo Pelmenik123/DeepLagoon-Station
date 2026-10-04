@@ -182,7 +182,7 @@ public sealed class DiscordLinkSystem : EntitySystem
             return false;
         context.ResponseHeaders["Cache-Control"] = "no-store";
         if (context.RequestMethod != HttpMethod.Post ||
-            path is not ("/deeplagoon/discord/link" or "/deeplagoon/discord/lookup" or "/deeplagoon/discord/whitelist" or "/deeplagoon/discord/remove_whitelist" or "/deeplagoon/discord/unlink_discord"))
+            path is not ("/deeplagoon/discord/enroll_launcher" or "/deeplagoon/discord/link" or "/deeplagoon/discord/lookup" or "/deeplagoon/discord/whitelist" or "/deeplagoon/discord/remove_whitelist" or "/deeplagoon/discord/unlink_discord"))
         {
             await context.RespondErrorAsync(HttpStatusCode.NotFound);
             return true;
@@ -230,7 +230,9 @@ public sealed class DiscordLinkSystem : EntitySystem
                 try
                 {
                     DiscordLinkStore.Link? link;
-                    if (path.EndsWith("/link", StringComparison.Ordinal))
+                    if (path.EndsWith("/enroll_launcher", StringComparison.Ordinal))
+                        link = _store.EnrollLauncher(request.DiscordId);
+                    else if (path.EndsWith("/link", StringComparison.Ordinal))
                     {
                         var code = request.Code?.Trim().ToUpperInvariant() ?? "";
                         if (code.Length != 24 || code.Any(c => !char.IsAsciiHexDigit(c)))
