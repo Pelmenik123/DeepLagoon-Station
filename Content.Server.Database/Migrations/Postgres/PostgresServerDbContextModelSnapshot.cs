@@ -959,6 +959,11 @@ namespace Content.Server.Database.Migrations.Postgres
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Customization")
+                        .HasMaxLength(4096)
+                        .HasColumnType("character varying(4096)")
+                        .HasColumnName("customization");
+
                     b.Property<string>("LoadoutName")
                         .IsRequired()
                         .HasColumnType("text")

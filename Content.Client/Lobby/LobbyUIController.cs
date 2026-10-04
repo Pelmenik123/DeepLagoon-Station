@@ -569,6 +569,8 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
             }
         }
 
+        if (humanoid != null && jobClothes)
+            EntityManager.System<Content.Shared._DeepLagoon.Loadouts.PersonalLoadoutEquipSystem>().Apply(dummyEnt, humanoid, (job ?? GetPreferredJob(humanoid)).ID, _playerManager.LocalSession, preview: true);
         return dummyEnt;
     }
 

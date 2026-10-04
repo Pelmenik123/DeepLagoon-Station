@@ -1,0 +1,5 @@
+# Imported from Simple-Station/Einstein-Engines, master archive.
+- type: entity
+  parent: Paper
+  id: TapeRecorderTranscript
+  name: record transcript

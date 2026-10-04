@@ -16,6 +16,8 @@ using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Preferences;
 using Content.Shared.Preferences.Loadouts;
+using Content.Shared._DeepLagoon.Loadouts;
+using System.Text.Json;
 using Content.Shared.Roles;
 using Content.Shared.Traits;
 using Microsoft.EntityFrameworkCore;
@@ -237,6 +239,7 @@ namespace Content.Server.Database
                         groupLoadouts.Add(new Loadout()
                         {
                             Prototype = profLoadout.LoadoutName,
+                            Customization = profLoadout.Customization == null ? null : JsonSerializer.Deserialize<PersonalLoadoutCustomization>(profLoadout.Customization),
                         });
                     }
                 }
@@ -360,6 +363,7 @@ namespace Content.Server.Database
                         profileGroup.Loadouts.Add(new ProfileLoadout()
                         {
                             LoadoutName = loadout.Prototype,
+                            Customization = loadout.Customization == null ? null : JsonSerializer.Serialize(loadout.Customization),
                         });
                     }
 

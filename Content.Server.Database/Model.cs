@@ -540,6 +540,9 @@ namespace Content.Server.Database
         /// </summary>
         public string LoadoutName { get; set; } = string.Empty;
 
+        [MaxLength(4096)]
+        public string? Customization { get; set; }
+
         /*
          * Insert extra data here like custom descriptions or colors or whatever.
          */
