@@ -58,10 +58,10 @@ public sealed class DiscordLinkStoreTests
         using var store = new DiscordLinkStore(_path, () => _now);
         var first = store.EnrollLauncher("1554565156657299597", "discord.nickname");
         var second = store.EnrollLauncher("1554565156657299598", "discord.nickname");
-        Assert.That(first.Username, Is.EqualTo("L_discord.nickname"));
+        Assert.That(first.Username, Is.EqualTo("@discord.nickname"));
         Assert.That(first.Username.Length, Is.LessThanOrEqualTo(32));
         Assert.That(second.Username, Is.Not.EqualTo(first.Username));
-        Assert.That(second.Username, Is.EqualTo("L_discord.nickname_2"));
+        Assert.That(second.Username, Is.EqualTo("@discord.nickname_2"));
         Assert.That(store.EnrollLauncher("1554565156657299597", "renamed_discord"), Is.EqualTo(first));
         var official = Guid.NewGuid();
         store.Consume("1554565156657299599", store.Issue(official, "OfficialName"));

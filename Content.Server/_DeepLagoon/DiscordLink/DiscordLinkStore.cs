@@ -82,7 +82,7 @@ public sealed class DiscordLinkStore : IDisposable
             for (var attempt = 0; ; attempt++)
             {
                 var suffix = attempt == 0 ? "" : "_" + (attempt + 1);
-                username = "L_" + nickname[..Math.Min(nickname.Length, 30 - suffix.Length)] + suffix;
+                username = "@" + nickname[..Math.Min(nickname.Length, 30 - suffix.Length)] + suffix;
                 using var check = Command("SELECT 1 FROM discord_links WHERE username=$name COLLATE NOCASE", ("$name", username));
                 check.Transaction = transaction;
                 if (check.ExecuteScalar() == null) break;
