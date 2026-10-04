@@ -174,7 +174,7 @@ public sealed class DiscordLinkSystem : EntitySystem
         _euis.OpenEui(prompt, args.Session);
     }
 
-    // Only the trusted bot process may redeem codes or grant whitelist. Keep this API on loopback.
+    // The OAuth backend has an enrollment-only key; the bot retains administrative API access.
     private async Task<bool> HandleApi(IStatusHandlerContext context)
     {
         var path = context.Url.AbsolutePath;
@@ -187,10 +187,14 @@ public sealed class DiscordLinkSystem : EntitySystem
             await context.RespondErrorAsync(HttpStatusCode.NotFound);
             return true;
         }
+        var expectedToken = path.EndsWith("/enroll_launcher", StringComparison.Ordinal)
+            ? Convert.ToHexString(HMACSHA256.HashData(Encoding.UTF8.GetBytes(_token),
+                Encoding.UTF8.GetBytes("lagoon-launcher-enrollment-v1"))).ToLowerInvariant()
+            : _token;
         var authorized = _enabled && _token.Length >= 32 &&
             IPAddress.IsLoopback(context.RemoteEndPoint.Address) &&
             context.RequestHeaders.TryGetValue("Authorization", out var auth) &&
-            CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(auth.ToString()), Encoding.UTF8.GetBytes("Bearer " + _token));
+            CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(auth.ToString()), Encoding.UTF8.GetBytes("Bearer " + expectedToken));
         if (!authorized)
         {
             await context.RespondErrorAsync(HttpStatusCode.Unauthorized);
