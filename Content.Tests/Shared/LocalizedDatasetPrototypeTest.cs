@@ -14,6 +14,8 @@ public sealed class LocalizedDatasetPrototypeTest : ContentUnitTest
 {
     private IPrototypeManager _prototypeManager;
 
+    private static readonly ProtoId<LocalizedDatasetPrototype> TestProto = "Test";
+
     [OneTimeSetUp]
     public void OneTimeSetup()
     {
@@ -35,7 +37,7 @@ public sealed class LocalizedDatasetPrototypeTest : ContentUnitTest
     [Test]
     public void LocalizedDatasetTest()
     {
-        var testPrototype = _prototypeManager.Index<LocalizedDatasetPrototype>("Test");
+        var testPrototype = _prototypeManager.Index(TestProto);
         var values = new ValueList<string>();
         foreach (var value in testPrototype.Values)
         {

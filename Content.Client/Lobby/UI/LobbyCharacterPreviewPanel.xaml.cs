@@ -12,7 +12,7 @@ namespace Content.Client.Lobby.UI;
 [GenerateTypedNameReferences]
 public sealed partial class LobbyCharacterPreviewPanel : Control
 {
-    [Dependency] private readonly IEntityManager _entManager = default!;
+    [Dependency] private IEntityManager _entManager = default!;
 
     public Button CharacterSetupButton => CharacterSetup;
 
@@ -71,7 +71,7 @@ public sealed partial class LobbyCharacterPreviewPanel : Control
 
         _previewDummy = uid;
 
-        ViewBox.DisposeAllChildren();
+        ViewBox.RemoveAllChildren();
         var spriteView = new SpriteView
         {
             OverrideDirection = Direction.South,
@@ -83,9 +83,9 @@ public sealed partial class LobbyCharacterPreviewPanel : Control
         ViewBox.AddChild(spriteView);
     }
 
-    protected override void Dispose(bool disposing)
+    protected override void ExitedTree()
     {
-        base.Dispose(disposing);
+        base.ExitedTree();
         _entManager.DeleteEntity(_previewDummy);
         _previewDummy = null;
     }

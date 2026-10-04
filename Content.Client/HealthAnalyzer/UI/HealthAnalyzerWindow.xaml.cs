@@ -189,7 +189,7 @@ namespace Content.Client.HealthAnalyzer.UI
             AlertsContainer.Visible = showAlerts;
 
             if (showAlerts)
-                AlertsContainer.DisposeAllChildren();
+                AlertsContainer.RemoveAllChildren();
 
             if (msg.Unrevivable == true)
                 AlertsContainer.AddChild(new RichTextLabel
@@ -349,14 +349,14 @@ namespace Content.Client.HealthAnalyzer.UI
             {
                 // TODO: PartStatusUIController and make it use layers instead of TextureRects when EE refactors alerts.
                 string enumName = Enum.GetName(typeof(TargetBodyPart), bodyPart) ?? "Unknown";
-                int enumValue = (int) integrity;
+                int enumValue = (int)integrity;
                 var rsi = new SpriteSpecifier.Rsi(new ResPath($"/Textures/_Shitmed/Interface/Targeting/Status/{enumName.ToLowerInvariant()}.rsi"), $"{enumName.ToLowerInvariant()}_{enumValue}");
                 // Shitcode with love from Russia :)
-                if (!sprite.TryGetLayer(layer, out _))
-                    sprite.AddLayer(_spriteSystem.Frame0(rsi));
+                if (!_spriteSystem.LayerExists(sprite.AsEntity(), layer))
+                    _spriteSystem.AddTextureLayer(sprite.AsEntity(), _spriteSystem.Frame0(rsi));
                 else
-                    sprite.LayerSetTexture(layer, _spriteSystem.Frame0(rsi));
-                sprite.LayerSetScale(layer, new Vector2(3f, 3f));
+                    _spriteSystem.LayerSetTexture(sprite.AsEntity(), layer, _spriteSystem.Frame0(rsi));
+                _spriteSystem.LayerSetScale(sprite.AsEntity(), layer, new Vector2(3f, 3f));
                 layer++;
             }
             return _spriteViewEntity;

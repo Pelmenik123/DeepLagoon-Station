@@ -1,4 +1,4 @@
-﻿using Content.Shared.FixedPoint;
+using Content.Shared.FixedPoint;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
@@ -14,7 +14,7 @@ public sealed partial class SiliconLawset
     /// List of laws in this lawset.
     /// </summary>
     [DataField(required: true), ViewVariables(VVAccess.ReadWrite)]
-    public List<SiliconLaw> Laws = new();
+    public List<SiliconLaw> Laws = [];
 
     /// <summary>
     /// What entity the lawset considers as a figure of authority.
@@ -60,7 +60,7 @@ public sealed partial class SiliconLawset
 /// This is a prototype for a <see cref="SiliconLawPrototype"/> list.
 /// Cannot be used directly since it is a list of prototype ids rather than List<Siliconlaw>.
 /// </summary>
-[Prototype, Serializable, NetSerializable]
+[Prototype]
 public sealed partial class SiliconLawsetPrototype : IPrototype
 {
     /// <inheritdoc/>
@@ -71,7 +71,7 @@ public sealed partial class SiliconLawsetPrototype : IPrototype
     /// List of law prototype ids in this lawset.
     /// </summary>
     [DataField(required: true)]
-    public List<ProtoId<SiliconLawPrototype>> Laws = new();
+    public List<ProtoId<SiliconLawPrototype>> Laws = [];
 
     /// <summary>
     /// What entity the lawset considers as a figure of authority.

@@ -10,11 +10,11 @@ namespace Content.Shared.Chemistry.Dispenser
     /// to define which reagents it's able to dispense. Based off of how vending
     /// machines define their inventory.
     /// </summary>
-    [Serializable, NetSerializable, Prototype]
+    [Prototype]
     public sealed partial class ReagentDispenserInventoryPrototype : IPrototype
     {
         [DataField("inventory")]
-        public List<EntProtoId> Inventory = new();
+        public List<EntProtoId> Inventory = [];
 
         [ViewVariables, IdDataField]
         public string ID { get; private set; } = default!;

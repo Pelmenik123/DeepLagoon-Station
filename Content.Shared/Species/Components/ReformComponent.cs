@@ -1,4 +1,4 @@
-    using Robust.Shared.Prototypes;
+using Robust.Shared.Prototypes;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared.Species.Components;
@@ -12,7 +12,7 @@ public sealed partial class ReformComponent : Component
     [DataField(required: true)]
     public EntProtoId ActionPrototype = default!;
 
-    [DataField, AutoNetworkedField] 
+    [DataField, AutoNetworkedField]
     public EntityUid? ActionEntity;
 
     /// <summary>

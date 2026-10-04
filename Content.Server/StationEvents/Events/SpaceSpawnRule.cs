@@ -11,9 +11,9 @@ namespace Content.Server.StationEvents.Events;
 /// <summary>
 /// Station event component for spawning this rules antags in space around a station.
 /// </summary>
-public sealed class SpaceSpawnRule : StationEventSystem<SpaceSpawnRuleComponent>
+public sealed partial class SpaceSpawnRule : StationEventSystem<SpaceSpawnRuleComponent>
 {
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     public override void Initialize()
     {
@@ -59,7 +59,7 @@ public sealed class SpaceSpawnRule : StationEventSystem<SpaceSpawnRuleComponent>
 
     private void OnSelectLocation(Entity<SpaceSpawnRuleComponent> ent, ref AntagSelectLocationEvent args)
     {
-        if (ent.Comp.Coords is {} coords)
+        if (ent.Comp.Coords is { } coords)
             args.Coordinates.Add(coords);
     }
 }

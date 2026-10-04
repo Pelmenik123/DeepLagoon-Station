@@ -13,7 +13,7 @@ public static class InteractionPanelActionCatalog
             .Select(p => p.Definition()).ToArray();
 }
 
-[Prototype("interactionPanel")]
+[Prototype]
 public sealed partial class InteractionPanelPrototype : IPrototype
 {
     [IdDataField] public string ID { get; private set; } = default!;

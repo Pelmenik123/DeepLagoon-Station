@@ -51,8 +51,8 @@ namespace Content.Client.Shuttles.UI;
 [Virtual]
 public partial class ShuttleNavControl : BaseShuttleControl // Mono
 {
-    private SharedMapSystem _mapManager => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
-    [Dependency] private readonly IUserInterfaceManager _uiManager = default!;
+    SharedMapSystem _mapManager => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
+    [Dependency] private IUserInterfaceManager _uiManager = default!;
     private readonly DetectionSystem _detection; // Mono
     private readonly StationSystem _station; // Frontier
     private readonly SharedShuttleSystem _shuttles;
@@ -837,7 +837,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
         return (scaledValue - MidPointVector) / MinimapScale;
     }
 
-    public class BlipData
+    public sealed class BlipData
     {
         public bool IsOutsideRadarCircle { get; set; }
         public Vector2 UiPosition { get; set; }
@@ -860,10 +860,10 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
                 continue;
 
             // Don't draw shields when in FTL
-            if (EntManager.HasComponent<FTLComponent>(parentXform.Owner))
+            if (EntManager.HasComponent<FTLComponent>(xform.GridUid!.Value))
                 continue;
 
-            var detectionLevel = _consoleEntity == null ? DetectionLevel.Detected : _detection.IsGridDetected(parentXform.Owner, _consoleEntity.Value);
+            var detectionLevel = _consoleEntity == null ? DetectionLevel.Detected : _detection.IsGridDetected(xform.GridUid!.Value, _consoleEntity.Value);
             if (detectionLevel != DetectionLevel.Detected)
                 continue;
 
@@ -872,7 +872,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
             if (shieldFixture == null || shieldFixture.Shape is not ChainShape)
                 continue;
 
-            ChainShape chain = (ChainShape) shieldFixture.Shape;
+            ChainShape chain = (ChainShape)shieldFixture.Shape;
 
             var count = chain.Count;
             var verticies = chain.Vertices;
@@ -882,12 +882,12 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
             for (int i = 1; i < count; i++)
             {
                 var v1 = Vector2.Add(center, verticies[i - 1]);
-                v1 = Vector2.Transform(v1, parentXform.WorldMatrix); // transform to world matrix
+                v1 = Vector2.Transform(v1, _transform.GetWorldMatrix(parentXform)); // transform to world matrix
                 v1 = Vector2.Transform(v1, matrix); // get back to local matrix for drawing
                 v1.Y = -v1.Y;
                 v1 = ScalePosition(v1);
                 var v2 = Vector2.Add(center, verticies[i]);
-                v2 = Vector2.Transform(v2, parentXform.WorldMatrix);
+                v2 = Vector2.Transform(v2, _transform.GetWorldMatrix(parentXform));
                 v2 = Vector2.Transform(v2, matrix);
                 v2.Y = -v2.Y;
                 v2 = ScalePosition(v2);

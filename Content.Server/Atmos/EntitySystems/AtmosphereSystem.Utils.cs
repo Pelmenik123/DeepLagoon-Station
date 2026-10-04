@@ -111,7 +111,7 @@ public partial class AtmosphereSystem
 
             fixVacuum |= airtight.FixVacuum;
 
-            if(!airtight.AirBlocked)
+            if (!airtight.AirBlocked)
                 continue;
 
             blockedDirs |= airtight.AirBlockedDirection;
@@ -131,7 +131,7 @@ public partial class AtmosphereSystem
     /// <param name="tile">The indices of the tile.</param>
     private void PryTile(EntityUid gridUid, MapGridComponent mapGrid, Vector2i tile)
     {
-        if (!_mapManager.TryGetTileRef(gridUid, mapGrid, tile, out var tileRef))
+        if (!_mapSystem.TryGetTileRef(gridUid, mapGrid, tile, out var tileRef))
             return;
 
         _tile.PryTile(tileRef);

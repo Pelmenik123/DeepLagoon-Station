@@ -12,7 +12,6 @@ namespace Content.Shared.Damage.Prototypes
     ///     cref="DamageableComponent"/> should support.
     /// </remarks>
     [Prototype]
-    [Serializable, NetSerializable]
     public sealed partial class DamageContainerPrototype : IPrototype
     {
         [ViewVariables]
@@ -23,13 +22,13 @@ namespace Content.Shared.Damage.Prototypes
         ///     List of damage groups that are supported by this container.
         /// </summary>
         [DataField("supportedGroups")]
-        public List<ProtoId<DamageGroupPrototype>> SupportedGroups = new();
+        public List<ProtoId<DamageGroupPrototype>> SupportedGroups = [];
 
         /// <summary>
         ///     Partial List of damage types supported by this container. Note that members of the damage groups listed
         ///     in <see cref="SupportedGroups"/> are also supported, but they are not included in this list.
         /// </summary>
         [DataField("supportedTypes")]
-        public List<ProtoId<DamageTypePrototype>> SupportedTypes = new();
+        public List<ProtoId<DamageTypePrototype>> SupportedTypes = [];
     }
 }

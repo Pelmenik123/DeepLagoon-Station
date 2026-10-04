@@ -9,9 +9,9 @@ using Content.Shared.DeviceNetwork.Events;
 namespace Content.Server.DeviceNetwork.Systems
 {
     [UsedImplicitly]
-    public sealed class ApcNetworkSystem : EntitySystem
+    public sealed partial class ApcNetworkSystem : EntitySystem
     {
-        [Dependency] private readonly NodeContainerSystem _nodeContainer = default!;
+        [Dependency] private NodeContainerSystem _nodeContainer = default!;
 
         public override void Initialize()
         {
@@ -28,7 +28,7 @@ namespace Content.Server.DeviceNetwork.Systems
         /// </summary>
         private void OnBeforePacketSent(EntityUid uid, ApcNetworkComponent receiver, BeforePacketSentEvent args)
         {
-            if (!EntityManager.TryGetComponent(args.Sender, out ApcNetworkComponent? sender)) return;
+            if (!TryComp(args.Sender, out ApcNetworkComponent? sender)) return;
 
             if (sender.ConnectedNode?.NodeGroup == null || !sender.ConnectedNode.NodeGroup.Equals(receiver.ConnectedNode?.NodeGroup))
             {
@@ -38,7 +38,7 @@ namespace Content.Server.DeviceNetwork.Systems
 
         private void OnProviderConnected(EntityUid uid, ApcNetworkComponent component, ExtensionCableSystem.ProviderConnectedEvent args)
         {
-            if (!EntityManager.TryGetComponent(args.Provider.Owner, out NodeContainerComponent? nodeContainer)) return;
+            if (!TryComp(args.Provider.Owner, out NodeContainerComponent? nodeContainer)) return;
 
             if (_nodeContainer.TryGetNode(nodeContainer, "power", out CableNode? node))
             {

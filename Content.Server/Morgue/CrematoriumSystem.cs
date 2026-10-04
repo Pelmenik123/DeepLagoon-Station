@@ -22,18 +22,17 @@ using Robust.Shared.Player;
 
 namespace Content.Server.Morgue;
 
-public sealed class CrematoriumSystem : EntitySystem
+public sealed partial class CrematoriumSystem : EntitySystem
 {
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] private readonly GhostSystem _ghostSystem = default!;
-    [Dependency] private readonly EntityStorageSystem _entityStorage = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly StandingStateSystem _standing = default!;
-    [Dependency] private readonly SharedMindSystem _minds = default!;
-    [Dependency] private readonly SharedContainerSystem _containers = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!; // Frontier
-    [Dependency] private readonly SharedMindSystem _mind = default!; // frontier
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private GhostSystem _ghostSystem = default!;
+    [Dependency] private EntityStorageSystem _entityStorage = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private StandingStateSystem _standing = default!;
+    [Dependency] private SharedMindSystem _minds = default!;
+    [Dependency] private SharedContainerSystem _containers = default!;
+    [Dependency] private MobStateSystem _mobState = default!; // Frontier
 
     public override void Initialize()
     {
@@ -128,7 +127,7 @@ public sealed class CrematoriumSystem : EntitySystem
             return false;
         if (TryComp<MobStateComponent>(entity, out var comp) && !_mobState.IsDead(entity, comp))
             return false;
-        if (_mind.TryGetMind(entity, out var _, out var mind) && mind.Session?.State?.Status == SessionStatus.InGame)
+        if (_minds.TryGetMind(entity, out var _, out var mind) && mind.Session?.State?.Status == SessionStatus.InGame)
             return false;
 
         return Cremate(uid, component, storage);
@@ -148,7 +147,7 @@ public sealed class CrematoriumSystem : EntitySystem
             {
                 var item = storage.Contents.ContainedEntities[i];
                 _containers.Remove(item, storage.Contents);
-                EntityManager.DeleteEntity(item);
+                Del(item);
             }
             var ash = Spawn("Ash", Transform(uid).Coordinates);
             _containers.Insert(ash, storage.Contents);
@@ -186,7 +185,7 @@ public sealed class CrematoriumSystem : EntitySystem
         }
         else
         {
-            EntityManager.DeleteEntity(victim);
+            Del(victim);
         }
         _entityStorage.CloseStorage(uid);
         Cremate(uid, component);

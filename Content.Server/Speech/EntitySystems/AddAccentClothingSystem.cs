@@ -22,7 +22,7 @@ public sealed class AddAccentClothingSystem : EntitySystem
             return;
 
         // add accent to the user
-        var accentComponent = (Component) Factory.GetComponent(componentType);
+        var accentComponent = (Component)Factory.GetComponent(componentType);
         AddComp(args.Wearer, accentComponent);
 
         // snowflake case for replacement accent
@@ -41,7 +41,7 @@ public sealed class AddAccentClothingSystem : EntitySystem
 
         // try to remove accent
         var componentType = Factory.GetRegistration(component.Accent).Type;
-        EntityManager.RemoveComponent(args.Wearer, componentType);
+        RemComp(args.Wearer, componentType);
 
         component.IsActive = false;
     }
@@ -82,7 +82,7 @@ public sealed class AddAccentClothingSystem : EntitySystem
                 return;
 
             // add accent to the user
-            var accentComponent = (Component) Factory.GetComponent(componentType);
+            var accentComponent = (Component)Factory.GetComponent(componentType);
             AddComp(component.Wearer, accentComponent);
 
             // snowflake case for replacement accent

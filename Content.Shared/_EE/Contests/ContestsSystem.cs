@@ -12,8 +12,8 @@ namespace Content.Shared.Contests;
 
 public sealed partial class ContestsSystem : EntitySystem
 {
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly MobThresholdSystem _mobThreshold = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private MobThresholdSystem _mobThreshold = default!;
 
     /// <summary>
     ///     The presumed average mass of a player entity
@@ -412,8 +412,8 @@ public sealed partial class ContestsSystem : EntitySystem
             ? MassContest(performer, bypassClampMass, rangeFactorMass) * massMultiplier
                 + StaminaContest(performer, bypassClampStamina, rangeFactorStamina) * staminaMultiplier
                 + HealthContest(performer, bypassClampHealth, rangeFactorHealth) * healthMultiplier
-                //+ MindContest(performer, bypassClampMind, rangeFactorMind) * mindMultiplier
-                //+ MoodContest(performer, bypassClampMood, rangeFactorMood) * moodMultiplier
+            //+ MindContest(performer, bypassClampMind, rangeFactorMind) * mindMultiplier
+            //+ MoodContest(performer, bypassClampMood, rangeFactorMood) * moodMultiplier
             : ContestClamp(MassContest(performer, bypassClampMass, rangeFactorMass) * massMultiplier
                 * StaminaContest(performer, bypassClampStamina, rangeFactorStamina) * staminaMultiplier
                 * HealthContest(performer, bypassClampHealth, rangeFactorHealth) * healthMultiplier
@@ -463,8 +463,8 @@ public sealed partial class ContestsSystem : EntitySystem
             ? MassContest(performer, target, bypassClampMass, rangeFactorMass) * massMultiplier
                 + StaminaContest(performer, target, bypassClampStamina, rangeFactorStamina) * staminaMultiplier
                 + HealthContest(performer, target, bypassClampHealth, rangeFactorHealth) * healthMultiplier
-                //+ MindContest(performer, target, bypassClampMind, rangeFactorMind) * mindMultiplier
-                //+ MoodContest(performer, target, bypassClampMood, rangeFactorMood) * moodMultiplier
+            //+ MindContest(performer, target, bypassClampMind, rangeFactorMind) * mindMultiplier
+            //+ MoodContest(performer, target, bypassClampMood, rangeFactorMood) * moodMultiplier
             : ContestClamp(MassContest(performer, target, bypassClampMass, rangeFactorMass) * massMultiplier
                 * StaminaContest(performer, target, bypassClampStamina, rangeFactorStamina) * staminaMultiplier
                 * HealthContest(performer, target, bypassClampHealth, rangeFactorHealth) * healthMultiplier

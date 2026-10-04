@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Content.Client.Eui;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Eui;
@@ -11,10 +11,10 @@ using static Content.Shared.Administration.Logs.AdminLogsEuiMsg;
 namespace Content.Client.Administration.UI.Logs;
 
 [UsedImplicitly]
-public sealed class AdminLogsEui : BaseEui
+public sealed partial class AdminLogsEui : BaseEui
 {
-    [Dependency] private readonly IClyde _clyde = default!;
-    [Dependency] private readonly IUserInterfaceManager _uiManager = default!;
+    [Dependency] private IClyde _clyde = default!;
+    [Dependency] private IUserInterfaceManager _uiManager = default!;
 
     public AdminLogsEui()
     {
@@ -92,8 +92,8 @@ public sealed class AdminLogsEui : BaseEui
             Height = 400
         });
 
-        LogsControl.Orphan();
-        LogsWindow.Dispose();
+        if (!LogsControl.Disposed) LogsControl.Orphan();
+        LogsWindow.DisposeControl();
         LogsWindow = null;
 
         ClydeWindow.RequestClosed += OnRequestClosed;
@@ -108,7 +108,7 @@ public sealed class AdminLogsEui : BaseEui
 
     public override void HandleState(EuiStateBase state)
     {
-        var s = (AdminLogsEuiState) state;
+        var s = (AdminLogsEuiState)state;
 
         if (s.IsLoading)
         {
@@ -175,9 +175,9 @@ public sealed class AdminLogsEui : BaseEui
             ClydeWindow.RequestClosed -= OnRequestClosed;
         }
 
-        LogsControl.Dispose();
-        LogsWindow?.Dispose();
-        Root?.Dispose();
+        LogsControl.DisposeControl();
+        LogsWindow?.DisposeControl();
+        Root?.DisposeControl();
         ClydeWindow?.Dispose();
     }
 }

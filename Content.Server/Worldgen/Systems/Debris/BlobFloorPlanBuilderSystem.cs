@@ -10,12 +10,12 @@ namespace Content.Server.Worldgen.Systems.Debris;
 /// <summary>
 ///     This handles building the floor plans for "blobby" debris.
 /// </summary>
-public sealed class BlobFloorPlanBuilderSystem : BaseWorldSystem
+public sealed partial class BlobFloorPlanBuilderSystem : BaseWorldSystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly ITileDefinitionManager _tileDefinition = default!;
-    [Dependency] private readonly TileSystem _tiles = default!;
-    [Dependency] private readonly SharedMapSystem _map = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private ITileDefinitionManager _tileDefinition = default!;
+    [Dependency] private TileSystem _tiles = default!;
+    [Dependency] private SharedMapSystem _map = default!;
 
     /// <inheritdoc />
     public override void Initialize()
@@ -60,7 +60,7 @@ public sealed class BlobFloorPlanBuilderSystem : BaseWorldSystem
                 spawnPoints.Add(west);
 
             var tileDef = _tileDefinition[_random.Pick(comp.FloorTileset)];
-            taken.Add(point, new Tile(tileDef.TileId, 0, _tiles.PickVariant((ContentTileDefinition) tileDef)));
+            taken.Add(point, new Tile(tileDef.TileId, 0, _tiles.PickVariant((ContentTileDefinition)tileDef)));
         }
 
         PlaceTile(Vector2i.Zero);

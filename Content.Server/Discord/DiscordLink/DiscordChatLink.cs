@@ -15,13 +15,13 @@ using Robust.Shared.Network;
 
 namespace Content.Server.Discord.DiscordLink;
 
-public sealed class DiscordChatLink : IPostInjectInit
+public sealed partial class DiscordChatLink : IPostInjectInit
 {
-    [Dependency] private readonly DiscordLink _discordLink = default!;
-    [Dependency] private readonly IConfigurationManager _configurationManager = default!;
-    [Dependency] private readonly IChatManager _chatManager = default!;
-    [Dependency] private readonly ITaskManager _taskManager = default!;
-    [Dependency] private readonly ILogManager _logManager = default!;
+    [Dependency] private DiscordLink _discordLink = default!;
+    [Dependency] private IConfigurationManager _configurationManager = default!;
+    [Dependency] private IChatManager _chatManager = default!;
+    [Dependency] private ITaskManager _taskManager = default!;
+    [Dependency] private ILogManager _logManager = default!;
 
     private ISawmill _sawmill = default!;
 
@@ -161,7 +161,7 @@ public sealed class DiscordChatLink : IPostInjectInit
                 // Check for "ao:" prefix to determine if message should be admin-only
                 var adminOnly = false;
                 var processedContents = contents;
-                
+
                 if (contents.StartsWith("ao:", StringComparison.OrdinalIgnoreCase))
                 {
                     adminOnly = true;

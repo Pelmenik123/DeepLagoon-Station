@@ -101,7 +101,7 @@ namespace Content.Client.Shuttles.UI
         // Frontier - Maximum IFF Distance
         private void OnRangeFilterChanged(int value)
         {
-            NavRadar.MaximumIFFDistance = (float) value;
+            NavRadar.MaximumIFFDistance = (float)value;
         }
 
         // Frontier - Maximum Shuttle Speed
@@ -117,11 +117,11 @@ namespace Content.Client.Shuttles.UI
             if (_entManager.TryGetComponent<MetaDataComponent>(shuttle, out var metadata))
             {
                 var shipName = metadata.EntityName;
-                
+
                 // Try to find a designation in the format XXX-### (like CIV-748)
                 // by checking each word in the ship name
                 var shipNameParts = shipName.Split(' ');
-                
+
                 foreach (var part in shipNameParts)
                 {
                     // Check if this part matches the designation format (e.g., CIV-748)
@@ -138,7 +138,7 @@ namespace Content.Client.Shuttles.UI
                         }
                     }
                 }
-                
+
                 // If we get here, no designation was found, so just show the full name
                 NavDisplayLabel.Text = shipName;
                 // Leave ShuttleDesignation.Text as "Unknown" (the default)

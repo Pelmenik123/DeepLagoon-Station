@@ -8,7 +8,7 @@ namespace Content.Shared.Chat.Prototypes;
 ///     Sounds collection for each <see cref="EmotePrototype"/>.
 ///     Different entities may use different sounds collections.
 /// </summary>
-[Prototype, Serializable, NetSerializable]
+[Prototype]
 public sealed partial class EmoteSoundsPrototype : IPrototype
 {
     [IdDataField]
@@ -32,5 +32,5 @@ public sealed partial class EmoteSoundsPrototype : IPrototype
     ///     Collection of emote prototypes and their sounds.
     /// </summary>
     [DataField("sounds")]
-    public Dictionary<ProtoId<EmotePrototype>, SoundSpecifier> Sounds = new();
+    public Dictionary<ProtoId<EmotePrototype>, SoundSpecifier> Sounds = [];
 }

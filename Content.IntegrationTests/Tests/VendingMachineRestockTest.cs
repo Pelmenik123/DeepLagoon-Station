@@ -135,7 +135,7 @@ namespace Content.IntegrationTests.Tests
                 // Collect all the prototypes with StorageFills referencing those entities.
                 foreach (var proto in prototypeManager.EnumeratePrototypes<EntityPrototype>())
                 {
-                    if (!proto.TryGetComponent<StorageFillComponent>(out var storage, compFact))
+                    if (!proto.TryComp<StorageFillComponent>(out var storage, compFact))
                         continue;
 
                     List<string> restockStore = new();
@@ -295,14 +295,14 @@ namespace Content.IntegrationTests.Tests
                     "Did not start with zero ramen.");
 
                 restock = entityManager.SpawnEntity("TestRestockExplode", coordinates);
-                var damageSpec = new DamageSpecifier(prototypeManager.Index<DamageTypePrototype>("Blunt"), 100);
+                var damageSpec = new DamageSpecifier(prototypeManager.Index<DamageTypePrototype>(new ProtoId<DamageTypePrototype>("Blunt")), 100);
                 var damageResult = damageableSystem.TryChangeDamage(restock, damageSpec);
 
 #pragma warning disable NUnit2045
                 Assert.That(damageResult, Is.Not.Null,
                     "Received null damageResult when attempting to damage restock box.");
 
-                Assert.That((int) damageResult!.GetTotal(), Is.GreaterThan(0),
+                Assert.That((int)damageResult!.GetTotal(), Is.GreaterThan(0),
                     "Box damage result was not greater than 0.");
 #pragma warning restore NUnit2045
             });

@@ -13,7 +13,9 @@ public sealed partial class AtmosPipeColorComponent : Component
     public Color ColorVV
     {
         get => Color;
+#pragma warning disable CS0618 // Matches upstream SS14: VV-only setter has no EntityUid parameter.
         set => IoCManager.Resolve<IEntityManager>().System<AtmosPipeColorSystem>().SetColor(Owner, this, value);
+#pragma warning restore CS0618
     }
 }
 

@@ -1,4 +1,4 @@
-﻿using Content.Server.Administration.Notes;
+using Content.Server.Administration.Notes;
 using Content.Shared.Administration;
 using Robust.Shared.Console;
 

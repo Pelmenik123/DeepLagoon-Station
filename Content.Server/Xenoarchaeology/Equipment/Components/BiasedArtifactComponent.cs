@@ -1,4 +1,4 @@
-﻿namespace Content.Server.Xenoarchaeology.Equipment.Components;
+namespace Content.Server.Xenoarchaeology.Equipment.Components;
 
 /// <summary>
 /// This is used for artifacts that are biased to move

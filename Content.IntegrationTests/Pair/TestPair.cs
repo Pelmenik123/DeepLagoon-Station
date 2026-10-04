@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -36,7 +36,7 @@ public sealed partial class TestPair
     public int ClientSeed;
 
     public RobustIntegrationTest.ServerIntegrationInstance Server { get; private set; } = default!;
-    public RobustIntegrationTest.ClientIntegrationInstance Client { get;  private set; } = default!;
+    public RobustIntegrationTest.ClientIntegrationInstance Client { get; private set; } = default!;
 
     public void Deconstruct(
         out RobustIntegrationTest.ServerIntegrationInstance server,
@@ -50,8 +50,8 @@ public sealed partial class TestPair
 
     public ContentPlayerData? PlayerData => Player?.Data.ContentData();
 
-    public PoolTestLogHandler ServerLogHandler { get;  private set; } = default!;
-    public PoolTestLogHandler ClientLogHandler { get;  private set; } = default!;
+    public PoolTestLogHandler ServerLogHandler { get; private set; } = default!;
+    public PoolTestLogHandler ClientLogHandler { get; private set; } = default!;
 
     public TestPair(int id)
     {

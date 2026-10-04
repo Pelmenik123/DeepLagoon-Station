@@ -22,12 +22,12 @@ namespace Content.Server.Nutrition.EntitySystems
 {
     public sealed partial class SmokingSystem
     {
-        [Dependency] private readonly DoAfterSystem _doAfterSystem = default!;
-        [Dependency] private readonly DamageableSystem _damageableSystem = default!;
-        [Dependency] private readonly EmagSystem _emag = default!;
-        [Dependency] private readonly FoodSystem _foodSystem = default!;
-        [Dependency] private readonly ExplosionSystem _explosionSystem = default!;
-        [Dependency] private readonly PopupSystem _popupSystem = default!;
+        [Dependency] DoAfterSystem _doAfterSystem = default!;
+        [Dependency] DamageableSystem _damageableSystem = default!;
+        [Dependency] EmagSystem _emag = default!;
+        [Dependency] FoodSystem _foodSystem = default!;
+        [Dependency] ExplosionSystem _explosionSystem = default!;
+        [Dependency] PopupSystem _popupSystem = default!;
 
         private void InitializeVapes()
         {
@@ -68,7 +68,7 @@ namespace Content.Server.Nutrition.EntitySystems
             if (entity.Comp.ExplodeOnUse || _emag.CheckFlag(entity, EmagType.Interaction))
             {
                 _explosionSystem.QueueExplosion(entity.Owner, "Default", entity.Comp.ExplosionIntensity, 0.5f, 3, canCreateVacuum: false);
-                EntityManager.DeleteEntity(entity);
+                Del(entity);
                 exploded = true;
             }
             else
@@ -84,7 +84,7 @@ namespace Content.Server.Nutrition.EntitySystems
                     {
                         exploded = true;
                         _explosionSystem.QueueExplosion(entity.Owner, "Default", entity.Comp.ExplosionIntensity, 0.5f, 3, canCreateVacuum: false);
-                        EntityManager.DeleteEntity(entity);
+                        Del(entity);
                         break;
                     }
                 }

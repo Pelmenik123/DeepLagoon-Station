@@ -11,7 +11,7 @@ namespace Content.Server.Explosion.EntitySystems;
 
 public sealed partial class ExplosionSystem
 {
-    [Dependency] private readonly DestructibleSystem _destructibleSystem = default!;
+    [Dependency] DestructibleSystem _destructibleSystem = default!;
 
     private readonly Dictionary<string, int> _explosionTypes = new();
 
@@ -66,10 +66,10 @@ public sealed partial class ExplosionSystem
         if (!_airtightMap.ContainsKey(gridId))
             _airtightMap[gridId] = new();
 
-        query ??= EntityManager.GetEntityQuery<AirtightComponent>();
-        var damageQuery = EntityManager.GetEntityQuery<DamageableComponent>();
-        var destructibleQuery = EntityManager.GetEntityQuery<DestructibleComponent>();
-        var anchoredEnumerator = _mapManager.GetAnchoredEntitiesEnumerator(gridId, grid, tile);
+        query ??= GetEntityQuery<AirtightComponent>();
+        var damageQuery = GetEntityQuery<DamageableComponent>();
+        var destructibleQuery = GetEntityQuery<DestructibleComponent>();
+        var anchoredEnumerator = _mapManager.GetAnchoredEntities(gridId, grid, tile);
 
         while (anchoredEnumerator.MoveNext(out var uid))
         {
@@ -99,7 +99,7 @@ public sealed partial class ExplosionSystem
         if (!airtight.AirBlocked)
             return;
 
-        if (!EntityManager.TryGetComponent(uid, out TransformComponent? transform) || !transform.Anchored)
+        if (!TryComp(uid, out TransformComponent? transform) || !transform.Anchored)
             return;
 
         if (!TryComp<MapGridComponent>(transform.GridUid, out var grid))
@@ -158,7 +158,7 @@ public sealed partial class ExplosionSystem
             }
 
             explosionTolerance[index] = damagePerIntensity > 0
-                ? (float) ((totalDamageTarget - damageable.TotalDamage) / damagePerIntensity)
+                ? (float)((totalDamageTarget - damageable.TotalDamage) / damagePerIntensity)
                 : float.MaxValue;
         }
 

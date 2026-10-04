@@ -37,10 +37,10 @@ namespace Content.Client.Shuttles.UI;
 [GenerateTypedNameReferences]
 public sealed partial class ShuttleMapControl : BaseShuttleControl
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IInputManager _inputs = default!;
-    private SharedMapSystem _mapManager => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
-    [Dependency] private readonly IEntityManager _entManager = default!; // Frontier
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IInputManager _inputs = default!;
+    SharedMapSystem _mapManager => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
+    [Dependency] private IEntityManager _entManager = default!; // Frontier
     private readonly DetectionSystem _detection; // Mono
     private readonly ShuttleSystem _shuttles;
     private readonly SharedTransformSystem _xformSystem;
@@ -235,7 +235,7 @@ public sealed partial class ShuttleMapControl : BaseShuttleControl
     private List<IMapObject> GetViewportMapObjects(Matrix3x2 matty, List<IMapObject> mapObjects)
     {
         var results = new List<IMapObject>();
-        var enlargement = new Vector2i((int) (16 * UIScale), (int) (16 * UIScale));
+        var enlargement = new Vector2i((int)(16 * UIScale), (int)(16 * UIScale));
         var viewBox = new UIBox2i(Vector2i.Zero - enlargement, PixelSize + enlargement);
 
         foreach (var mapObj in mapObjects)
@@ -624,7 +624,7 @@ public sealed partial class ShuttleMapControl : BaseShuttleControl
 
             var beaconCoords = _xformSystem.ToMapCoordinates(EntManager.GetCoordinates(beacon.Coordinates));
             var position = Vector2.Transform(beaconCoords.Position, mapTransform);
-            var localPos = ScalePosition(position with {Y = -position.Y});
+            var localPos = ScalePosition(position with { Y = -position.Y });
 
             // If beacon not on screen then ignore it.
             if (!area.Contains(localPos.Floored()))
@@ -683,7 +683,7 @@ public sealed partial class ShuttleMapControl : BaseShuttleControl
                 continue;
 
             var position = Vector2.Transform(beaconCoords.Position, mapTransform);
-            var localPos = ScalePosition(position with {Y = -position.Y});
+            var localPos = ScalePosition(position with { Y = -position.Y });
 
             // If beacon not on screen then ignore it.
             if (!area.Contains(localPos.Floored()))
@@ -721,7 +721,7 @@ public sealed partial class ShuttleMapControl : BaseShuttleControl
     /// <summary>
     /// Draw the coordinate data with a custom color.
     /// </summary>
-    protected void DrawData(DrawingHandleScreen handle, string text, Color color)
+    private void DrawData(DrawingHandleScreen handle, string text, Color color)
     {
         var margin = 5f;
         var font = _font;

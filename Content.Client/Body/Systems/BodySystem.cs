@@ -1,4 +1,4 @@
-﻿using Content.Shared.Body.Systems;
+using Content.Shared.Body.Systems;
 // Shitmed Change Start
 using Content.Shared._Shitmed.Body.Part;
 using Content.Shared.Humanoid;
@@ -10,10 +10,11 @@ using Content.Shared.Body.Components;
 
 namespace Content.Client.Body.Systems;
 
-public sealed class BodySystem : SharedBodySystem
+public sealed partial class BodySystem : SharedBodySystem
 {
+    [Dependency] private SpriteSystem _sprite = default!;
     // Shitmed Change Start
-    [Dependency] private readonly MarkingManager _markingManager = default!;
+    [Dependency] private MarkingManager _markingManager = default!;
 
     private void ApplyMarkingToPart(MarkingPrototype markingPrototype,
         IReadOnlyList<Color>? colors,
@@ -29,14 +30,14 @@ public sealed class BodySystem : SharedBodySystem
 
             var layerId = $"{markingPrototype.ID}-{rsi.RsiState}";
 
-            if (!sprite.LayerMapTryGet(layerId, out _))
+            if (!_sprite.LayerMapTryGet(sprite.AsEntity(), layerId, out _, false))
             {
-                var layer = sprite.AddLayer(markingSprite, j + 1);
-                sprite.LayerMapSet(layerId, layer);
-                sprite.LayerSetSprite(layerId, rsi);
+                var layer = _sprite.AddLayer(sprite.AsEntity(), markingSprite, j + 1);
+                _sprite.LayerMapSet(sprite.AsEntity(), layerId, layer);
+                _sprite.LayerSetSprite(sprite.AsEntity(), layerId, rsi);
             }
 
-            sprite.LayerSetVisible(layerId, visible);
+            _sprite.LayerSetVisible(sprite.AsEntity(), layerId, visible);
 
             if (!visible)
                 continue;
@@ -44,9 +45,9 @@ public sealed class BodySystem : SharedBodySystem
             // Okay so if the marking prototype is modified but we load old marking data this may no longer be valid
             // and we need to check the index is correct. So if that happens just default to white?
             if (colors != null && j < colors.Count)
-                sprite.LayerSetColor(layerId, colors[j]);
+                _sprite.LayerSetColor(sprite.AsEntity(), layerId, colors[j]);
             else
-                sprite.LayerSetColor(layerId, Color.White);
+                _sprite.LayerSetColor(sprite.AsEntity(), layerId, Color.White);
         }
     }
 
@@ -56,7 +57,7 @@ public sealed class BodySystem : SharedBodySystem
             return;
 
         if (component.Color != null)
-            sprite.Color = component.Color.Value;
+            _sprite.SetColor(sprite.AsEntity(), component.Color.Value);
 
         foreach (var (visualLayer, markingList) in component.Markings)
             foreach (var marking in markingList)

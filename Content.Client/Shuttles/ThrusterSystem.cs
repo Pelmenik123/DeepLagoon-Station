@@ -6,8 +6,9 @@ namespace Content.Client.Shuttles;
 /// <summary>
 /// Handles making a thruster visibly turn on/emit an exhaust plume according to its state. 
 /// </summary>
-public sealed class ThrusterSystem : VisualizerSystem<ThrusterComponent>
+public sealed partial class ThrusterSystem : VisualizerSystem<ThrusterComponent>
 {
+    [Dependency] private SpriteSystem _sprite = default!;
     /// <summary>
     /// Updates whether or not the thruster is visibly active/thrusting.
     /// </summary>
@@ -17,7 +18,7 @@ public sealed class ThrusterSystem : VisualizerSystem<ThrusterComponent>
         || !AppearanceSystem.TryGetData<bool>(uid, ThrusterVisualState.State, out var state, args.Component))
             return;
 
-        args.Sprite.LayerSetVisible(ThrusterVisualLayers.ThrustOn, state);
+        _sprite.LayerSetVisible(args.Sprite.AsEntity(), ThrusterVisualLayers.ThrustOn, state);
         SetThrusting(
             uid,
             state && AppearanceSystem.TryGetData<bool>(uid, ThrusterVisualState.Thrusting, out var thrusting, args.Component) && thrusting,
@@ -28,16 +29,16 @@ public sealed class ThrusterSystem : VisualizerSystem<ThrusterComponent>
     /// <summary>
     /// Sets whether or not the exhaust plume of the thruster is visible or not.
     /// </summary>
-    private static void SetThrusting(EntityUid _, bool value, SpriteComponent sprite)
+    private void SetThrusting(EntityUid _, bool value, SpriteComponent sprite)
     {
-        if (sprite.LayerMapTryGet(ThrusterVisualLayers.Thrusting, out var thrustingLayer))
+        if (_sprite.LayerMapTryGet(sprite.AsEntity(), ThrusterVisualLayers.Thrusting, out var thrustingLayer, false))
         {
-            sprite.LayerSetVisible(thrustingLayer, value);
+            _sprite.LayerSetVisible(sprite.AsEntity(), thrustingLayer, value);
         }
 
-        if (sprite.LayerMapTryGet(ThrusterVisualLayers.ThrustingUnshaded, out var unshadedLayer))
+        if (_sprite.LayerMapTryGet(sprite.AsEntity(), ThrusterVisualLayers.ThrustingUnshaded, out var unshadedLayer, false))
         {
-            sprite.LayerSetVisible(unshadedLayer, value);
+            _sprite.LayerSetVisible(sprite.AsEntity(), unshadedLayer, value);
         }
     }
 }

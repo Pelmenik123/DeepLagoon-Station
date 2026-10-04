@@ -25,8 +25,8 @@ namespace Content.Shared.Blocking;
 
 public sealed partial class BlockingSystem : SharedBlockingSystem // Mono
 {
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
 
     private void InitializeUser()
     {
@@ -84,7 +84,7 @@ public sealed partial class BlockingSystem : SharedBlockingSystem // Mono
             }
 
             args.Damage = DamageSpecifier.ApplyModifierSet(args.Damage,
-                DamageSpecifier.PenetrateArmor(modify ,args.ArmorPenetration)); // Goob edit
+                DamageSpecifier.PenetrateArmor(modify, args.ArmorPenetration)); // Goob edit
 
             if (blocking.IsBlocking && !args.Damage.Equals(args.OriginalDamage))
             {

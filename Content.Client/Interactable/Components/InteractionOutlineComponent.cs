@@ -7,8 +7,8 @@ namespace Content.Client.Interactable.Components
     [RegisterComponent]
     public sealed partial class InteractionOutlineComponent : Component
     {
-        [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-        [Dependency] private readonly IEntityManager _entMan = default!;
+        [Dependency] private IPrototypeManager _prototypeManager = default!;
+        [Dependency] private IEntityManager _entMan = default!;
 
         private const float DefaultWidth = 1;
 
@@ -24,11 +24,11 @@ namespace Content.Client.Interactable.Components
         {
             _lastRenderScale = renderScale;
             _inRange = inInteractionRange;
-            if (_entMan.TryGetComponent(uid, out SpriteComponent? sprite) && sprite.PostShader == null)
+            if (_entMan.TryGetComponent(uid, out SpriteComponent? sprite) && _entMan.System<SpriteSystem>().GetLegacyPostShader(sprite.AsEntity()) == null)
             {
                 // TODO why is this creating a new instance of the outline shader every time the mouse enters???
                 _shader = MakeNewShader(inInteractionRange, renderScale);
-                sprite.PostShader = _shader;
+                _entMan.System<SpriteSystem>().SetLegacyPostShader(sprite.AsEntity(), _shader);
             }
         }
 
@@ -36,8 +36,8 @@ namespace Content.Client.Interactable.Components
         {
             if (_entMan.TryGetComponent(uid, out SpriteComponent? sprite))
             {
-                if (sprite.PostShader == _shader)
-                    sprite.PostShader = null;
+                if (_entMan.System<SpriteSystem>().GetLegacyPostShader(sprite.AsEntity()) == _shader)
+                    _entMan.System<SpriteSystem>().SetLegacyPostShader(sprite.AsEntity(), null);
                 sprite.RenderOrder = 0;
             }
 
@@ -48,14 +48,14 @@ namespace Content.Client.Interactable.Components
         public void UpdateInRange(EntityUid uid, bool inInteractionRange, int renderScale)
         {
             if (_entMan.TryGetComponent(uid, out SpriteComponent? sprite)
-                && sprite.PostShader == _shader
+                && _entMan.System<SpriteSystem>().GetLegacyPostShader(sprite.AsEntity()) == _shader
                 && (inInteractionRange != _inRange || _lastRenderScale != renderScale))
             {
                 _inRange = inInteractionRange;
                 _lastRenderScale = renderScale;
 
                 _shader = MakeNewShader(_inRange, _lastRenderScale);
-                sprite.PostShader = _shader;
+                _entMan.System<SpriteSystem>().SetLegacyPostShader(sprite.AsEntity(), _shader);
             }
         }
 

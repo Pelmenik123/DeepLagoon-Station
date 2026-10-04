@@ -54,8 +54,8 @@ namespace Content.IntegrationTests.Tests.Destructible
 
             await server.WaitAssertion(() =>
             {
-                var bruteDamageGroup = sPrototypeManager.Index<DamageGroupPrototype>("TestBrute");
-                var burnDamageGroup = sPrototypeManager.Index<DamageGroupPrototype>("TestBurn");
+                var bruteDamageGroup = sPrototypeManager.Index<DamageGroupPrototype>(new ProtoId<DamageGroupPrototype>("TestBrute"));
+                var burnDamageGroup = sPrototypeManager.Index<DamageGroupPrototype>(new ProtoId<DamageGroupPrototype>("TestBurn"));
 
                 DamageSpecifier bruteDamage = new(bruteDamageGroup, FixedPoint2.New(5));
                 DamageSpecifier burnDamage = new(burnDamageGroup, FixedPoint2.New(5));
@@ -91,7 +91,7 @@ namespace Content.IntegrationTests.Tests.Destructible
                     Assert.That(threshold.Trigger, Is.InstanceOf<AndTrigger>());
                 });
 
-                var trigger = (AndTrigger) threshold.Trigger;
+                var trigger = (AndTrigger)threshold.Trigger;
 
                 Assert.Multiple(() =>
                 {
@@ -162,7 +162,7 @@ namespace Content.IntegrationTests.Tests.Destructible
                     Assert.That(threshold.Trigger, Is.InstanceOf<AndTrigger>());
                 });
 
-                trigger = (AndTrigger) threshold.Trigger;
+                trigger = (AndTrigger)threshold.Trigger;
 
                 Assert.Multiple(() =>
                 {

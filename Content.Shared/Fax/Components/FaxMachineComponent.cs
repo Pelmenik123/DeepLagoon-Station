@@ -183,7 +183,7 @@ public sealed partial class FaxPrintout
     [DataField(required: true)]
     public string Content { get; private set; } = default!;
 
-    [DataField( required: true)]
+    [DataField(required: true)]
     public EntProtoId PrototypeId { get; private set; } = default!;
 
     [DataField("stampState")]

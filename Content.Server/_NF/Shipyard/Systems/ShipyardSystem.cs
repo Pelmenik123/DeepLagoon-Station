@@ -44,18 +44,18 @@ namespace Content.Server._NF.Shipyard.Systems;
 
 public sealed partial class ShipyardSystem : SharedShipyardSystem
 {
-    [Dependency] private readonly IConfigurationManager _configManager = default!;
-    [Dependency] private readonly SharedMapSystem _mapManager = default!;
-    [Dependency] private readonly DockingSystem _docking = default!;
-    [Dependency] private readonly PricingSystem _pricing = default!;
-    [Dependency] private readonly ShuttleSystem _shuttle = default!;
-    [Dependency] private readonly StationSystem _station = default!;
-    [Dependency] private readonly MapLoaderSystem _mapLoader = default!;
-    [Dependency] private readonly MetaDataSystem _metaData = default!;
-    [Dependency] private readonly MapSystem _map = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly ShipOwnershipSystem _shipOwnership = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
+    [Dependency] private IConfigurationManager _configManager = default!;
+    [Dependency] private SharedMapSystem _mapManager = default!;
+    [Dependency] private DockingSystem _docking = default!;
+    [Dependency] private PricingSystem _pricing = default!;
+    [Dependency] private ShuttleSystem _shuttle = default!;
+    [Dependency] private StationSystem _station = default!;
+    [Dependency] private MapLoaderSystem _mapLoader = default!;
+    [Dependency] private MetaDataSystem _metaData = default!;
+    [Dependency] private MapSystem _map = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private ShipOwnershipSystem _shipOwnership = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
 
     public MapId? ShipyardMap { get; private set; }
     private float _shuttleIndex;
@@ -441,14 +441,14 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
         foreach (var entity in gridEntities)
         {
             // Add ship access to doors
-            if (EntityManager.HasComponent<DoorComponent>(entity))
+            if (HasComp<DoorComponent>(entity))
             {
-                EntityManager.EnsureComponent<ShipAccessReaderComponent>(entity);
+                EnsureComp<ShipAccessReaderComponent>(entity);
             }
             // Add ship access to entity storage (lockers, crates, etc.)
-            else if (EntityManager.HasComponent<EntityStorageComponent>(entity))
+            else if (HasComp<EntityStorageComponent>(entity))
             {
-                EntityManager.EnsureComponent<ShipAccessReaderComponent>(entity);
+                EnsureComp<ShipAccessReaderComponent>(entity);
             }
         }
     }

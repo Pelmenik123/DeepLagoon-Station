@@ -18,14 +18,14 @@ using Robust.Shared.Physics.Events;
 
 namespace Content.Shared._Goobstation.Factory;
 
-public abstract class SharedInteractorSystem : EntitySystem
+public abstract partial class SharedInteractorSystem : EntitySystem
 {
-    [Dependency] private readonly AutomationSystem _automation = default!;
-    [Dependency] private readonly AutomationFilterSystem _filter = default!;
-    [Dependency] private readonly CollisionWakeSystem _wake = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] private readonly SharedInteractionSystem _interaction = default!;
-    [Dependency] protected readonly StartableMachineSystem Machine = default!;
+    [Dependency] private AutomationSystem _automation = default!;
+    [Dependency] private AutomationFilterSystem _filter = default!;
+    [Dependency] private CollisionWakeSystem _wake = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private SharedInteractionSystem _interaction = default!;
+    [Dependency] protected StartableMachineSystem Machine = default!;
 
     private EntityQuery<ActiveDoAfterComponent> _doAfterQuery;
     private EntityQuery<HandsComponent> _handsQuery;
@@ -60,7 +60,7 @@ public abstract class SharedInteractorSystem : EntitySystem
         if (!args.IsInDetailsRange)
             return;
 
-        args.PushMarkup(_filter.GetSlot(ent) is {} filter
+        args.PushMarkup(_filter.GetSlot(ent) is { } filter
             ? Loc.GetString("robotic-arm-examine-filter", ("filter", filter))
             : Loc.GetString("robotic-arm-examine-no-filter"));
     }
@@ -105,7 +105,7 @@ public abstract class SharedInteractorSystem : EntitySystem
         _wake.SetEnabled(args.OtherEntity, wake); // don't break conveyors for skipped entities
     }
 
-    private void OnItemModified<T>(Entity<InteractorComponent> ent, ref T args) where T: ContainerModifiedMessage
+    private void OnItemModified<T>(Entity<InteractorComponent> ent, ref T args) where T : ContainerModifiedMessage
     {
         if (args.Container.ID != ent.Comp.ToolContainerId)
             return;
@@ -131,7 +131,7 @@ public abstract class SharedInteractorSystem : EntitySystem
 
     protected bool InteractWith(Entity<InteractorComponent> ent, EntityUid target)
     {
-        if (_handsQuery.CompOrNull(ent)?.ActiveHandEntity is not {} tool)
+        if (_handsQuery.CompOrNull(ent)?.ActiveHandEntity is not { } tool)
             return _interaction.InteractHand(ent, target);
 
         var coords = Transform(target).Coordinates;

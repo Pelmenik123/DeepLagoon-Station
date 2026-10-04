@@ -26,10 +26,10 @@ namespace Content.Server.Worldgen.Systems;
 /// <summary>
 ///     This handles loading in objects based on distance from player, using some metadata on chunks.
 /// </summary>
-public sealed class LocalityLoaderSystem : BaseWorldSystem
+public sealed partial class LocalityLoaderSystem : BaseWorldSystem
 {
-    [Dependency] private readonly TransformSystem _xformSys = default!;
-    [Dependency] private readonly LinkedLifecycleGridSystem _linkedLifecycleGrid = default!;
+    [Dependency] private TransformSystem _xformSys = default!;
+    [Dependency] private LinkedLifecycleGridSystem _linkedLifecycleGrid = default!;
 
     public override void Initialize()
     {
@@ -85,22 +85,19 @@ public sealed class LocalityLoaderSystem : BaseWorldSystem
     // Frontier
     private void OnDebrisDespawn(EntityUid entity, SpaceDebrisComponent component, EntityTerminatingEvent e)
     {
-        if (entity != null)
+        // Handle mobrestrictions getting deleted
+        var query = AllEntityQuery<NFSalvageMobRestrictionsComponent>();
+
+        while (query.MoveNext(out var salvUid, out var salvMob))
         {
-            // Handle mobrestrictions getting deleted
-            var query = AllEntityQuery<NFSalvageMobRestrictionsComponent>();
-
-            while (query.MoveNext(out var salvUid, out var salvMob))
+            if (entity == salvMob.LinkedGridEntity && salvMob.DespawnIfOffLinkedGrid) // Mono - fix
             {
-                if (entity == salvMob.LinkedGridEntity && salvMob.DespawnIfOffLinkedGrid) // Mono - fix
-                {
-                    QueueDel(salvUid);
-                }
+                QueueDel(salvUid);
             }
-
-            // Do not delete the grid, it is being deleted.
-            _linkedLifecycleGrid.UnparentPlayersFromGrid(grid: entity, deleteGrid: false, ignoreLifeStage: true);
         }
+
+        // Do not delete the grid, it is being deleted.
+        _linkedLifecycleGrid.UnparentPlayersFromGrid(grid: entity, deleteGrid: false, ignoreLifeStage: true);
     }
     // Frontier
 }

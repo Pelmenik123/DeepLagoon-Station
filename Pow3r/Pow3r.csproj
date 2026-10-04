@@ -3,6 +3,8 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>$(TargetFramework)</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <!-- NETSDK1206: Libuv has version/distribution-specific RIDs; restore the full RID graph. -->
+        <UseRidGraph>true</UseRidGraph>
     </PropertyGroup>
 
     <ItemGroup>

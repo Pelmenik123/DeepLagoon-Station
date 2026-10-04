@@ -5,6 +5,7 @@ using Content.Shared.Procedural;
 using Content.Shared.Procedural.Distance;
 using Content.Shared.Procedural.DungeonGenerators;
 using Robust.Shared.Map;
+using Robust.Shared.Random;
 
 namespace Content.Server.Procedural.DungeonJob;
 
@@ -25,7 +26,7 @@ public sealed partial class DungeonJob
         NoiseDistanceDunGen dungen,
         HashSet<Vector2i> reservedTiles,
         int seed,
-        Random random)
+        IRobustRandom random)
     {
         var tiles = new List<(Vector2i, Tile)>();
         var matrix = Matrix3Helpers.CreateTranslation(position);
@@ -39,8 +40,8 @@ public sealed partial class DungeonJob
         // at which point we floodfill the entire noise.
         var area = Box2i.FromDimensions(-dungen.Size / 2, dungen.Size);
         var roomTiles = new HashSet<Vector2i>();
-        var width = (float) area.Width;
-        var height = (float) area.Height;
+        var width = (float)area.Width;
+        var height = (float)area.Height;
 
         for (var x = area.Left; x <= area.Right; x++)
         {
@@ -67,7 +68,7 @@ public sealed partial class DungeonJob
                         continue;
 
                     var tileDef = _tileDefManager[layer.Tile];
-                    var variant = _tile.PickVariant((ContentTileDefinition) tileDef, random);
+                    var variant = _tile.PickVariant((ContentTileDefinition)tileDef, random);
                     var adjusted = Vector2.Transform(node + _grid.TileSizeHalfVector, matrix).Floored();
 
                     // Do this down here because noise has a much higher chance of failing than reserved tiles.
@@ -85,13 +86,13 @@ public sealed partial class DungeonJob
             await SuspendDungeon();
         }
 
-        var room = new DungeonRoom(roomTiles, area.Center, area, new HashSet<Vector2i>());
+        var room = new DungeonRoom(roomTiles, area.Center, area, []);
 
         _maps.SetTiles(_gridUid, _grid, tiles);
-        var dungeon = new Dungeon(new List<DungeonRoom>()
-        {
+        var dungeon = new Dungeon(
+        [
             room,
-        });
+        ]);
 
         await SuspendDungeon();
         return dungeon;
@@ -99,14 +100,11 @@ public sealed partial class DungeonJob
 
     private float GetDistance(float dx, float dy, IDunGenDistance distance)
     {
-        switch (distance)
+        return distance switch
         {
-            case DunGenEuclideanSquaredDistance:
-                return MathF.Min(1f, (dx * dx + dy * dy) / MathF.Sqrt(2));
-            case DunGenSquareBump:
-                return 1f - (1f - dx * dx) * (1f - dy * dy);
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
+            DunGenEuclideanSquaredDistance => MathF.Min(1f, (dx * dx + dy * dy) / MathF.Sqrt(2)),
+            DunGenSquareBump => 1f - (1f - dx * dx) * (1f - dy * dy),
+            _ => throw new ArgumentOutOfRangeException(),
+        };
     }
 }

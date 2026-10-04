@@ -15,15 +15,15 @@ using Robust.Shared.Utility;
 
 namespace Content.Server.Body.Systems;
 
-public sealed class InternalsSystem : EntitySystem
+public sealed partial class InternalsSystem : EntitySystem
 {
-    [Dependency] private readonly AlertsSystem _alerts = default!;
-    [Dependency] private readonly AtmosphereSystem _atmos = default!;
-    [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
-    [Dependency] private readonly GasTankSystem _gasTank = default!;
-    [Dependency] private readonly InventorySystem _inventory = default!;
-    [Dependency] private readonly PopupSystem _popupSystem = default!;
-    [Dependency] private readonly RespiratorSystem _respirator = default!;
+    [Dependency] private AlertsSystem _alerts = default!;
+    [Dependency] private AtmosphereSystem _atmos = default!;
+    [Dependency] private SharedDoAfterSystem _doAfter = default!;
+    [Dependency] private GasTankSystem _gasTank = default!;
+    [Dependency] private InventorySystem _inventory = default!;
+    [Dependency] private PopupSystem _popupSystem = default!;
+    [Dependency] private RespiratorSystem _respirator = default!;
 
     private EntityQuery<InternalsComponent> _internalsQuery;
 
@@ -147,7 +147,7 @@ public sealed class InternalsSystem : EntitySystem
         _doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager, user, delay, new InternalsDoAfterEvent(), targetEnt, target: targetEnt)
         {
             BreakOnDamage = true,
-            BreakOnMove =  true,
+            BreakOnMove = true,
             MovementThreshold = 0.1f,
         });
     }

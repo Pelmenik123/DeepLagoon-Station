@@ -15,7 +15,7 @@ public sealed partial class DungeonJob
     /// <summary>
     /// <see cref="ExteriorDunGen"/>
     /// </summary>
-    private async Task<List<Dungeon>> GenerateExteriorDungen(Vector2i position, ExteriorDunGen dungen, HashSet<Vector2i> reservedTiles, Random random)
+    private async Task<List<Dungeon>> GenerateExteriorDungen(Vector2i position, ExteriorDunGen dungen, HashSet<Vector2i> reservedTiles, IRobustRandom random)
     {
         DebugTools.Assert(_grid.ChunkCount > 0);
 
@@ -24,7 +24,7 @@ public sealed partial class DungeonJob
 
         var distance = Math.Max(aabb.Width / 2f + 1f, aabb.Height / 2f + 1f);
 
-        var startTile = new Vector2i(0, (int) distance).Rotate(angle);
+        var startTile = new Vector2i(0, (int)distance).Rotate(angle);
 
         Vector2i? dungeonSpawn = null;
         var pathfinder = _entManager.System<PathfindingSystem>();
@@ -44,15 +44,17 @@ public sealed partial class DungeonJob
 
         if (dungeonSpawn == null)
         {
-            return new List<Dungeon>()
-            {
+            return
+            [
                 Dungeon.Empty
-            };
+            ];
         }
 
         var config = _prototype.Index(dungen.Proto);
         var nextSeed = random.Next();
-        var dungeons = await GetDungeons(dungeonSpawn.Value, config, config.Data, config.Layers, reservedTiles, nextSeed, new Random(nextSeed));
+        IRobustRandom subRandom = new RobustRandom();
+        subRandom.SetSeed(nextSeed);
+        var dungeons = await GetDungeons(dungeonSpawn.Value, config, config.Data, config.Layers, reservedTiles, nextSeed, subRandom);
 
         return dungeons;
     }

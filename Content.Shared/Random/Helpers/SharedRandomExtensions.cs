@@ -29,7 +29,7 @@ namespace Content.Shared.Random.Helpers
             var sum = picks.Values.Sum();
             var accumulated = 0f;
 
-            var rand = random.NextFloat() * sum;
+            var rand = (float)random.NextDouble() * sum;
 
             foreach (var (key, weight) in picks)
             {
@@ -52,7 +52,7 @@ namespace Content.Shared.Random.Helpers
             var sum = picks.Values.Sum();
             var accumulated = 0f;
 
-            var rand = random.NextFloat() * sum;
+            var rand = (float)random.NextDouble() * sum;
 
             foreach (var (key, weight) in picks)
             {
@@ -82,12 +82,12 @@ namespace Content.Shared.Random.Helpers
         }
 
         public static T Pick<T>(this IRobustRandom random, Dictionary<T, float> weights)
-            where T: notnull
+            where T : notnull
         {
             var sum = weights.Values.Sum();
             var accumulated = 0f;
 
-            var rand = random.NextFloat() * sum;
+            var rand = (float)random.NextDouble() * sum;
 
             foreach (var (key, weight) in weights)
             {
@@ -128,7 +128,7 @@ namespace Content.Shared.Random.Helpers
             var sum = weights.Values.Sum();
             var accumulated = 0f;
 
-            var rand = random.NextFloat() * sum;
+            var rand = (float)random.NextDouble() * sum;
 
             foreach (var (key, weight) in weights)
             {
@@ -152,7 +152,7 @@ namespace Content.Shared.Random.Helpers
             var sum = randomFill.Reagents.Count;
             var accumulated = 0f;
 
-            var rand = random.NextFloat() * sum;
+            var rand = (float)random.NextDouble() * sum;
 
             foreach (var reagent in randomFill.Reagents)
             {
@@ -183,7 +183,7 @@ namespace Content.Shared.Random.Helpers
             var sum = picks.Values.Sum();
             var accumulated = 0f;
 
-            var rand = random.NextFloat() * sum;
+            var rand = (float)random.NextDouble() * sum;
 
             foreach (var (randSolution, weight) in picks)
             {

@@ -1,4 +1,4 @@
-﻿using Content.Server.NodeContainer;
+using Content.Server.NodeContainer;
 using Content.Server.NodeContainer.EntitySystems;
 using Content.Server.Popups;
 using Content.Server.Power.Components;
@@ -17,12 +17,12 @@ namespace Content.Server.Power.Generator;
 /// <seealso cref="PowerSwitchableComponent"/>
 /// <seealso cref="PortableGeneratorSystem"/>
 /// <seealso cref="GeneratorSystem"/>
-public sealed class PowerSwitchableSystem : SharedPowerSwitchableSystem
+public sealed partial class PowerSwitchableSystem : SharedPowerSwitchableSystem
 {
-    [Dependency] private readonly NodeGroupSystem _nodeGroup = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly UseDelaySystem _useDelay = default!;
+    [Dependency] private NodeGroupSystem _nodeGroup = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private UseDelaySystem _useDelay = default!;
 
     public override void Initialize()
     {
@@ -100,7 +100,7 @@ public sealed class PowerSwitchableSystem : SharedPowerSwitchableSystem
         var nodeContainer = Comp<NodeContainerComponent>(uid);
         foreach (var cable in comp.Cables)
         {
-            var node = (CableDeviceNode) nodeContainer.Nodes[cable.Node];
+            var node = (CableDeviceNode)nodeContainer.Nodes[cable.Node];
             node.Enabled = cable.Voltage == voltage;
             _nodeGroup.QueueReflood(node);
         }

@@ -39,11 +39,11 @@ using Content.Server._NF.Power.Components; // Frontier
 namespace Content.Server.Power.EntitySystems
 {
     [UsedImplicitly]
-    public sealed class BatterySystem : EntitySystem
+    public sealed partial class BatterySystem : EntitySystem
     {
-        [Dependency] protected readonly IGameTiming Timing = default!;
+        [Dependency] private IGameTiming Timing = default!;
 
-        [Dependency] private readonly SharedContainerSystem _containers = default!; // WD EDIT
+        [Dependency] private SharedContainerSystem _containers = default!; // WD EDIT
 
         public override void Initialize()
         {
@@ -297,7 +297,7 @@ namespace Content.Server.Power.EntitySystems
             RaiseLocalEvent(uid, ref ev);
             return newValue;
         }
-            // WD EDIT START
+        // WD EDIT START
         public bool TryGetBatteryComponent(EntityUid uid, [NotNullWhen(true)] out BatteryComponent? battery,
             [NotNullWhen(true)] out EntityUid? batteryUid)
         {

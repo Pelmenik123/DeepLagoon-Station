@@ -4,10 +4,10 @@ using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client._DeepLagoon.DiscordLink;
 
-public sealed class DiscordAdmissionState : Robust.Client.State.State
+public sealed partial class DiscordAdmissionState : Robust.Client.State.State
 {
-    [Dependency] private readonly IUserInterfaceManager _ui = default!;
-    [Dependency] private readonly IBaseClient _client = default!;
+    [Dependency] private IUserInterfaceManager _ui = default!;
+    [Dependency] private IBaseClient _client = default!;
     private BoxContainer? _screen;
 
     protected override void Startup()
@@ -29,7 +29,7 @@ public sealed class DiscordAdmissionState : Robust.Client.State.State
 
     protected override void Shutdown()
     {
-        _screen?.Dispose();
+        _screen?.DisposeControl();
         _screen = null;
     }
 }

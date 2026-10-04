@@ -1,4 +1,4 @@
-﻿using Content.Server.StationEvents.Events;
+using Content.Server.StationEvents.Events;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server.StationEvents.Components;

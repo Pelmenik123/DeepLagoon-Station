@@ -1,11 +1,11 @@
-﻿using Content.Server.Xenoarchaeology.XenoArtifacts.Triggers.Components;
+using Content.Server.Xenoarchaeology.XenoArtifacts.Triggers.Components;
 using Content.Shared.Mobs;
 
 namespace Content.Server.Xenoarchaeology.XenoArtifacts.Triggers.Systems;
 
-public sealed class ArtifactDeathTriggerSystem : EntitySystem
+public sealed partial class ArtifactDeathTriggerSystem : EntitySystem
 {
-    [Dependency] private readonly ArtifactSystem _artifact = default!;
+    [Dependency] private ArtifactSystem _artifact = default!;
 
     /// <inheritdoc/>
     public override void Initialize()

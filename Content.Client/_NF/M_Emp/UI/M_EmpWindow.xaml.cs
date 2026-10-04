@@ -24,7 +24,7 @@ namespace Content.Client._NF.M_Emp.UI
         /// <param name="state">State data sent by the server.</param>
         public void UpdateState(BoundUserInterfaceState state)
         {
-            var castState = (M_EmpBoundUserInterfaceState) state;
+            var castState = (M_EmpBoundUserInterfaceState)state;
 
             // Disable all buttons if not powered
             if (Contents.Children != null)

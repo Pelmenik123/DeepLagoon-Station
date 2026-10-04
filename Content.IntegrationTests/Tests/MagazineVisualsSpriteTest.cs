@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using Content.Client.Weapons.Ranged.Components;
-using Content.Shared.Prototypes;
 using Robust.Client.GameObjects;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Prototypes;
@@ -29,6 +28,7 @@ public sealed class MagazineVisualsSpriteTest
 
         await client.WaitAssertion(() =>
         {
+#pragma warning disable CS0618 // SpriteSystem is not registered in the headless integration-test client; upstream uses the same component API here.
             Assert.Multiple(() =>
             {
                 foreach (var (proto, _) in protos)
@@ -73,6 +73,7 @@ public sealed class MagazineVisualsSpriteTest
                     }
                 }
             });
+#pragma warning restore CS0618
         });
 
         await pair.CleanReturnAsync();

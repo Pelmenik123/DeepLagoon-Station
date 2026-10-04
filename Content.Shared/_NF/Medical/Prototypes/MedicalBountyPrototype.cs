@@ -10,7 +10,7 @@ namespace Content.Shared._NF.Medical.Prototypes;
 /// that must be sold together in a labeled container in order
 /// to receive a reward in doubloons.
 /// </summary>
-[Prototype, Serializable, NetSerializable]
+[Prototype]
 public sealed partial class MedicalBountyPrototype : IPrototype
 {
     /// <inheritdoc/>
@@ -27,13 +27,13 @@ public sealed partial class MedicalBountyPrototype : IPrototype
     /// Damage types to be added to a bountied entity and the bonus/penalties associated with them
     /// </summary>
     [DataField(required: true)]
-    public Dictionary<ProtoId<DamageTypePrototype>, RandomDamagePreset> DamageSets = new();
+    public Dictionary<ProtoId<DamageTypePrototype>, RandomDamagePreset> DamageSets = [];
 
     /// <summary>
     /// Damage types to be added to a bountied entity and the bonus/penalties associated with them
     /// </summary>
     [DataField]
-    public Dictionary<ProtoId<ReagentPrototype>, RandomReagentPreset> Reagents = new();
+    public Dictionary<ProtoId<ReagentPrototype>, RandomReagentPreset> Reagents = [];
 
     /// <summary>
     /// Penalty for other damage types not in DamageSets on redemption.

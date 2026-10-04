@@ -21,7 +21,7 @@ public sealed partial class GunSystem
             return;
         }
 
-        var spent = (bool) varSpent;
+        var spent = (bool)varSpent;
         string state;
 
         if (spent)
@@ -29,9 +29,10 @@ public sealed partial class GunSystem
         else
             state = component.State;
 
-        sprite.LayerSetState(AmmoVisualLayers.Base, state);
-        if (sprite.LayerExists(AmmoVisualLayers.Tip)){
-            sprite.RemoveLayer(AmmoVisualLayers.Tip);
+        _sprite.LayerSetRsiState(sprite.AsEntity(), AmmoVisualLayers.Base, state);
+        if (_sprite.LayerExists(sprite.AsEntity(), AmmoVisualLayers.Tip))
+        {
+            _sprite.RemoveLayer(sprite.AsEntity(), AmmoVisualLayers.Tip);
         }
     }
 }

@@ -11,7 +11,7 @@ public sealed partial class InteractionPanelManaComponent : Component
     [DataField, AutoNetworkedField] public float Maximum = 100;
 }
 
-[Prototype("interactionPanelMana")]
+[Prototype]
 public sealed partial class InteractionPanelManaPrototype : IPrototype
 {
     [IdDataField] public string ID { get; private set; } = default!;

@@ -15,8 +15,8 @@ namespace Content.Client.Shuttles.UI;
 [GenerateTypedNameReferences]
 public sealed partial class NavScreen : BoxContainer
 {
-    [Dependency] private readonly IEntityManager _entManager = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IEntityManager _entManager = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
     private SharedTransformSystem _xformSystem;
 
     private EntityUid? _consoleEntity; // Entity of controlling console
@@ -50,12 +50,12 @@ public sealed partial class NavScreen : BoxContainer
             : (entity, grid, iff) => // Otherwise use simple search criteria
             {
                 // Check entity name
-                if (_entManager.TryGetComponent<MetaDataComponent>(entity, out var metadata) && 
+                if (_entManager.TryGetComponent<MetaDataComponent>(entity, out var metadata) &&
                     metadata.EntityName.Contains(text, StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }
-                
+
                 // Check company name
                 if (_entManager.TryGetComponent<CompanyComponent>(entity, out var companyComp) &&
                     !string.IsNullOrEmpty(companyComp.CompanyName))
@@ -65,16 +65,16 @@ public sealed partial class NavScreen : BoxContainer
                     {
                         return true;
                     }
-                    
+
                     // Try to match company name from prototype
                     if (_prototypeManager.TryIndex<CompanyPrototype>(
-                        companyComp.CompanyName, out var prototype) && 
+                        companyComp.CompanyName, out var prototype) &&
                         prototype.Name.Contains(text, StringComparison.OrdinalIgnoreCase))
                     {
                         return true;
                     }
                 }
-                
+
                 return false;
             };
     }
@@ -113,10 +113,10 @@ public sealed partial class NavScreen : BoxContainer
     public void UpdateState(NavInterfaceState scc)
     {
         NavRadar.UpdateState(scc);
-        
+
         // Update port names if custom names are available
         UpdateNetworkPortButtonNames(scc.NetworkPortNames);
-        
+
         NfUpdateState(); // Frontier Update State
     }
 

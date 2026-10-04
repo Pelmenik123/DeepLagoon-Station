@@ -1,4 +1,4 @@
-﻿using Content.Shared.Chemistry.Reagent;
+using Content.Shared.Chemistry.Reagent;
 using Content.Shared.FixedPoint;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
@@ -26,7 +26,7 @@ namespace Content.Shared.Kitchen
         private Dictionary<ProtoId<ReagentPrototype>, FixedPoint2> _ingsReagents = new();
 
         [DataField("solids")]
-        private Dictionary<EntProtoId, FixedPoint2> _ingsSolids = new ();
+        private Dictionary<EntProtoId, FixedPoint2> _ingsSolids = new();
 
         [DataField("result")]
         public EntProtoId Result { get; private set; } = string.Empty;
@@ -51,7 +51,7 @@ namespace Content.Shared.Kitchen
 
         // TODO Turn this into a ReagentQuantity[]
         public IReadOnlyDictionary<string, FixedPoint2> IngredientsReagents => _ingsReagents.ToDictionary(x => x.Key.Id, x => x.Value);
-        public IReadOnlyDictionary<string, FixedPoint2> IngredientsSolids => _ingsSolids.ToDictionary(x => (string) x.Key, x => x.Value);
+        public IReadOnlyDictionary<string, FixedPoint2> IngredientsSolids => _ingsSolids.ToDictionary(x => (string)x.Key, x => x.Value);
 
         /// <summary>
         /// Is this recipe unavailable in normal circumstances?

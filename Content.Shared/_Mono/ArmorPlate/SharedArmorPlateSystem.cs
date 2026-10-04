@@ -14,10 +14,10 @@ namespace Content.Shared._Mono.ArmorPlate;
 /// <summary>
 /// Handles armor plate insertion, removal, and speed modifier application.
 /// </summary>
-public abstract class SharedArmorPlateSystem : EntitySystem
+public abstract partial class SharedArmorPlateSystem : EntitySystem
 {
-    [Dependency] private readonly MovementSpeedModifierSystem _movementSpeed = default!;
-    [Dependency] private readonly InventorySystem _inventory = default!;
+    [Dependency] private MovementSpeedModifierSystem _movementSpeed = default!;
+    [Dependency] private InventorySystem _inventory = default!;
 
     public override void Initialize()
     {

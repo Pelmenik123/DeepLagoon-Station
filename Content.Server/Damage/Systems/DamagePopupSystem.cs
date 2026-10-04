@@ -6,9 +6,9 @@ using Content.Shared.Interaction;
 
 namespace Content.Server.Damage.Systems;
 
-public sealed class DamagePopupSystem : EntitySystem
+public sealed partial class DamagePopupSystem : EntitySystem
 {
-    [Dependency] private readonly PopupSystem _popupSystem = default!;
+    [Dependency] private PopupSystem _popupSystem = default!;
 
     public override void Initialize()
     {
@@ -46,7 +46,7 @@ public sealed class DamagePopupSystem : EntitySystem
             }
             else
             {
-                component.Type = (DamagePopupType) (int) component.Type + 1;
+                component.Type = (DamagePopupType)(int)component.Type + 1;
             }
             _popupSystem.PopupEntity("Target set to type: " + component.Type.ToString(), uid);
         }

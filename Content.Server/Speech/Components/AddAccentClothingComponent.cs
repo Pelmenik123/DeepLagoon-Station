@@ -1,4 +1,4 @@
-﻿using Content.Server.Speech.Prototypes;
+using Content.Server.Speech.Prototypes;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server.Speech.Components;

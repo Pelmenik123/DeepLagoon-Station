@@ -126,8 +126,11 @@ public sealed partial class InteractionPanelWindow : DefaultWindow
             var card = new PanelContainer { PanelOverride = new InteractionPanelRoundedStyle(InteractionPanelCategoryColors.CardBackgrounds[action.Category], 10, 0) };
             var column = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, Margin = new Thickness(9), SeparationOverride = 5 };
             var row = new BoxContainer { SeparationOverride = 6 };
-            var run = new InteractionPanelCategoryButton(action.Category) { Text = ActionName(action), HorizontalExpand = true,
-                Disabled = !_available.Contains(action.Id), ToolTip = Loc.GetString("dl-interaction-panel-action-hint") };
+            var run = new InteractionPanelCategoryButton(action.Category)
+            {
+                Text = ActionName(action), HorizontalExpand = true,
+                Disabled = !_available.Contains(action.Id), ToolTip = Loc.GetString("dl-interaction-panel-action-hint")
+            };
             run.OnPressed += _ => ActionRequested?.Invoke(action.Id);
             var favorite = new Button { Text = _favorites.Contains(action.Id) ? "★" : "☆", ToolTip = Loc.GetString("dl-interaction-panel-favorite-toggle") };
             favorite.OnPressed += _ =>
@@ -136,13 +139,19 @@ public sealed partial class InteractionPanelWindow : DefaultWindow
                 PreferencesChanged?.Invoke();
                 RefreshActions();
             };
-            var repeat = new Button { Text = Loc.GetString(_repeating.Contains(action.Id) ? "dl-interaction-panel-stop" : "dl-interaction-panel-repeat"),
-                Disabled = !_available.Contains(action.Id) };
+            var repeat = new Button
+            {
+                Text = Loc.GetString(_repeating.Contains(action.Id) ? "dl-interaction-panel-stop" : "dl-interaction-panel-repeat"),
+                Disabled = !_available.Contains(action.Id)
+            };
             repeat.OnPressed += _ => RepeatRequested?.Invoke(action.Id, !_repeating.Contains(action.Id), Interval);
             row.AddChild(run); row.AddChild(favorite); row.AddChild(repeat);
             column.AddChild(row);
-            column.AddChild(new Label { Text = (_humanoid ? Loc.GetString($"dl-interaction-panel-body-{action.Body}") + " · " : "") +
-                Loc.GetString($"dl-interaction-panel-category-{action.Category.ToString().ToLowerInvariant()}"), Modulate = InteractionPanelAppearance.MutedText });
+            column.AddChild(new Label
+            {
+                Text = (_humanoid ? Loc.GetString($"dl-interaction-panel-body-{action.Body}") + " · " : "") +
+                Loc.GetString($"dl-interaction-panel-category-{action.Category.ToString().ToLowerInvariant()}"), Modulate = InteractionPanelAppearance.MutedText
+            });
             card.AddChild(column);
             ActionList.AddChild(card);
         }

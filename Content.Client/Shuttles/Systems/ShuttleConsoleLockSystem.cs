@@ -17,4 +17,4 @@ public sealed class ShuttleConsoleLockSystem : SharedShuttleConsoleLockSystem
         // Prediction only
         return false;
     }
-} 
+}

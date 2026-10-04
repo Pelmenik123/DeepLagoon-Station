@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Shared.DeviceNetwork;
 using Content.Shared.DeviceNetwork.Components;
 using Content.Shared.DeviceNetwork.Events;
 using Content.Shared.DeviceNetwork.Systems;
@@ -8,9 +9,9 @@ using Robust.Shared.Map.Events;
 namespace Content.Server.DeviceNetwork.Systems;
 
 [UsedImplicitly]
-public sealed class DeviceListSystem : SharedDeviceListSystem
+public sealed partial class DeviceListSystem : SharedDeviceListSystem
 {
-    [Dependency] private readonly NetworkConfiguratorSystem _configurator = default!;
+    [Dependency] private NetworkConfiguratorSystem _configurator = default!;
 
     public override void Initialize()
     {
@@ -46,7 +47,7 @@ public sealed class DeviceListSystem : SharedDeviceListSystem
     public Dictionary<string, EntityUid> GetDeviceList(EntityUid uid, DeviceListComponent? deviceList = null)
     {
         if (!Resolve(uid, ref deviceList))
-            return new Dictionary<string, EntityUid>();
+            return [];
 
         var devices = new Dictionary<string, EntityUid>(deviceList.Devices.Count);
 
@@ -57,7 +58,7 @@ public sealed class DeviceListSystem : SharedDeviceListSystem
 
             var address = MetaData(deviceUid).EntityLifeStage == EntityLifeStage.MapInitialized
                 ? deviceNet.Address
-                : $"UID: {deviceUid.ToString()}";
+                : $"UID: {deviceUid}";
 
             devices.Add(address, deviceUid);
 
@@ -92,7 +93,7 @@ public sealed class DeviceListSystem : SharedDeviceListSystem
             return;
         }
 
-        HashSet<DeviceNetworkComponent> filteredRecipients = new(args.Recipients.Count);
+        HashSet<Device> filteredRecipients = new(args.Recipients.Count);
 
         foreach (var recipient in args.Recipients)
         {
@@ -124,7 +125,7 @@ public sealed class DeviceListSystem : SharedDeviceListSystem
 
     private void OnMapSave(BeforeSerializationEvent ev)
     {
-        List<EntityUid> toRemove = new();
+        List<EntityUid> toRemove = [];
         var query = GetEntityQuery<TransformComponent>();
         var enumerator = AllEntityQuery<DeviceListComponent, TransformComponent>();
         while (enumerator.MoveNext(out var uid, out var device, out var xform))
@@ -161,7 +162,7 @@ public sealed class DeviceListSystem : SharedDeviceListSystem
 
             var old = device.Devices.ToList();
             device.Devices.ExceptWith(toRemove);
-            RaiseLocalEvent(uid, new DeviceListUpdateEvent(old, device.Devices.ToList()));
+            RaiseLocalEvent(uid, new DeviceListUpdateEvent(old, [.. device.Devices]));
             Dirty(uid, device);
             toRemove.Clear();
         }

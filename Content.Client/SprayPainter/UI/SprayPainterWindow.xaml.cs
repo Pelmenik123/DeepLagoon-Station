@@ -10,7 +10,7 @@ namespace Content.Client.SprayPainter.UI;
 [GenerateTypedNameReferences]
 public sealed partial class SprayPainterWindow : DefaultWindow
 {
-    [Dependency] private readonly IEntitySystemManager _sysMan = default!;
+    [Dependency] private IEntitySystemManager _sysMan = default!;
     private readonly SpriteSystem _spriteSystem;
 
     public Action<ItemList.ItemListSelectedEventArgs>? OnSpritePicked;
@@ -38,15 +38,15 @@ public sealed partial class SprayPainterWindow : DefaultWindow
             return Loc.GetString("pipe-painter-no-color-selected");
         var locKey = colorLocKeyPrefix + colorKey;
 
-        if (!Loc.TryGetString(locKey, out var locString))
+        if (!IoCManager.Resolve<ILocalizationManager>().TryGetString(locKey, out var locString))
             locString = colorKey;
 
         return locString;
-        }
+    }
 
     public string? IndexToColorKey(int index)
     {
-        return (string?) ColorList[index].Metadata;
+        return (string?)ColorList[index].Metadata;
     }
 
     public void Populate(List<SprayPainterEntry> entries, int selectedStyle, string? selectedColorKey, Dictionary<string, Color> palette)

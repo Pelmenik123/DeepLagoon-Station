@@ -9,7 +9,7 @@
 // SPDX-FileCopyrightText: 2020 FL-OZ
 // SPDX-FileCopyrightText: 2020 Jackson Lewis
 // SPDX-FileCopyrightText: 2020 Memory
-// SPDX-FileCopyrightText: 2020 Víctor Aguilera Puerto
+// SPDX-FileCopyrightText: 2020 Victor Aguilera Puerto
 // SPDX-FileCopyrightText: 2020 chairbender
 // SPDX-FileCopyrightText: 2020 py01
 // SPDX-FileCopyrightText: 2020 scuffedjays
@@ -19,7 +19,7 @@
 // SPDX-FileCopyrightText: 2021 Mads Glahder
 // SPDX-FileCopyrightText: 2021 Metal Gear Sloth
 // SPDX-FileCopyrightText: 2021 metalgearsloth
-// SPDX-FileCopyrightText: 2022 Júlio César Ueti
+// SPDX-FileCopyrightText: 2022 Julio Cesar Ueti
 // SPDX-FileCopyrightText: 2022 Paul Ritter
 // SPDX-FileCopyrightText: 2022 ShadowCommander
 // SPDX-FileCopyrightText: 2022 Vera Aguilera Puerto
@@ -74,14 +74,14 @@ namespace Content.Server.Construction
 {
     public sealed partial class ConstructionSystem
     {
-        [Dependency] private readonly IComponentFactory _factory = default!;
-        [Dependency] private readonly InventorySystem _inventorySystem = default!;
-        [Dependency] private readonly SharedInteractionSystem _interactionSystem = default!;
-        [Dependency] private readonly ActionBlockerSystem _actionBlocker = default!;
-        [Dependency] private readonly SharedHandsSystem _handsSystem = default!;
-        [Dependency] private readonly EntityLookupSystem _lookupSystem = default!;
-        [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
-        [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
+        [Dependency] private IComponentFactory _factory = default!;
+        [Dependency] private InventorySystem _inventorySystem = default!;
+        [Dependency] private SharedInteractionSystem _interactionSystem = default!;
+        [Dependency] private ActionBlockerSystem _actionBlocker = default!;
+        [Dependency] private SharedHandsSystem _handsSystem = default!;
+        [Dependency] private EntityLookupSystem _lookupSystem = default!;
+        [Dependency] private SharedTransformSystem _transformSystem = default!;
+        [Dependency] private EntityWhitelistSystem _whitelistSystem = default!;
 
         // --- WARNING! LEGACY CODE AHEAD! ---
         // This entire file contains the legacy code for initial construction.
@@ -89,7 +89,7 @@ namespace Content.Server.Construction
         // but for now I've isolated them in their own little file. This code is largely unchanged.
         // --- YOU HAVE BEEN WARNED! AAAH! ---
 
-        private readonly Dictionary<ICommonSession, HashSet<int>> _beingBuilt = new();
+        private readonly Dictionary<ICommonSession, HashSet<int>> _beingBuilt = [];
 
         private void InitializeInitial()
         {
@@ -129,7 +129,7 @@ namespace Content.Server.Construction
                     if (!containerSlot.ContainedEntity.HasValue)
                         continue;
 
-                    if (EntityManager.TryGetComponent(containerSlot.ContainedEntity.Value, out StorageComponent? storage))
+                    if (TryComp(containerSlot.ContainedEntity.Value, out StorageComponent? storage))
                     {
                         foreach (var storedEntity in storage.Container.ContainedEntities)
                         {
@@ -314,7 +314,9 @@ namespace Content.Server.Construction
                 return null;
             }
 
+#pragma warning disable CS0618 // Upstream SS14 master still uses WaitDoAfter/AwaitedDoAfterEvent here; sync migration changes control flow.
             var doAfterArgs = new DoAfterArgs(EntityManager, user, doAfterTime, new AwaitedDoAfterEvent(), null)
+#pragma warning restore CS0618
             {
                 BreakOnDamage = true,
                 BreakOnMove = true,
@@ -324,14 +326,16 @@ namespace Content.Server.Construction
                 BlockDuplicate = false,
             };
 
+#pragma warning disable CS0618 // Upstream SS14 master still uses WaitDoAfter/AwaitedDoAfterEvent here; sync migration changes control flow.
             if (await _doAfterSystem.WaitDoAfter(doAfterArgs) == DoAfterStatus.Cancelled)
+#pragma warning restore CS0618
             {
                 FailCleanup();
                 return null;
             }
 
             var newEntityProto = graph.Nodes[edge.Target].Entity.GetId(null, user, new(EntityManager));
-            var newEntity = EntityManager.SpawnAttachedTo(newEntityProto, coords, rotation: angle);
+            var newEntity = SpawnAttachedTo(newEntityProto, coords, rotation: angle);
 
             if (!TryComp(newEntity, out ConstructionComponent? construction))
             {
@@ -378,7 +382,7 @@ namespace Content.Server.Construction
 
         private async void HandleStartItemConstruction(TryStartItemConstructionMessage ev, EntitySessionEventArgs args)
         {
-            if (args.SenderSession.AttachedEntity is {Valid: true} user)
+            if (args.SenderSession.AttachedEntity is { Valid: true } user)
                 await TryStartItemConstruction(ev.PrototypeName, user);
         }
 
@@ -392,7 +396,7 @@ namespace Content.Server.Construction
             }
 
             if (!PrototypeManager.TryIndex(constructionPrototype.Graph,
-                    out ConstructionGraphPrototype? constructionGraph))
+                    out var constructionGraph))
             {
                 Log.Error(
                     $"Invalid construction graph '{constructionPrototype.Graph}' in recipe '{prototype}'!");
@@ -428,13 +432,8 @@ namespace Content.Server.Construction
                     $"Can't find path from starting node to target node in construction! Recipe: {prototype}");
             }
 
-            var edge = startNode.GetEdge(pathFind[0].Name);
-
-            if (edge == null)
-            {
-                throw new InvalidDataException(
+            var edge = startNode.GetEdge(pathFind[0].Name) ?? throw new InvalidDataException(
                     $"Can't find edge from starting node to the next node in pathfinding! Recipe: {prototype}");
-            }
 
             // No support for conditions here!
 
@@ -471,7 +470,7 @@ namespace Content.Server.Construction
         private async void HandleStartStructureConstruction(TryStartStructureConstructionMessage ev, EntitySessionEventArgs args)
         {
             // <Goobstation> - use public API
-            if (args.SenderSession.AttachedEntity is {} user)
+            if (args.SenderSession.AttachedEntity is { } user)
                 await TryStartStructureConstruction(user,
                     ev.PrototypeName,
                     GetCoordinates(ev.Location),
@@ -481,7 +480,7 @@ namespace Content.Server.Construction
                     ev.With);
         }
 
-/// <summary>
+        /// <summary>
         /// Goobstation - Taken out of HandleStartStructureConstruction
         /// Changed to return false and only send the ack event to the user.
         /// </summary>
@@ -501,7 +500,7 @@ namespace Content.Server.Construction
                 return false;
             }
 
-            if (!PrototypeManager.TryIndex(constructionPrototype.Graph, out ConstructionGraphPrototype? constructionGraph))
+            if (!PrototypeManager.TryIndex(constructionPrototype.Graph, out var constructionGraph))
             {
                 Log.Error($"Invalid construction graph '{constructionPrototype.Graph}' in recipe '{prototypeName}'!");
                 RaiseNetworkEvent(new AckStructureConstructionMessage(ack), user);
@@ -524,7 +523,7 @@ namespace Content.Server.Construction
             var targetNode = constructionGraph.Nodes[constructionPrototype.TargetNode];
             var pathFind = constructionGraph.Path(startNode.Name, targetNode.Name);
 
-            if (senderSession is {} session) // Goobstation - ignore check for constructor
+            if (senderSession is { } session) // Goobstation - ignore check for constructor
             {
                 if (_beingBuilt.TryGetValue(session, out var set))
                 {
@@ -536,7 +535,7 @@ namespace Content.Server.Construction
                 }
                 else
                 {
-                    var newSet = new HashSet<int> {ack};
+                    var newSet = new HashSet<int> { ack };
                     _beingBuilt[session] = newSet;
                 }
             }
@@ -557,12 +556,12 @@ namespace Content.Server.Construction
 
             void Cleanup()
             {
-                if (senderSession is {} session) // Goobstation - not added for constructor
+                if (senderSession is { } session) // Goobstation - not added for constructor
                     _beingBuilt[session].Remove(ack);
             }
 
             // Goobstation
-            EntityUid? entWith = with == null ? null : GetEntity(with);
+            var entWith = with == null ? null : GetEntity(with);
             if (with != null && entWith != null)
             {
                 // sus client can't use steel half the station away to build
@@ -581,13 +580,13 @@ namespace Content.Server.Construction
             }
 
             if (!_actionBlocker.CanInteract(user, null)
-                || (senderSession != null && entWith == null)) // Goobstation
+                || senderSession != null && entWith == null) // Goobstation
             {
                 Cleanup();
                 return false;
             }
 
-            var mapPos = location.ToMap(EntityManager, _transformSystem);
+            var mapPos = _transformSystem.ToMapCoordinates(location);
             var predicate = GetPredicate(constructionPrototype.CanBuildInImpassable, mapPos);
 
             if (!_interactionSystem.InRangeUnobstructed(user, mapPos, predicate: predicate))
@@ -599,16 +598,12 @@ namespace Content.Server.Construction
             if (pathFind == null)
                 throw new InvalidDataException($"Can't find path from starting node to target node in construction! Recipe: {prototypeName}");
 
-            var edge = startNode.GetEdge(pathFind[0].Name);
-
-            if(edge == null)
-                throw new InvalidDataException($"Can't find edge from starting node to the next node in pathfinding! Recipe: {prototypeName}");
-
+            var edge = startNode.GetEdge(pathFind[0].Name) ?? throw new InvalidDataException($"Can't find edge from starting node to the next node in pathfinding! Recipe: {prototypeName}");
             if (senderSession != null) // Goobstation - don't check this for constructor machine
             {
                 var valid = false;
 
-                if (entWith is not {Valid: true} holding) // Goobstation - don't check for constructor machine
+                if (entWith is not { Valid: true } holding) // Goobstation - don't check for constructor machine
                 {
                     Cleanup();
                     return false;
@@ -645,7 +640,7 @@ namespace Content.Server.Construction
                     edge,
                     targetNode,
                     location,
-                    constructionPrototype.CanRotate ? angle : Angle.Zero) is not {Valid: true} structure)
+                    constructionPrototype.CanRotate ? angle : Angle.Zero) is not { Valid: true } structure)
             {
                 Cleanup();
                 return false;

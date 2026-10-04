@@ -8,7 +8,7 @@ public sealed partial class PathfindingSystem
     /// <summary>
     /// Widens the path by the specified amount.
     /// </summary>
-    public HashSet<Vector2i> GetWiden(WidenArgs args, Random random)
+    public HashSet<Vector2i> GetWiden(WidenArgs args, IRobustRandom random)
     {
         var tiles = new HashSet<Vector2i>(args.Path.Count * 2);
         var variance = (args.MaxWiden - args.MinWiden) / 2f + args.MinWiden;
@@ -54,7 +54,6 @@ public sealed partial class PathfindingSystem
                     }
                 }
             }
-
             variance += random.NextFloat(-args.Variance * args.TileSkip, args.Variance * args.TileSkip);
             variance = Math.Clamp(variance, args.MinWiden, args.MaxWiden);
         }

@@ -22,9 +22,9 @@ using Content.Shared.Radio.Components; // Goobstation
 namespace Content.Server.Administration.Commands
 {
     [AdminCommand(AdminFlags.Admin)]
-    public sealed class SetOutfitCommand : IConsoleCommand
+    public sealed partial class SetOutfitCommand : IConsoleCommand
     {
-        [Dependency] private readonly IEntityManager _entities = default!;
+        [Dependency] private IEntityManager _entities = default!;
 
         public string Command => "setoutfit";
 
@@ -105,7 +105,7 @@ namespace Content.Server.Administration.Commands
                 foreach (var slot in slots)
                 {
                     invSystem.TryUnequip(target, slot.Name, true, true, false, inventoryComponent);
-                    var gearStr = ((IEquipmentLoadout) startingGear).GetGear(slot.Name);
+                    var gearStr = ((IEquipmentLoadout)startingGear).GetGear(slot.Name);
                     if (gearStr == string.Empty)
                     {
                         continue;

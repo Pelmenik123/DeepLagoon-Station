@@ -13,11 +13,11 @@ using Robust.Shared.Timing;
 namespace Content.Client.Light;
 
 /// <inheritdoc/>
-public sealed class LightCycleSystem : SharedLightCycleSystem
+public sealed partial class LightCycleSystem : SharedLightCycleSystem
 {
-    [Dependency] private readonly ClientGameTicker _ticker = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly MetaDataSystem _metadata = default!;
+    [Dependency] private ClientGameTicker _ticker = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private MetaDataSystem _metadata = default!;
 
     public override void Update(float frameTime)
     {
@@ -27,7 +27,7 @@ public sealed class LightCycleSystem : SharedLightCycleSystem
             return;
 
         var mapQuery = AllEntityQuery<LightCycleComponent, MapLightComponent>();
-        while (mapQuery.MoveNext(out var uid,  out var cycle, out var map))
+        while (mapQuery.MoveNext(out var uid, out var cycle, out var map))
         {
             if (!cycle.Running)
                 continue;
@@ -36,7 +36,7 @@ public sealed class LightCycleSystem : SharedLightCycleSystem
             // it apply the server state
             var pausedTime = _metadata.GetPauseTime(uid);
 
-            var time = (float) _timing.CurTime
+            var time = (float)_timing.CurTime
                 .Add(cycle.Offset)
                 .Subtract(_ticker.RoundStartTimeSpan)
                 .Subtract(pausedTime)

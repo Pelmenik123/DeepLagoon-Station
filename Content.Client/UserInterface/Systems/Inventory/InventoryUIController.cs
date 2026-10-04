@@ -27,10 +27,10 @@ using static Content.Client.Inventory.ClientInventorySystem;
 
 namespace Content.Client.UserInterface.Systems.Inventory;
 
-public sealed class InventoryUIController : UIController, IOnStateEntered<GameplayState>, IOnStateExited<GameplayState>,
+public sealed partial class InventoryUIController : UIController, IOnStateEntered<GameplayState>, IOnStateExited<GameplayState>,
     IOnSystemChanged<ClientInventorySystem>, IOnSystemChanged<HandsSystem>
 {
-    [Dependency] private readonly IEntityManager _entities = default!;
+    [Dependency] private IEntityManager _entities = default!;
 
     [UISystemDependency] private readonly ClientInventorySystem _inventorySystem = default!;
     [UISystemDependency] private readonly HandsSystem _handsSystem = default!;
@@ -79,7 +79,7 @@ public sealed class InventoryUIController : UIController, IOnStateEntered<Gamepl
     {
         if (_strippingWindow != null)
         {
-            _strippingWindow.Dispose();
+            _strippingWindow?.DisposeControl();
             _strippingWindow = null;
         }
 
@@ -243,7 +243,7 @@ public sealed class InventoryUIController : UIController, IOnStateEntered<Gamepl
     {
         if (_inventoryHotbar == null)
         {
-            Logger.Warning("Tried to toggle inventory bar when none are assigned");
+            Logger.GetSawmill("client").Warning("Tried to toggle inventory bar when none are assigned");
             return;
         }
 
@@ -364,8 +364,8 @@ public sealed class InventoryUIController : UIController, IOnStateEntered<Gamepl
             }
         }
 
-        hoverSprite.CopyFrom(sprite);
-        hoverSprite.Color = fits ? new Color(0, 255, 0, 127) : new Color(255, 0, 0, 127);
+        _entities.System<SpriteSystem>().CopySprite(sprite.AsEntity(), hoverSprite.AsEntity());
+        _entities.System<SpriteSystem>().SetColor(hoverSprite.AsEntity(), fits ? new Color(0, 255, 0, 127) : new Color(255, 0, 0, 127));
 
         control.HoverSpriteView.SetEntity(hoverEntity);
     }

@@ -23,7 +23,7 @@ namespace Content.Client.NodeContainer
         private readonly SharedTransformSystem _transformSystem;
 
         private readonly Dictionary<(int, int), NodeRenderData> _nodeIndex = new();
-        private readonly Dictionary<EntityUid, Dictionary<Vector2i, List<(GroupData, NodeDatum)>>> _gridIndex = new ();
+        private readonly Dictionary<EntityUid, Dictionary<Vector2i, List<(GroupData, NodeDatum)>>> _gridIndex = new();
         private List<Entity<MapGridComponent>> _grids = new();
 
         private readonly Font _font;
@@ -153,7 +153,7 @@ namespace Content.Client.NodeContainer
                 var lCursorBox = invMatrix.TransformBox(cursorBox);
                 foreach (var (pos, list) in gridDict)
                 {
-                    var centerPos = (Vector2) pos + grid.TileSizeHalfVector;
+                    var centerPos = (Vector2)pos + grid.TileSizeHalfVector;
                     list.Sort(NodeDisplayComparer.Instance);
 
                     var offset = -(list.Count - 1) * nodeOffset / 2;

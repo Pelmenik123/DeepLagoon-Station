@@ -15,12 +15,12 @@ namespace Content.Server._Mono;
 /// <summary>
 ///     Deletes all entities with SpaceGarbageComponent.
 /// </summary>
-public sealed class SpaceGarbageCleanupSystem : EntitySystem
+public sealed partial class SpaceGarbageCleanupSystem : EntitySystem
 {
 
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedContainerSystem _container = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
 
     private ISawmill _log = default!;
     private TimeSpan _nextCleanup = TimeSpan.Zero;

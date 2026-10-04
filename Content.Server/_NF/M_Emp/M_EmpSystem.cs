@@ -30,20 +30,20 @@ namespace Content.Server._NF.M_Emp
 {
     public sealed partial class M_EmpSystem : EntitySystem
     {
-        [Dependency] private readonly IChatManager _chat = default!;
-        [Dependency] private readonly IConfigurationManager _configurationManager = default!;
-        [Dependency] private readonly IGameTiming _timing = default!;
-        [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-        [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
-        [Dependency] private readonly RadioSystem _radioSystem = default!;
-        [Dependency] private readonly SharedAppearanceSystem _appearanceSystem = default!;
-        [Dependency] private readonly SharedAudioSystem _audio = default!;
-        [Dependency] private readonly SharedTransformSystem _transform = default!;
-        [Dependency] private readonly StationSystem _station = default!;
-        [Dependency] private readonly UserInterfaceSystem _ui = default!;
-        [Dependency] private readonly EmpSystem _emp = default!;
-        [Dependency] private readonly DeviceNetworkSystem _deviceNetSystem = default!;
-        [Dependency] private readonly DeviceLinkSystem _signalSystem = default!;
+        [Dependency] private IChatManager _chat = default!;
+        [Dependency] private IConfigurationManager _configurationManager = default!;
+        [Dependency] private IGameTiming _timing = default!;
+        [Dependency] private IPrototypeManager _prototypeManager = default!;
+        [Dependency] private SharedPopupSystem _popupSystem = default!;
+        [Dependency] private RadioSystem _radioSystem = default!;
+        [Dependency] private SharedAppearanceSystem _appearanceSystem = default!;
+        [Dependency] private SharedAudioSystem _audio = default!;
+        [Dependency] private SharedTransformSystem _transform = default!;
+        [Dependency] private StationSystem _station = default!;
+        [Dependency] private UserInterfaceSystem _ui = default!;
+        [Dependency] private EmpSystem _emp = default!;
+        [Dependency] private DeviceNetworkSystem _deviceNetSystem = default!;
+        [Dependency] private DeviceLinkSystem _signalSystem = default!;
 
         // TODO: This is probably not compatible with multi-station
         private readonly Dictionary<EntityUid, M_EmpGridState> _M_EmpGridStates = new();
@@ -54,9 +54,9 @@ namespace Content.Server._NF.M_Emp
 
             SubscribeLocalEvent<M_EmpGeneratorComponent, SignalReceivedEvent>(OnSignalReceived);
 
-            SubscribeLocalEvent<M_EmpGeneratorComponent, UiButtonPressedMessage >(OnUiButtonPressed);
+            SubscribeLocalEvent<M_EmpGeneratorComponent, UiButtonPressedMessage>(OnUiButtonPressed);
 
-//            SubscribeLocalEvent<M_EmpGeneratorComponent, InteractHandEvent>(OnInteractHand);
+            //            SubscribeLocalEvent<M_EmpGeneratorComponent, InteractHandEvent>(OnInteractHand);
             SubscribeLocalEvent<M_EmpGeneratorComponent, RefreshPartsEvent>(OnRefreshParts);
             SubscribeLocalEvent<M_EmpGeneratorComponent, UpgradeExamineEvent>(OnUpgradeExamine);
             SubscribeLocalEvent<M_EmpGeneratorComponent, ExaminedEvent>(OnExamined);
@@ -74,7 +74,7 @@ namespace Content.Server._NF.M_Emp
 
         private void OnRoundEnd(GameRunLevelChangedEvent ev)
         {
-            if(ev.New != GameRunLevel.InRound)
+            if (ev.New != GameRunLevel.InRound)
             {
                 _M_EmpGridStates.Clear();
             }
@@ -120,9 +120,9 @@ namespace Content.Server._NF.M_Emp
             {
                 // For the very unlikely possibility that the M_Emp generator was on a M_Emp, we will not return here
             }
-            foreach(var gridState in _M_EmpGridStates)
+            foreach (var gridState in _M_EmpGridStates)
             {
-                foreach(var generator in gridState.Value.ActiveGenerators)
+                foreach (var generator in gridState.Value.ActiveGenerators)
                 {
                     if (!TryComp<M_EmpGeneratorComponent>(generator, out var generatorComponent))
                         continue;
@@ -155,7 +155,7 @@ namespace Content.Server._NF.M_Emp
 
         private void OnUpgradeExamine(EntityUid uid, M_EmpGeneratorComponent component, UpgradeExamineEvent args)
         {
-            args.AddPercentageUpgrade("m_emp-system-generator-delay-upgrade", (float) (component.Recharging / component.BaseRecharging));
+            args.AddPercentageUpgrade("m_emp-system-generator-delay-upgrade", (float)(component.Recharging / component.BaseRecharging));
         }
 
         private void OnExamined(EntityUid uid, M_EmpGeneratorComponent component, ExaminedEvent args)
@@ -203,7 +203,7 @@ namespace Content.Server._NF.M_Emp
 
         private void OnSignalReceived(EntityUid uid, M_EmpGeneratorComponent component, ref SignalReceivedEvent args)
         {
-           // _signalSystem.EnsureSinkPorts(uid, component.ReceiverPort);
+            // _signalSystem.EnsureSinkPorts(uid, component.ReceiverPort);
 
             if (args.Port == component.ReceiverPort)
             {
@@ -299,7 +299,7 @@ namespace Content.Server._NF.M_Emp
                     xform.GridUid.Value
                 };
             }
-            _emp.EmpPulse(xform.MapPosition, empRange, empEnergyConsumption, empDisabledDuration, immuneGrids: immuneGridList);
+            _emp.EmpPulse(_transform.GetMapCoordinates(xform), empRange, empEnergyConsumption, empDisabledDuration, immuneGrids: immuneGridList);
 
             return true;
         }
@@ -355,7 +355,7 @@ namespace Content.Server._NF.M_Emp
 
                 var deleteQueue = new RemQueue<EntityUid>();
 
-                foreach(var generator in state.ActiveGenerators)
+                foreach (var generator in state.ActiveGenerators)
                 {
                     if (!TryComp<M_EmpGeneratorComponent>(generator, out var generatorComp))
                         continue;
@@ -369,7 +369,7 @@ namespace Content.Server._NF.M_Emp
                     }
                 }
 
-                foreach(var generator in deleteQueue)
+                foreach (var generator in deleteQueue)
                 {
                     state.ActiveGenerators.Remove(generator);
                 }
@@ -377,7 +377,7 @@ namespace Content.Server._NF.M_Emp
         }
         private void PlayActivatedSound(EntityUid uid, SharedM_EmpGeneratorComponent component)
         {
-            _audio.PlayPvs(_audio.GetSound(component.ActivatedSound), uid);
+            _audio.PlayPvs(_audio.ResolveSound(component.ActivatedSound), uid);
         }
     }
 

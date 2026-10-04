@@ -61,7 +61,7 @@ public sealed partial class SalvageExpeditionWindow : FancyWindow,
         _claimed = state.Claimed;
         _cooldown = state.Cooldown;
         _nextOffer = state.NextOffer;
-        Container.DisposeAllChildren();
+        Container.RemoveAllChildren();
 
         for (var i = 0; i < state.Missions.Count; i++)
         {
@@ -149,7 +149,7 @@ public sealed partial class SalvageExpeditionWindow : FancyWindow,
 
             // Get faction name from description if possible, fallback to ID string
             if (!_prototype.TryIndex<SalvageFactionPrototype>(mission.Faction, out var factionProto) ||
-                    !Loc.TryGetString(factionProto.Description, out var faction))
+                    !IoCManager.Resolve<ILocalizationManager>().TryGetString(factionProto.Description, out var faction))
                 faction = mission.Faction;
 
             lBox.AddChild(new Label
@@ -323,7 +323,7 @@ public sealed partial class SalvageExpeditionWindow : FancyWindow,
                 ? TimeSpan.FromSeconds(_cfgManager.GetCVar(NFCCVars.SalvageExpeditionFailedCooldown))
                 : TimeSpan.FromSeconds(_cfgManager.GetCVar(CCVars.SalvageExpeditionCooldown));
 
-            NextOfferBar.Value = 1f - (float) (remaining / cooldown);
+            NextOfferBar.Value = 1f - (float)(remaining / cooldown);
             NextOfferText.Text = $"{remaining.Minutes:00}:{remaining.Seconds:00}";
         }
     }

@@ -21,9 +21,9 @@ using Content.Shared.DeviceNetwork.Components;
 
 namespace Content.Server.DeviceLinking.Systems;
 
-public sealed class DeviceLinkSystem : SharedDeviceLinkSystem
+public sealed partial class DeviceLinkSystem : SharedDeviceLinkSystem
 {
-    [Dependency] private readonly DeviceNetworkSystem _deviceNetworkSystem = default!;
+    [Dependency] private DeviceNetworkSystem _deviceNetworkSystem = default!;
 
     public override void Initialize()
     {
@@ -99,7 +99,7 @@ public sealed class DeviceLinkSystem : SharedDeviceLinkSystem
         }
 
         // force using wireless network so things like atmos devices are able to send signals
-        var network = (int) DeviceNetworkComponent.DeviceNetIdDefaults.Wireless;
+        var network = (int)DeviceNetworkComponent.DeviceNetIdDefaults.Wireless;
         _deviceNetworkSystem.QueuePacket(source, sinkNetwork.Address, payload, sinkNetwork.ReceiveFrequency, network);
     }
 
@@ -143,7 +143,7 @@ public sealed class DeviceLinkSystem : SharedDeviceLinkSystem
             return;
 
         var eventArgs = new SignalReceivedEvent(port, args.Sender, args.Data);
-        RaiseLocalEvent(uid,  ref eventArgs);
+        RaiseLocalEvent(uid, ref eventArgs);
     }
 
     /// <summary>

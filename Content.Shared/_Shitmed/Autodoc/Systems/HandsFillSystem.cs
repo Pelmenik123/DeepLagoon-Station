@@ -10,9 +10,9 @@ using Content.Shared.Hands.EntitySystems;
 
 namespace Content.Shared._Shitmed.Autodoc.Systems;
 
-public sealed class HandsFillSystem : EntitySystem
+public sealed partial class HandsFillSystem : EntitySystem
 {
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
 
     public override void Initialize()
     {
@@ -31,7 +31,7 @@ public sealed class HandsFillSystem : EntitySystem
         {
             _hands.AddHand(ent, name, HandLocation.Middle, hands);
 
-            if (fill is not {} id)
+            if (fill is not { } id)
                 continue;
 
             var uid = Spawn(id, coords);

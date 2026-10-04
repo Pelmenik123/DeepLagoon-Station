@@ -6,16 +6,16 @@ using Robust.Shared.Map;
 namespace Content.Server.Salvage;
 
 [AdminCommand(AdminFlags.Admin)]
-sealed class SalvageRulerCommand : IConsoleCommand
+sealed partial class SalvageRulerCommand : IConsoleCommand
 {
-    [Dependency] private readonly IEntityManager _entities = default!;
-    private SharedMapSystem _maps => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
+    [Dependency] private IEntityManager _entities = default!;
+    SharedMapSystem _maps => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
 
     public string Command => "salvageruler";
 
     public string Description => Loc.GetString("salvage-ruler-command-description");
 
-    public string Help => Loc.GetString("salvage-ruler-command-help-text", ("command",Command));
+    public string Help => Loc.GetString("salvage-ruler-command-help-text", ("command", Command));
 
     public void Execute(IConsoleShell shell, string argStr, string[] args)
     {

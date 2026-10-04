@@ -1,3 +1,4 @@
+using Robust.Shared.Random;
 using Content.Shared.EntityTable.ValueSelector;
 using Robust.Shared.Prototypes;
 
@@ -16,11 +17,11 @@ public sealed partial class EntSelector : EntityTableSelector
     [DataField]
     public NumberSelector Amount = new ConstantNumberSelector(1);
 
-    protected override IEnumerable<EntProtoId> GetSpawnsImplementation(System.Random rand,
+    protected override IEnumerable<EntProtoId> GetSpawnsImplementation(IRobustRandom rand,
         IEntityManager entMan,
         IPrototypeManager proto)
     {
-        var num = (int) Math.Floor(Amount.Get(rand, entMan, proto)); // Frontier: Round<Floor
+        var num = (int)Math.Floor(Amount.Get(rand, entMan, proto)); // Frontier: Round<Floor
         for (var i = 0; i < num; i++)
         {
             yield return Id;

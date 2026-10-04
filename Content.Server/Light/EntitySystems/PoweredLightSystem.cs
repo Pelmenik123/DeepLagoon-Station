@@ -29,21 +29,21 @@ namespace Content.Server.Light.EntitySystems
     /// <summary>
     ///     System for the PoweredLightComponents
     /// </summary>
-    public sealed class PoweredLightSystem : EntitySystem
+    public sealed partial class PoweredLightSystem : EntitySystem
     {
-        [Dependency] private readonly IGameTiming _gameTiming = default!;
-        [Dependency] private readonly SharedAmbientSoundSystem _ambientSystem = default!;
-        [Dependency] private readonly LightBulbSystem _bulbSystem = default!;
-        [Dependency] private readonly SharedHandsSystem _handsSystem = default!;
-        [Dependency] private readonly DeviceLinkSystem _signalSystem = default!;
-        [Dependency] private readonly SharedContainerSystem _containerSystem = default!;
-        [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
-        [Dependency] private readonly SharedAudioSystem _audio = default!;
-        [Dependency] private readonly PointLightSystem _pointLight = default!;
-        [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-        [Dependency] private readonly DamageOnInteractSystem _damageOnInteractSystem = default!;
+        [Dependency] private IGameTiming _gameTiming = default!;
+        [Dependency] private SharedAmbientSoundSystem _ambientSystem = default!;
+        [Dependency] private LightBulbSystem _bulbSystem = default!;
+        [Dependency] private SharedHandsSystem _handsSystem = default!;
+        [Dependency] private DeviceLinkSystem _signalSystem = default!;
+        [Dependency] private SharedContainerSystem _containerSystem = default!;
+        [Dependency] private SharedDoAfterSystem _doAfterSystem = default!;
+        [Dependency] private SharedAudioSystem _audio = default!;
+        [Dependency] private PointLightSystem _pointLight = default!;
+        [Dependency] private SharedAppearanceSystem _appearance = default!;
+        [Dependency] private DamageOnInteractSystem _damageOnInteractSystem = default!;
 
-        [Dependency] protected readonly IRobustRandom RobustRandom = default!; // Frontier
+        [Dependency] private IRobustRandom RobustRandom = default!; // Frontier
 
         private static readonly TimeSpan ThunkDelay = TimeSpan.FromSeconds(2);
         public const string LightBulbContainer = "light_bulb";
@@ -79,7 +79,7 @@ namespace Content.Server.Light.EntitySystems
             // TODO: Use ContainerFill dog
             if (light.HasLampOnSpawn != null)
             {
-                var entity = EntityManager.SpawnEntity(light.HasLampOnSpawn, EntityManager.GetComponent<TransformComponent>(uid).Coordinates);
+                var entity = Spawn(light.HasLampOnSpawn, Transform(uid).Coordinates);
                 _containerSystem.Insert(entity, light.LightBulbContainer);
             }
             // need this to update visualizers
@@ -106,7 +106,7 @@ namespace Content.Server.Light.EntitySystems
 
             var userUid = args.User;
             //removing a broken/burned bulb, so allow instant removal
-            if(TryComp<LightBulbComponent>(bulbUid.Value, out var bulb) && bulb.State != LightBulbState.Normal)
+            if (TryComp<LightBulbComponent>(bulbUid.Value, out var bulb) && bulb.State != LightBulbState.Normal)
             {
                 args.Handled = EjectBulb(uid, userUid, light) != null;
                 return;
@@ -137,7 +137,7 @@ namespace Content.Server.Light.EntitySystems
                 return false;
 
             // check if bulb fits
-            if (!EntityManager.TryGetComponent(bulbUid, out LightBulbComponent? lightBulb))
+            if (!TryComp(bulbUid, out LightBulbComponent? lightBulb))
                 return false;
             if (lightBulb.Type != light.BulbType)
                 return false;
@@ -229,7 +229,7 @@ namespace Content.Server.Light.EntitySystems
 
             // check bulb state
             var bulbUid = GetBulb(uid, light);
-            if (bulbUid == null || !EntityManager.TryGetComponent(bulbUid.Value, out LightBulbComponent? lightBulb))
+            if (bulbUid == null || !TryComp(bulbUid.Value, out LightBulbComponent? lightBulb))
                 return false;
             if (lightBulb.State == LightBulbState.Broken)
                 return false;
@@ -255,7 +255,7 @@ namespace Content.Server.Light.EntitySystems
 
             // check if light has bulb
             var bulbUid = GetBulb(uid, light);
-            if (bulbUid == null || !EntityManager.TryGetComponent(bulbUid.Value, out LightBulbComponent? lightBulb))
+            if (bulbUid == null || !TryComp(bulbUid.Value, out LightBulbComponent? lightBulb))
             {
                 SetLight(uid, false, light: light);
                 powerReceiver.Load = 0;
@@ -351,7 +351,7 @@ namespace Content.Server.Light.EntitySystems
 
             light.IsBlinking = isNowBlinking;
 
-            if (!EntityManager.TryGetComponent(uid, out AppearanceComponent? appearance))
+            if (!TryComp(uid, out AppearanceComponent? appearance))
                 return;
 
             _appearance.SetData(uid, PoweredLightVisuals.Blinking, isNowBlinking, appearance);
@@ -387,18 +387,18 @@ namespace Content.Server.Light.EntitySystems
             light.CurrentLit = value;
             _ambientSystem.SetAmbience(uid, value);
 
-            if (EntityManager.TryGetComponent(uid, out PointLightComponent? pointLight))
+            if (TryComp(uid, out PointLightComponent? pointLight))
             {
                 _pointLight.SetEnabled(uid, value, pointLight);
 
                 if (color != null)
                     _pointLight.SetColor(uid, color.Value, pointLight);
                 if (radius != null)
-                    _pointLight.SetRadius(uid, (float) radius, pointLight);
+                    _pointLight.SetRadius(uid, (float)radius, pointLight);
                 if (energy != null)
-                    _pointLight.SetEnergy(uid, (float) energy, pointLight);
+                    _pointLight.SetEnergy(uid, (float)energy, pointLight);
                 if (softness != null)
-                    _pointLight.SetSoftness(uid, (float) softness, pointLight);
+                    _pointLight.SetSoftness(uid, (float)softness, pointLight);
             }
 
             // light bulbs burn your hands!

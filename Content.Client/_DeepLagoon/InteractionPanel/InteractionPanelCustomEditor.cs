@@ -86,7 +86,7 @@ public sealed class InteractionPanelCustomEditor : BoxContainer
         var previewCard = new PanelContainer { PanelOverride = new InteractionPanelRoundedStyle(InteractionPanelAppearance.MessagePreview, 10, 12) };
         previewCard.AddChild(_preview); _steps[0].AddChild(previewCard);
         foreach (var category in Enum.GetValues<InteractionPanelCategory>())
-            _category.AddItem(Loc.GetString($"dl-interaction-panel-category-{category.ToString().ToLowerInvariant()}"), (int) category);
+            _category.AddItem(Loc.GetString($"dl-interaction-panel-category-{category.ToString().ToLowerInvariant()}"), (int)category);
         AddField(_steps[1], "dl-interaction-panel-editor-preference", _category);
         foreach (var body in InteractionPanelCustomRules.Bodies) _body.AddItem(Loc.GetString($"dl-interaction-panel-body-{body}"));
         AddField(_steps[1], "dl-interaction-panel-editor-region", _body);
@@ -210,7 +210,7 @@ public sealed class InteractionPanelCustomEditor : BoxContainer
     private InteractionPanelCustomAction Read() => new()
     {
         Id = _id, Title = _title.Text.Trim(), Template = _template.Text.Trim(),
-        Category = (InteractionPanelCategory) _category.SelectedId, Body = InteractionPanelCustomRules.Bodies[_body.SelectedId],
+        Category = (InteractionPanelCategory)_category.SelectedId, Body = InteractionPanelCustomRules.Bodies[_body.SelectedId],
         Flags = (_self.Pressed ? InteractionPanelActionFlags.INTERACTION_SELF : 0) |
                 (_other.Pressed ? InteractionPanelActionFlags.INTERACTION_OTHER : 0) |
                 (_humanoid.Pressed ? InteractionPanelActionFlags.INTERACTION_HUMANOID : 0) |
@@ -221,7 +221,7 @@ public sealed class InteractionPanelCustomEditor : BoxContainer
     private void Load(InteractionPanelCustomAction action)
     {
         _id = action.Id; _title.Text = action.Title; _template.Text = action.Template; _color.Text = action.ChatColor;
-        _category.SelectId((int) action.Category); _body.SelectId(Math.Max(0, Array.IndexOf(InteractionPanelCustomRules.Bodies, action.Body)));
+        _category.SelectId((int)action.Category); _body.SelectId(Math.Max(0, Array.IndexOf(InteractionPanelCustomRules.Bodies, action.Body)));
         _self.Pressed = action.Flags.HasFlag(InteractionPanelActionFlags.INTERACTION_SELF);
         _other.Pressed = action.Flags.HasFlag(InteractionPanelActionFlags.INTERACTION_OTHER);
         _humanoid.Pressed = action.Flags.HasFlag(InteractionPanelActionFlags.INTERACTION_HUMANOID);

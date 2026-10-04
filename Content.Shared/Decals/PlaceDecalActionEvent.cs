@@ -1,11 +1,11 @@
-﻿using Content.Shared.Actions;
+using Content.Shared.Actions;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Decals;
 
 public sealed partial class PlaceDecalActionEvent : WorldTargetActionEvent
 {
-    [DataField("decalId", required:true)]
+    [DataField("decalId", required: true)]
     public ProtoId<DecalPrototype> DecalId = string.Empty;
 
     [DataField("color")]

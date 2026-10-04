@@ -20,10 +20,10 @@ using JukeboxComponent = Content.Shared.Audio.Jukebox.JukeboxComponent;
 namespace Content.Server.Audio.Jukebox;
 
 
-public sealed class JukeboxSystem : SharedJukeboxSystem
+public sealed partial class JukeboxSystem : SharedJukeboxSystem
 {
-    [Dependency] private readonly IPrototypeManager _protoManager = default!;
-    [Dependency] private readonly AppearanceSystem _appearanceSystem = default!;
+    [Dependency] private IPrototypeManager _protoManager = default!;
+    [Dependency] private AppearanceSystem _appearanceSystem = default!;
 
     public override void Initialize()
     {
@@ -73,7 +73,7 @@ public sealed class JukeboxSystem : SharedJukeboxSystem
 
                 if (TryComp<TransformComponent>(component.AudioStream, out var xform))
                 {
-                    xform.LocalPosition = component.AudioOffset;
+                    EntityManager.System<SharedTransformSystem>().SetLocalPosition(component.AudioStream.Value, component.AudioOffset, xform);
                 }
 
                 Dirty(uid, component);

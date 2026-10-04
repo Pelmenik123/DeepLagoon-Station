@@ -18,7 +18,7 @@ public sealed partial class DungeonJob
         DungeonData data,
         List<Dungeon> dungeons,
         HashSet<Vector2i> reservedTiles,
-        Random random)
+        IRobustRandom random)
     {
         // TODO: The path itself use the tile
         // Widen it randomly (probably for each tile offset it by some changing amount).
@@ -59,7 +59,7 @@ public sealed partial class DungeonJob
         var allTiles = new HashSet<Vector2i>();
         var fallbackTile = new Tile(_prototype.Index(fallback).TileId);
 
-        foreach (var pair in tree)
+        foreach (var (Start, End) in tree)
         {
             var path = pathfinding.GetSplinePath(new PathfindingSystem.SplinePathArgs()
             {
@@ -67,8 +67,8 @@ public sealed partial class DungeonJob
                 MaxRatio = gen.VarianceMax,
                 Args = new PathfindingSystem.SimplePathArgs()
                 {
-                    Start = pair.Start,
-                    End = pair.End,
+                    Start = Start,
+                    End = End,
                     TileCost = node =>
                     {
                         // We want these to get prioritised internally and into space if it's a space dungeon.
@@ -84,7 +84,7 @@ public sealed partial class DungeonJob
             // Welp
             if (path.Path.Count == 0)
             {
-                _sawmill.Error($"Unable to connect spline dungeon path for {_entManager.ToPrettyString(_gridUid)} between {pair.Start} and {pair.End}");
+                _sawmill.Error($"Unable to connect spline dungeon path for {_entManager.ToPrettyString(_gridUid)} between {Start} and {End}");
                 continue;
             }
 
@@ -109,7 +109,6 @@ public sealed partial class DungeonJob
 
                 allTiles.Add(node);
                 Tile tile;
-
                 if (random.Prob(0.9f))
                 {
                     tile = new Tile(_prototype.Index(widen).TileId);
@@ -139,7 +138,7 @@ public sealed partial class DungeonJob
         }
 
         var dungy = new Dungeon();
-        var dungyRoom = new DungeonRoom(allTiles, Vector2.Zero, Box2i.Empty, new HashSet<Vector2i>());
+        var dungyRoom = new DungeonRoom(allTiles, Vector2.Zero, Box2i.Empty, []);
         dungy.AddRoom(dungyRoom);
 
         return dungy;

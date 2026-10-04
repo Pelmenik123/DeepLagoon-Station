@@ -3,7 +3,7 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared.VendingMachines
 {
-    [Serializable, NetSerializable, Prototype]
+    [Prototype]
     public sealed partial class VendingMachineInventoryPrototype : IPrototype
     {
         [ViewVariables]
@@ -11,7 +11,7 @@ namespace Content.Shared.VendingMachines
         public string ID { get; private set; } = default!;
 
         [DataField("startingInventory")]
-        public Dictionary<EntProtoId, uint> StartingInventory { get; private set; } = new();
+        public Dictionary<EntProtoId, uint> StartingInventory { get; private set; } = [];
 
         [DataField("emaggedInventory")]
         public Dictionary<EntProtoId, uint>? EmaggedInventory { get; private set; }

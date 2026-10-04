@@ -8,10 +8,11 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client.Stealth;
 
-public sealed class StealthSystem : SharedStealthSystem
+public sealed partial class StealthSystem : SharedStealthSystem
 {
-    [Dependency] private readonly IPrototypeManager _protoMan = default!;
-    [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IPrototypeManager _protoMan = default!;
+    [Dependency] private SharedTransformSystem _transformSystem = default!;
 
     private ShaderInstance _shader = default!;
 
@@ -19,7 +20,7 @@ public sealed class StealthSystem : SharedStealthSystem
     {
         base.Initialize();
 
-        _shader = _protoMan.Index<ShaderPrototype>("Stealth").InstanceUnique();
+        _shader = _protoMan.Index<ShaderPrototype>(new ProtoId<ShaderPrototype>("Stealth")).InstanceUnique();
 
         SubscribeLocalEvent<StealthComponent, ComponentShutdown>(OnShutdown);
         SubscribeLocalEvent<StealthComponent, ComponentStartup>(OnStartup);
@@ -40,10 +41,10 @@ public sealed class StealthSystem : SharedStealthSystem
         if (!Resolve(uid, ref component, ref sprite, false))
             return;
 
-        sprite.Color = Color.White;
-        sprite.PostShader = enabled ? _shader : null;
-        sprite.GetScreenTexture = enabled;
-        sprite.RaiseShaderEvent = enabled;
+        _sprite.SetColor(sprite.AsEntity(), Color.White);
+        _sprite.SetLegacyPostShader(sprite.AsEntity(), enabled ? _shader : null);
+        _sprite.SetLegacyPostShaderFlags(sprite.AsEntity(), getScreenTexture: enabled);
+        _sprite.SetLegacyPostShaderFlags(sprite.AsEntity(), raiseShaderEvent: enabled);
 
         if (!enabled)
         {
@@ -94,6 +95,6 @@ public sealed class StealthSystem : SharedStealthSystem
         _shader.SetParameter("visibility", visibility);
 
         visibility = MathF.Max(0, visibility);
-        args.Sprite.Color = new Color(visibility, visibility, 1, 1);
+        _sprite.SetColor(args.Sprite.AsEntity(), new Color(visibility, visibility, 1, 1));
     }
 }

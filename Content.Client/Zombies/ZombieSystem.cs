@@ -9,9 +9,10 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client.Zombies;
 
-public sealed class ZombieSystem : SharedZombieSystem
+public sealed partial class ZombieSystem : SharedZombieSystem
 {
-    [Dependency] private readonly IPrototypeManager _prototype = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IPrototypeManager _prototype = default!;
 
     public override void Initialize()
     {
@@ -47,7 +48,7 @@ public sealed class ZombieSystem : SharedZombieSystem
 
         for (var i = 0; i < sprite.AllLayers.Count(); i++)
         {
-            sprite.LayerSetColor(i, component.SkinColor);
+            _sprite.LayerSetColor(sprite.AsEntity(), i, component.SkinColor);
         }
     }
 }

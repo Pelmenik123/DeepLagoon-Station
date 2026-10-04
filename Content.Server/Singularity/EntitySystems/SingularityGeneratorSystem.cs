@@ -10,14 +10,14 @@ using Robust.Shared.Timing;
 
 namespace Content.Server.Singularity.EntitySystems;
 
-public sealed class SingularityGeneratorSystem : SharedSingularityGeneratorSystem
+public sealed partial class SingularityGeneratorSystem : SharedSingularityGeneratorSystem
 {
     #region Dependencies
-    [Dependency] private readonly IViewVariablesManager _vvm = default!;
-    [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
-    [Dependency] private readonly PhysicsSystem _physics = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly MetaDataSystem _metadata = default!;
+    [Dependency] private IViewVariablesManager _vvm = default!;
+    [Dependency] private SharedTransformSystem _transformSystem = default!;
+    [Dependency] private PhysicsSystem _physics = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private MetaDataSystem _metadata = default!;
     #endregion Dependencies
 
     public override void Initialize()
@@ -53,7 +53,7 @@ public sealed class SingularityGeneratorSystem : SharedSingularityGeneratorSyste
             return;
 
         SetPower(uid, 0, comp);
-        EntityManager.SpawnEntity(comp.SpawnPrototype, Transform(uid).Coordinates);
+        Spawn(comp.SpawnPrototype, Transform(uid).Coordinates);
     }
 
     #region Getters/Setters
@@ -109,12 +109,12 @@ public sealed class SingularityGeneratorSystem : SharedSingularityGeneratorSyste
     /// <param name="args">The state of the beginning of the collision.</param>
     private void HandleParticleCollide(EntityUid uid, ParticleProjectileComponent component, ref StartCollideEvent args)
     {
-        if (!EntityManager.TryGetComponent<SingularityGeneratorComponent>(args.OtherEntity, out var generatorComp))
+        if (!TryComp<SingularityGeneratorComponent>(args.OtherEntity, out var generatorComp))
             return;
 
         if (_timing.CurTime < _metadata.GetPauseTime(uid) + generatorComp.NextFailsafe && !generatorComp.FailsafeDisabled)
         {
-            EntityManager.QueueDeleteEntity(uid);
+            QueueDel(uid);
             return;
         }
 
@@ -152,7 +152,7 @@ public sealed class SingularityGeneratorSystem : SharedSingularityGeneratorSyste
             );
         }
 
-        EntityManager.QueueDeleteEntity(uid);
+        QueueDel(uid);
     }
     #endregion Event Handlers
 

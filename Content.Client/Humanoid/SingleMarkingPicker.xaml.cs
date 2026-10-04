@@ -19,8 +19,8 @@ namespace Content.Client.Humanoid;
 [GenerateTypedNameReferences]
 public sealed partial class SingleMarkingPicker : BoxContainer
 {
-    [Dependency] private readonly MarkingManager _markingManager = default!;
-    [Dependency] private readonly IEntityManager _entityManager = default!;
+    [Dependency] private MarkingManager _markingManager = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
 
 
     /// <summary>
@@ -76,7 +76,7 @@ public sealed partial class SingleMarkingPicker : BoxContainer
 
             foreach (var item in MarkingList)
             {
-                item.Selected = (string) item.Metadata! == _markings[_slot].MarkingId;
+                item.Selected = (string)item.Metadata! == _markings[_slot].MarkingId;
             }
 
             _ignoreItemSelected = false;
@@ -199,7 +199,7 @@ public sealed partial class SingleMarkingPicker : BoxContainer
 
         foreach (var (id, marking) in sortedMarkings)
         {
-            var item = MarkingList.AddItem(Loc.GetString($"marking-{id}"), marking.Sprites[0].Frame0());
+            var item = MarkingList.AddItem(Loc.GetString($"marking-{id}"), SpriteComponentExt.Sys.Frame0(marking.Sprites[0]));
             item.Metadata = marking.ID;
 
             if (_markings[Slot].MarkingId == id)
@@ -222,7 +222,7 @@ public sealed partial class SingleMarkingPicker : BoxContainer
 
         var marking = _markings[Slot];
 
-        ColorSelectorContainer.DisposeAllChildren();
+        ColorSelectorContainer.RemoveAllChildren();
         ColorSelectorContainer.RemoveAllChildren();
 
         if (marking.MarkingColors.Count != proto.Sprites.Count)
@@ -257,7 +257,7 @@ public sealed partial class SingleMarkingPicker : BoxContainer
             return;
         }
 
-        var id = (string) MarkingList[args.ItemIndex].Metadata!;
+        var id = (string)MarkingList[args.ItemIndex].Metadata!;
         if (!_markingManager.Markings.TryGetValue(id, out var proto))
         {
             throw new ArgumentException("Attempted to select non-existent marking.");
@@ -284,7 +284,7 @@ public sealed partial class SingleMarkingPicker : BoxContainer
         Search.Visible = Slot >= 0;
         AddButton.HorizontalExpand = Slot < 0;
         RemoveButton.HorizontalExpand = Slot < 0;
-        AddButton.Disabled = PointsLeft == 0 && _totalPoints > -1 ;
+        AddButton.Disabled = PointsLeft == 0 && _totalPoints > -1;
         RemoveButton.Disabled = PointsUsed == 0;
         SlotSelector.Clear();
 

@@ -8,11 +8,11 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared.StatusEffect
 {
-    public sealed class StatusEffectsSystem : EntitySystem
+    public sealed partial class StatusEffectsSystem : EntitySystem
     {
-        [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-        [Dependency] private readonly IGameTiming _gameTiming = default!;
-        [Dependency] private readonly AlertsSystem _alertsSystem = default!;
+        [Dependency] private IPrototypeManager _prototypeManager = default!;
+        [Dependency] private IGameTiming _gameTiming = default!;
+        [Dependency] private AlertsSystem _alertsSystem = default!;
         private List<EntityUid> _toRemove = new();
 
         public override void Initialize()
@@ -117,7 +117,7 @@ namespace Content.Shared.StatusEffect
             if (HasComp<T>(uid))
                 return true;
 
-            EntityManager.AddComponent<T>(uid);
+            AddComp<T>(uid);
             status.ActiveEffects[key].RelevantComponent = Factory.GetComponentName<T>();
             return true;
 
@@ -132,10 +132,10 @@ namespace Content.Shared.StatusEffect
             if (TryAddStatusEffect(uid, key, time, refresh, status))
             {
                 // If they already have the comp, we just won't bother updating anything.
-                if (!EntityManager.HasComponent(uid, Factory.GetRegistration(component).Type))
+                if (!HasComp(uid, Factory.GetRegistration(component).Type))
                 {
-                    var newComponent = (Component) Factory.GetComponent(component);
-                    EntityManager.AddComponent(uid, newComponent);
+                    var newComponent = (Component)Factory.GetComponent(component);
+                    AddComp(uid, newComponent);
                     status.ActiveEffects[key].RelevantComponent = component;
                 }
                 return true;
@@ -273,7 +273,7 @@ namespace Content.Shared.StatusEffect
                 && Factory.TryGetRegistration(state.RelevantComponent, out var registration))
             {
                 var type = registration.Type;
-                EntityManager.RemoveComponent(uid, type);
+                RemComp(uid, type);
             }
 
             if (proto.Alert != null)
@@ -472,7 +472,7 @@ namespace Content.Shared.StatusEffect
     ///     Raised on an entity before a status effect is added to determine if adding it should be cancelled.
     /// </summary>
     [ByRefEvent]
-    public record struct BeforeStatusEffectAddedEvent(string Key, bool Cancelled=false);
+    public record struct BeforeStatusEffectAddedEvent(string Key, bool Cancelled = false);
 
     public readonly struct StatusEffectAddedEvent
     {

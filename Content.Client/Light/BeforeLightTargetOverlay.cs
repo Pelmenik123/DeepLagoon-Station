@@ -7,11 +7,11 @@ namespace Content.Client.Light;
 /// <summary>
 /// Handles an enlarged lighting target so content can use large blur radii.
 /// </summary>
-public sealed class BeforeLightTargetOverlay : Overlay
+public sealed partial class BeforeLightTargetOverlay : Overlay
 {
     public override OverlaySpace Space => OverlaySpace.BeforeLighting;
 
-    [Dependency] private readonly IClyde _clyde = default!;
+    [Dependency] private IClyde _clyde = default!;
 
     public IRenderTexture EnlargedLightTarget = default!;
     public Box2Rotated EnlargedBounds;
@@ -33,7 +33,7 @@ public sealed class BeforeLightTargetOverlay : Overlay
     {
         // Code is weird but I don't think engine should be enlarging the lighting render target arbitrarily either, maybe via cvar?
         // The problem is the blur has no knowledge of pixels outside the viewport so with a large enough blur radius you get sampling issues.
-        var size = args.Viewport.LightRenderTarget.Size + (int) (_skirting * EyeManager.PixelsPerMeter);
+        var size = args.Viewport.LightRenderTarget.Size + (int)(_skirting * EyeManager.PixelsPerMeter);
         EnlargedBounds = args.WorldBounds.Enlarged(_skirting / 2f);
 
         // This just exists to copy the lightrendertarget and write back to it.

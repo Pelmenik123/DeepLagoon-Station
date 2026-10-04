@@ -9,7 +9,6 @@ namespace Content.Server._NF.GameRule;
 ///     Describes information for a single point of interest to be spawned in the world
 /// </summary>
 [Prototype]
-[Serializable]
 public sealed partial class PointOfInterestPrototype : IPrototype, IInheritingPrototype
 {
     [IdDataField]
@@ -57,7 +56,7 @@ public sealed partial class PointOfInterestPrototype : IPrototype, IInheritingPr
     /// </summary>
     [DataField]
     [AlwaysPushInheritance]
-    public ComponentRegistry AddComponents { get; set; } = new();
+    public ComponentRegistry AddComponents { get; set; } = [];
 
     /// <summary>
     ///     What gamepresets ID this POI is allowed to spawn on.

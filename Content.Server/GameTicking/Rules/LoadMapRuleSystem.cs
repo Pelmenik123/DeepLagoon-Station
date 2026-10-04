@@ -12,13 +12,13 @@ using Robust.Shared.Utility;
 
 namespace Content.Server.GameTicking.Rules;
 
-public sealed class LoadMapRuleSystem : StationEventSystem<LoadMapRuleComponent>
+public sealed partial class LoadMapRuleSystem : StationEventSystem<LoadMapRuleComponent>
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly MapSystem _map = default!;
-    [Dependency] private readonly MapLoaderSystem _mapLoader = default!;
-    [Dependency] private readonly TransformSystem _transform = default!;
-    [Dependency] private readonly GridPreloaderSystem _gridPreloader = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private MapSystem _map = default!;
+    [Dependency] private MapLoaderSystem _mapLoader = default!;
+    [Dependency] private TransformSystem _transform = default!;
+    [Dependency] private GridPreloaderSystem _gridPreloader = default!;
 
     protected override void Added(EntityUid uid, LoadMapRuleComponent comp, GameRuleComponent rule, GameRuleAddedEvent args)
     {
@@ -43,12 +43,12 @@ public sealed class LoadMapRuleSystem : StationEventSystem<LoadMapRuleComponent>
             grids = GameTicker.LoadGameMap(gameMap, out mapId, null);
             Log.Info($"Created map {mapId} for {ToPrettyString(uid):rule}");
         }
-        else if (comp.MapPath is {} path)
+        else if (comp.MapPath is { } path)
         {
             DebugTools.AssertNull(comp.GridPath);
             DebugTools.AssertNull(comp.PreloadedGrid);
 
-            var opts = DeserializationOptions.Default with {InitializeMaps = true};
+            var opts = DeserializationOptions.Default with { InitializeMaps = true };
             if (!_mapLoader.TryLoadMap(path, out var map, out var gridSet, opts))
             {
                 Log.Error($"Failed to load map from {path}!");
@@ -56,7 +56,7 @@ public sealed class LoadMapRuleSystem : StationEventSystem<LoadMapRuleComponent>
                 return;
             }
 
-            grids = gridSet.Select( x => x.Owner).ToList();
+            grids = gridSet.Select(x => x.Owner).ToList();
             mapId = map.Value.Comp.MapId;
         }
         else if (comp.GridPath is { } gPath)
@@ -65,7 +65,7 @@ public sealed class LoadMapRuleSystem : StationEventSystem<LoadMapRuleComponent>
 
             // I fucking love it when "map paths" choses to ar
             _map.CreateMap(out mapId);
-            var opts = DeserializationOptions.Default with {InitializeMaps = true};
+            var opts = DeserializationOptions.Default with { InitializeMaps = true };
             if (!_mapLoader.TryLoadGrid(mapId, gPath, out var grid, opts))
             {
                 Log.Error($"Failed to load grid from {gPath}!");
@@ -73,9 +73,9 @@ public sealed class LoadMapRuleSystem : StationEventSystem<LoadMapRuleComponent>
                 return;
             }
 
-            grids = new List<EntityUid> {grid.Value.Owner};
+            grids = new List<EntityUid> { grid.Value.Owner };
         }
-        else if (comp.PreloadedGrid is {} preloaded)
+        else if (comp.PreloadedGrid is { } preloaded)
         {
             // TODO: If there are no preloaded grids left, any rule announcements will still go off!
             if (!_gridPreloader.TryGetPreloadedGrid(preloaded, out var loadedShuttle))

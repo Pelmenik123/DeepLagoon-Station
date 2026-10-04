@@ -17,8 +17,8 @@ namespace Content.Client.SurveillanceCamera.UI;
 [GenerateTypedNameReferences]
 public sealed partial class SurveillanceCameraMonitorWindow : DefaultWindow
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IResourceCache _resourceCache = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IResourceCache _resourceCache = default!;
 
     public event Action<string>? CameraSelected;
     public event Action<string>? SubnetOpened;
@@ -42,7 +42,7 @@ public sealed partial class SurveillanceCameraMonitorWindow : DefaultWindow
                 return null;
             }
 
-            return (string) SubnetSelector.SelectedMetadata;
+            return (string)SubnetSelector.SelectedMetadata;
         }
     }
 
@@ -53,7 +53,7 @@ public sealed partial class SurveillanceCameraMonitorWindow : DefaultWindow
 
         // This could be done better. I don't want to deal with stylesheets at the moment.
         var texture = _resourceCache.GetTexture("/Textures/Interface/Nano/square_black.png");
-        var shader = _prototypeManager.Index<ShaderPrototype>("CameraStatic").Instance().Duplicate();
+        var shader = _prototypeManager.Index<ShaderPrototype>(new ProtoId<ShaderPrototype>("CameraStatic")).Instance().Duplicate();
 
         CameraView.ViewportSize = new Vector2i(500, 500);
         CameraView.Eye = _defaultEye; // sure
@@ -66,7 +66,7 @@ public sealed partial class SurveillanceCameraMonitorWindow : DefaultWindow
         SubnetSelector.OnItemSelected += args =>
         {
             // piss
-            SubnetOpened!((string) args.Button.GetItemMetadata(args.Id)!);
+            SubnetOpened!((string)args.Button.GetItemMetadata(args.Id)!);
         };
         SubnetRefreshButton.OnPressed += _ => SubnetRefresh!();
         CameraRefreshButton.OnPressed += _ => CameraRefresh!();
@@ -195,6 +195,6 @@ public sealed partial class SurveillanceCameraMonitorWindow : DefaultWindow
 
     private void OnSubnetListSelect(ItemList.ItemListSelectedEventArgs args)
     {
-        CameraSelected!((string) SubnetList[args.ItemIndex].Metadata!);
+        CameraSelected!((string)SubnetList[args.ItemIndex].Metadata!);
     }
 }

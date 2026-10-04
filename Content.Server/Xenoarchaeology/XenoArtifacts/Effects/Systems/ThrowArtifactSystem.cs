@@ -10,14 +10,14 @@ using Robust.Shared.Random;
 
 namespace Content.Server.Xenoarchaeology.XenoArtifacts.Effects.Systems;
 
-public sealed class ThrowArtifactSystem : EntitySystem
+public sealed partial class ThrowArtifactSystem : EntitySystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly ThrowingSystem _throwing = default!;
-    [Dependency] private readonly TileSystem _tile = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly SharedMapSystem _mapSystem = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private ThrowingSystem _throwing = default!;
+    [Dependency] private TileSystem _tile = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private SharedMapSystem _mapSystem = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -49,13 +49,13 @@ public sealed class ThrowArtifactSystem : EntitySystem
         foreach (var ent in lookup)
         {
             if (physQuery.TryGetComponent(ent, out var phys)
-                && (phys.CollisionMask & (int) CollisionGroup.GhostImpassable) != 0)
+                && (phys.CollisionMask & (int)CollisionGroup.GhostImpassable) != 0)
                 continue;
 
             var tempXform = Transform(ent);
 
             var foo = _transform.GetMapCoordinates(ent, xform: tempXform).Position - _transform.GetMapCoordinates(uid, xform: xform).Position;
-            _throwing.TryThrow(ent, foo*2, component.ThrowStrength, uid, 0);
+            _throwing.TryThrow(ent, foo * 2, component.ThrowStrength, uid, 0);
         }
     }
 }

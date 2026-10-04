@@ -24,7 +24,7 @@ public sealed partial class DungeonJob
     /// <summary>
     /// <see cref="ExternalWindowDunGen"/>
     /// </summary>
-    private async Task PostGen(ExternalWindowDunGen gen, DungeonData data, Dungeon dungeon, HashSet<Vector2i> reservedTiles, Random random)
+    private async Task PostGen(ExternalWindowDunGen gen, DungeonData data, Dungeon dungeon, HashSet<Vector2i> reservedTiles, IRobustRandom random)
     {
         if (!data.Tiles.TryGetValue(DungeonDataKey.FallbackTile, out var tileProto) ||
             !data.SpawnGroups.TryGetValue(DungeonDataKey.Window, out var windowGroup))
@@ -65,7 +65,7 @@ public sealed partial class DungeonJob
             // Check we're not on a corner
             for (var i = 0; i < 2; i++)
             {
-                var dir = (Direction) (i * 2);
+                var dir = (Direction)(i * 2);
                 var dirVec = dir.ToIntVec();
                 var isValid = true;
 
@@ -83,9 +83,9 @@ public sealed partial class DungeonJob
                     }
 
                     // Also check perpendicular that it is free
-                    foreach (var k in new [] {2, 6})
+                    foreach (var k in new[] { 2, 6 })
                     {
-                        var perp = (Direction) ((i * 2 + k) % 8);
+                        var perp = (Direction)((i * 2 + k) % 8);
                         var perpVec = perp.ToIntVec();
                         var perpTile = tile + perpVec;
 
@@ -112,7 +112,7 @@ public sealed partial class DungeonJob
                     if (reservedTiles.Contains(neighbor))
                         continue;
 
-                    tiles.Add((neighbor, _tile.GetVariantTile((ContentTileDefinition) tileDef, random)));
+                    tiles.Add((neighbor, _tile.GetVariantTile((ContentTileDefinition)tileDef, random)));
                     index++;
                     takenTiles.Add(neighbor);
                 }
@@ -128,7 +128,7 @@ public sealed partial class DungeonJob
             var gridPos = _maps.GridTileToLocal(_gridUid, _grid, tile.Item1);
 
             index += spawnEntry.Entries.Count;
-            _entManager.SpawnEntities(gridPos, EntitySpawnCollection.GetSpawns(spawnEntry.Entries, random));
+            SpawnEntities(gridPos, EntitySpawnCollection.GetSpawns(spawnEntry.Entries, random));
             await SuspendDungeon();
 
             if (!ValidateResume())

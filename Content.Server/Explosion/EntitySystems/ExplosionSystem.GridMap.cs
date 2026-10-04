@@ -36,7 +36,7 @@ public sealed partial class ExplosionSystem
     /// <summary>
     ///     Set of tiles of each grid that are directly adjacent to space, along with the directions that face space.
     /// </summary>
-    private Dictionary<EntityUid, Dictionary<Vector2i, NeighborFlag>> _gridEdges = new();
+    private readonly Dictionary<EntityUid, Dictionary<Vector2i, NeighborFlag>> _gridEdges = [];
 
     /// <summary>
     ///     On grid startup, prepare a map of grid edges.
@@ -45,12 +45,12 @@ public sealed partial class ExplosionSystem
     {
         var grid = Comp<MapGridComponent>(ev.EntityUid);
 
-        Dictionary<Vector2i, NeighborFlag> edges = new();
+        Dictionary<Vector2i, NeighborFlag> edges = [];
         _gridEdges[ev.EntityUid] = edges;
 
-        foreach (var tileRef in _map.GetAllTiles(ev.EntityUid, grid))
+        foreach (var tileRef in _mapManager.GetAllTiles(ev.EntityUid, grid))
         {
-            if (IsEdge(grid, tileRef.GridIndices, out var dir))
+            if (IsEdge((ev.EntityUid, grid), tileRef.GridIndices, out var dir))
                 edges.Add(tileRef.GridIndices, dir);
         }
     }
@@ -78,12 +78,12 @@ public sealed partial class ExplosionSystem
         List<EntityUid> localGrids,
         float maxDistance)
     {
-        Dictionary<Vector2i, BlockedSpaceTile> transformedEdges = new();
+        Dictionary<Vector2i, BlockedSpaceTile> transformedEdges = [];
 
         var targetMatrix = Matrix3x2.Identity;
         Angle targetAngle = new();
         var tileSize = DefaultTileSize;
-        var maxDistanceSq = (int) (maxDistance * maxDistance);
+        var maxDistanceSq = (int)(maxDistance * maxDistance);
 
         // if the explosion is centered on some grid (and not just space), get the transforms.
         if (referenceGrid != null)
@@ -121,11 +121,11 @@ public sealed partial class ExplosionSystem
                 continue;
             }
 
-            var xforms = EntityManager.GetEntityQuery<TransformComponent>();
+            var xforms = GetEntityQuery<TransformComponent>();
             var xform = xforms.GetComponent(gridToTransform);
-            var  (_, gridWorldRotation, gridWorldMatrix, invGridWorldMatrid) = _transformSystem.GetWorldPositionRotationMatrixWithInv(xform, xforms);
+            var (_, gridWorldRotation, gridWorldMatrix, invGridWorldMatrid) = _transformSystem.GetWorldPositionRotationMatrixWithInv(xform, xforms);
 
-            var localEpicentre = (Vector2i) Vector2.Transform(epicentre.Position, invGridWorldMatrid);
+            var localEpicentre = (Vector2i)Vector2.Transform(epicentre.Position, invGridWorldMatrid);
             var matrix = offsetMatrix * gridWorldMatrix * targetMatrix;
             var angle = gridWorldRotation - targetAngle;
 
@@ -143,7 +143,7 @@ public sealed partial class ExplosionSystem
                 if ((dir & NeighborFlag.Cardinal) == 0)
                 {
                     // this is purely a diagonal edge tile
-                    var newIndex = new Vector2i((int) MathF.Floor(center.X), (int) MathF.Floor(center.Y));
+                    var newIndex = new Vector2i((int)MathF.Floor(center.X), (int)MathF.Floor(center.Y));
                     if (!transformedEdges.TryGetValue(newIndex, out var data))
                     {
                         data = new();
@@ -158,13 +158,13 @@ public sealed partial class ExplosionSystem
                 // shitty approximation to doing a proper check to get all space-tiles that intersect this grid tile.
                 // Not perfect, but works well enough.
 
-                HashSet<Vector2i> transformedTiles = new()
-                {
+                HashSet<Vector2i> transformedTiles =
+                [
                     new((int) MathF.Floor(center.X + x), (int) MathF.Floor(center.Y + x)),  // center of tile, offset by (0.25, 0.25) in tile coordinates
                     new((int) MathF.Floor(center.X - y), (int) MathF.Floor(center.Y - y)),  // center offset by (-0.25, 0.25)
                     new((int) MathF.Floor(center.X - x), (int) MathF.Floor(center.Y + y)),  // offset by (-0.25, -0.25)
                     new((int) MathF.Floor(center.X + y), (int) MathF.Floor(center.Y - x)),  // offset by (0.25, -0.25)
-                };
+                ];
 
                 foreach (var newIndices in transformedTiles)
                 {
@@ -263,7 +263,7 @@ public sealed partial class ExplosionSystem
 
             if (!_gridEdges.TryGetValue(ev.Entity, out var edges))
             {
-                edges = new();
+                edges = [];
                 _gridEdges[ev.Entity] = edges;
             }
 
@@ -309,7 +309,7 @@ public sealed partial class ExplosionSystem
             }
 
             // finally check if the new tile is itself an edge tile
-            if (IsEdge(grid, change.GridIndices, out var spaceDir))
+            if (IsEdge((ev.Entity, grid), change.GridIndices, out var spaceDir))
                 edges.Add(change.GridIndices, spaceDir);
         }
     }
@@ -321,13 +321,13 @@ public sealed partial class ExplosionSystem
     ///     Optionally ignore a specific Vector2i. Used by <see cref="OnTileChanged"/> when we already know that a
     ///     given tile is not space. This avoids unnecessary TryGetTileRef calls.
     /// </remarks>
-    private bool IsEdge(MapGridComponent grid, Vector2i index, out NeighborFlag spaceDirections)
+    private bool IsEdge(Entity<MapGridComponent> grid, Vector2i index, out NeighborFlag spaceDirections)
     {
         spaceDirections = NeighborFlag.Invalid;
         for (var i = 0; i < NeighbourVectors.Length; i++)
         {
-            if (!_mapManager.TryGetTileRef(grid.Owner, grid, index + NeighbourVectors[i], out var neighborTile) || neighborTile.Tile.IsEmpty)
-                spaceDirections |= (NeighborFlag) (1 << i);
+            if (!_mapManager.TryGetTileRef(grid, grid.Comp, index + NeighbourVectors[i], out var neighborTile) || neighborTile.Tile.IsEmpty)
+                spaceDirections |= (NeighborFlag)(1 << i);
         }
 
         return spaceDirections != NeighborFlag.Invalid;
@@ -375,7 +375,7 @@ public sealed partial class ExplosionSystem
 
     // array indices match NeighborFlags shifts.
     public static readonly Vector2i[] NeighbourVectors =
-        {
+        [
             new (0, 1),
             new (1, 1),
             new (1, 0),
@@ -384,7 +384,7 @@ public sealed partial class ExplosionSystem
             new (-1, -1),
             new (-1, 0),
             new (-1, 1)
-        };
+        ];
 }
 
 /// <summary>
@@ -400,19 +400,12 @@ public sealed class BlockedSpaceTile
     /// <summary>
     ///     The set of grid edge-tiles that are blocking this space tile.
     /// </summary>
-    public List<GridEdgeData> BlockingGridEdges = new();
+    public List<GridEdgeData> BlockingGridEdges = [];
 
-    public sealed class GridEdgeData
+    public sealed class GridEdgeData(Vector2i tile, EntityUid? grid, Vector2 center, Angle angle, float size)
     {
-        public Vector2i Tile;
-        public EntityUid? Grid;
-        public Box2Rotated Box;
-
-        public GridEdgeData(Vector2i tile, EntityUid? grid, Vector2 center, Angle angle, float size)
-        {
-            Tile = tile;
-            Grid = grid;
-            Box = new(Box2.CenteredAround(center, new Vector2(size, size)), angle, center);
-        }
+        public Vector2i Tile = tile;
+        public EntityUid? Grid = grid;
+        public Box2Rotated Box = new(Box2.CenteredAround(center, new Vector2(size, size)), angle, center);
     }
 }

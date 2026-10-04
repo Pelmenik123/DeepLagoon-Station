@@ -9,7 +9,7 @@ namespace Content.Server.Speech.Components;
 [RegisterComponent]
 public sealed partial class ReplacementAccentComponent : Component
 {
-    [DataField( required: true)]
+    [DataField(required: true)]
     public ProtoId<ReplacementAccentPrototype> Accent = default!;
 
 }

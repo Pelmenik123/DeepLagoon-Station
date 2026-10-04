@@ -24,8 +24,8 @@ namespace Content.Server.Cargo.Systems
 {
     public sealed partial class CargoSystem
     {
-        [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
-        [Dependency] private readonly EmagSystem _emag = default!;
+        [Dependency] SharedTransformSystem _transformSystem = default!;
+        [Dependency] EmagSystem _emag = default!;
 
         /// <summary>
         /// How much time to wait (in seconds) before increasing bank accounts balance.
@@ -37,7 +37,6 @@ namespace Content.Server.Cargo.Systems
         /// </summary>
         private float _timer;
 
-        [Dependency] private readonly BankSystem _bankSystem = default!;
 
         private void InitializeConsole()
         {
@@ -272,9 +271,9 @@ namespace Content.Server.Cargo.Systems
                 if (!float.IsFinite(taxCoeff) || taxCoeff <= 0.0f)
                     continue;
                 var tax = (int)Math.Floor(cost * taxCoeff);
-                _bankSystem.TrySectorDeposit(account, tax, LedgerEntryType.CargoTax);
+                _bank.TrySectorDeposit(account, tax, LedgerEntryType.CargoTax);
             }
-            _bankSystem.TryBankWithdraw(player, cost);
+            _bank.TryBankWithdraw(player, cost);
             // End Frontier
 
             UpdateOrders(station.Value);
@@ -363,9 +362,9 @@ namespace Content.Server.Cargo.Systems
             if (!component.AllowedGroups.Contains(product.Group))
                 return;
 
-            var data = GetOrderData(EntityManager.GetNetEntity(uid), args, product, GenerateOrderId(orderDatabase));
+            var data = GetOrderData(GetNetEntity(uid), args, product, GenerateOrderId(orderDatabase));
 
-            if (!TryAddOrder(orderDatabase.Owner, data, orderDatabase))
+            if (!TryAddOrder(uid, data, orderDatabase))
             {
                 PlayDenySound(uid, component);
                 return;
@@ -418,7 +417,7 @@ namespace Content.Server.Cargo.Systems
 
                 // Frontier - we only want to see orders made on the same computer, so filter them out
                 var filteredOrders = orderDatabase.Orders
-                    .Where(order => order.Computer == EntityManager.GetNetEntity(uid)).ToList();
+                    .Where(order => order.Computer == GetNetEntity(uid)).ToList();
 
                 var state = new CargoConsoleInterfaceState(
                     MetaData(user).EntityName,
@@ -595,7 +594,7 @@ namespace Content.Server.Cargo.Systems
             _transformSystem.Unanchor(item, Transform(item));
 
             // Create a sheet of paper to write the order details on
-            var printed = EntityManager.SpawnEntity(paperProto, spawn);
+            var printed = Spawn(paperProto, spawn);
             if (TryComp<PaperComponent>(printed, out var paper))
             {
                 // fill in the order data

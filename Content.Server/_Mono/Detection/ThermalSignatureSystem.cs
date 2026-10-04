@@ -19,9 +19,9 @@ namespace Content.Server._Mono.Detection;
 /// <summary>
 ///     Handles the logic for thermal signatures.
 /// </summary>
-public sealed class ThermalSignatureSystem : EntitySystem
+public sealed partial class ThermalSignatureSystem : EntitySystem
 {
-    [Dependency] private readonly SharedPowerReceiverSystem _power = default!;
+    [Dependency] private SharedPowerReceiverSystem _power = default!;
 
     private TimeSpan _updateInterval = TimeSpan.FromSeconds(0.5);
     private TimeSpan _updateAccumulator = TimeSpan.FromSeconds(0);

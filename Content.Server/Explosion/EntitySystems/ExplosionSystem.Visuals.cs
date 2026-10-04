@@ -18,7 +18,7 @@ public sealed partial class ExplosionSystem
 
     private void OnGetState(EntityUid uid, ExplosionVisualsComponent component, ref ComponentGetState args)
     {
-        Dictionary<NetEntity, Dictionary<int, List<Vector2i>>> tileLists = new();
+        Dictionary<NetEntity, Dictionary<int, List<Vector2i>>> tileLists = [];
         foreach (var (grid, data) in component.Tiles)
         {
             tileLists.Add(GetNetEntity(grid), data);

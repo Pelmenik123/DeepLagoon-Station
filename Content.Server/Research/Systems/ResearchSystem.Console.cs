@@ -28,7 +28,7 @@ namespace Content.Server.Research.Systems;
 
 public sealed partial class ResearchSystem
 {
-    [Dependency] private readonly EmagSystem _emag = default!;
+    [Dependency] EmagSystem _emag = default!;
 
     private void InitializeConsole()
     {

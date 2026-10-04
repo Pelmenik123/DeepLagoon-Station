@@ -63,14 +63,14 @@ namespace Content.Server.Power.Components
         [ViewVariables]
         public PowerState.Supply NetworkSupply { get; } = new();
 
-        protected override void AddSelfToNet(IBasePowerNet powerNet)
+        protected override void AddSelfToNet(EntityUid owner, IBasePowerNet powerNet)
         {
-            powerNet.AddSupplier(this);
+            powerNet.AddSupplier((owner, this));
         }
 
-        protected override void RemoveSelfFromNet(IBasePowerNet powerNet)
+        protected override void RemoveSelfFromNet(EntityUid owner, IBasePowerNet powerNet)
         {
-            powerNet.RemoveSupplier(this);
+            powerNet.RemoveSupplier((owner, this));
         }
 
         // Mono

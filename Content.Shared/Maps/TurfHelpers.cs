@@ -23,7 +23,7 @@ namespace Content.Shared.Maps
                 return null;
 
             mapManager ??= IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
-            var pos = coordinates.ToMap(entityManager, entityManager.System<SharedTransformSystem>());
+            var pos = entityManager.System<SharedTransformSystem>().ToMapCoordinates(coordinates);
             if (!mapManager.TryFindGridAt(pos, out var gridUid, out var grid))
                 return null;
 
@@ -72,10 +72,9 @@ namespace Content.Shared.Maps
         ///     Helper that returns all entities in a turf.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [Obsolete("Use the lookup system")]
         public static IEnumerable<EntityUid> GetEntitiesInTile(this TileRef turf, LookupFlags flags = LookupFlags.Static, EntityLookupSystem? lookupSystem = null)
         {
-            lookupSystem ??= EntitySystem.Get<EntityLookupSystem>();
+            lookupSystem ??= IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<EntityLookupSystem>();
 
             if (!GetWorldTileBox(turf, out var worldBox))
                 return Enumerable.Empty<EntityUid>();
@@ -86,7 +85,6 @@ namespace Content.Shared.Maps
         /// <summary>
         ///     Helper that returns all entities in a turf.
         /// </summary>
-        [Obsolete("Use the lookup system")]
         public static IEnumerable<EntityUid> GetEntitiesInTile(this EntityCoordinates coordinates, LookupFlags flags = LookupFlags.Static, EntityLookupSystem? lookupSystem = null)
         {
             var turf = coordinates.GetTileRef();
@@ -100,7 +98,6 @@ namespace Content.Shared.Maps
         /// <summary>
         /// Checks if a turf has something dense on it.
         /// </summary>
-        [Obsolete("Use turf system")]
         public static bool IsBlockedTurf(this TileRef turf, bool filterMobs, EntityLookupSystem? physics = null)
         {
             CollisionGroup mask = filterMobs
@@ -113,7 +110,6 @@ namespace Content.Shared.Maps
         /// <summary>
         /// Creates a box the size of a tile, at the same position in the world as the tile.
         /// </summary>
-        [Obsolete]
         private static bool GetWorldTileBox(TileRef turf, out Box2Rotated res)
         {
             var entManager = IoCManager.Resolve<IEntityManager>();

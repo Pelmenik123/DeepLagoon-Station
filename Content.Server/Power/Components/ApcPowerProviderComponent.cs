@@ -6,7 +6,7 @@ namespace Content.Server.Power.Components
     [ComponentProtoName("PowerProvider")]
     public sealed partial class ApcPowerProviderComponent : BaseApcNetComponent
     {
-        [ViewVariables] public List<ApcPowerReceiverComponent> LinkedReceivers { get; } = new();
+        [ViewVariables] public List<ApcPowerReceiverComponent> LinkedReceivers { get; } = [];
 
         public void AddReceiver(ApcPowerReceiverComponent receiver)
         {
@@ -24,14 +24,14 @@ namespace Content.Server.Power.Components
             Net?.QueueNetworkReconnect();
         }
 
-        protected override void AddSelfToNet(IApcNet apcNet)
+        protected override void AddSelfToNet(EntityUid owner, IApcNet apcNet)
         {
-            apcNet.AddPowerProvider(this);
+            apcNet.AddPowerProvider((owner, this));
         }
 
-        protected override void RemoveSelfFromNet(IApcNet apcNet)
+        protected override void RemoveSelfFromNet(EntityUid owner, IApcNet apcNet)
         {
-            apcNet.RemovePowerProvider(this);
+            apcNet.RemovePowerProvider((owner, this));
         }
     }
 }

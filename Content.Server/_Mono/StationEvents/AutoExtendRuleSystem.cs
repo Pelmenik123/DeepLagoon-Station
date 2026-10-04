@@ -13,11 +13,11 @@ using System.Numerics;
 
 namespace Content.Server._Mono.StationEvents;
 
-public sealed class AutoExtendRuleSystem : EntitySystem
+public sealed partial class AutoExtendRuleSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IPlayerManager _player = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
 
     public override void Update(float frameTime)
     {
@@ -55,7 +55,7 @@ public sealed class AutoExtendRuleSystem : EntitySystem
                 if (TryComp<MapGridComponent>(entUid, out var gridComp))
                 {
                     var gridAABB = gridComp.LocalAABB;
-                    checkRadius += MathF.Sqrt(gridAABB.Width*gridAABB.Width + gridAABB.Height*gridAABB.Height);
+                    checkRadius += MathF.Sqrt(gridAABB.Width * gridAABB.Width + gridAABB.Height * gridAABB.Height);
                 }
 
                 var allPlayerData = _player.GetAllPlayerData();

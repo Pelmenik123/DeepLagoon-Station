@@ -33,8 +33,8 @@ namespace Content.Client._NF.M_Emp.UI
         {
             base.UpdateState(state);
 
-        //    var castState = (M_EmpBoundUserInterfaceState) state;
-        //    _window?.UpdateState(castState); //Update window state
+            //    var castState = (M_EmpBoundUserInterfaceState) state;
+            //    _window?.UpdateState(castState); //Update window state
         }
 
         public void ButtonPressed(UiButton button)
@@ -48,9 +48,8 @@ namespace Content.Client._NF.M_Emp.UI
 
             if (disposing)
             {
-                _window?.Dispose();
+                _window?.DisposeControl();
             }
         }
     }
 }
-

@@ -14,13 +14,13 @@ namespace Content.Server._Mono.Body.Systems;
 /// <summary>
 /// System that handles restoring missing body parts and organs during rejuvenation.
 /// </summary>
-public sealed class BodyRejuvenateSystem : EntitySystem
+public sealed partial class BodyRejuvenateSystem : EntitySystem
 {
-    [Dependency] private readonly SharedBodySystem _bodySystem = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly SharedContainerSystem _containerSystem = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private SharedBodySystem _bodySystem = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private SharedContainerSystem _containerSystem = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     public override void Initialize()
     {
@@ -314,7 +314,7 @@ public sealed class BodyRejuvenateSystem : EntitySystem
         if (!parentEntity.Valid || TerminatingOrDeleted(parentEntity))
             return null;
 
-        if (!TryComp<TransformComponent>(parentEntity, out var parentTransform))
+        if (!TryComp(parentEntity, out TransformComponent? parentTransform))
             return null;
 
         // Spawn the new part
@@ -350,7 +350,7 @@ public sealed class BodyRejuvenateSystem : EntitySystem
         if (!TryComp<BodyPartComponent>(partEntity, out var partComponent))
             return;
 
-        if (!TryComp<TransformComponent>(partEntity, out var partTransform))
+        if (!TryComp(partEntity, out TransformComponent? partTransform))
             return;
 
         foreach (var (organSlotId, organPrototype) in requiredOrgans)

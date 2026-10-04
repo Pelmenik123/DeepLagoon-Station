@@ -33,23 +33,24 @@ public sealed class IgnoreHumanoidsOverlay : Overlay
         var spriteQuery = _entManager.GetEntityQuery<SpriteComponent>();
         var xformQuery = _entManager.GetEntityQuery<TransformComponent>();
 
-        foreach (var humanoid in _entManager.EntityQuery<HumanoidAppearanceComponent>(true))
+        var humanoidQuery = _entManager.AllEntityQueryEnumerator<HumanoidAppearanceComponent>();
+        while (humanoidQuery.MoveNext(out var humanoidUid, out _))
         {
-            if (!spriteQuery.TryGetComponent(humanoid.Owner, out var sprite))
+            if (!spriteQuery.TryGetComponent(humanoidUid, out var sprite))
             {
                 continue;
             }
 
-            if (!xformQuery.TryGetComponent(humanoid.Owner, out var xform))
+            if (!xformQuery.TryGetComponent(humanoidUid, out var xform))
             {
                 continue;
             }
 
-            if (sprite.Visible && !_effectList.ContainsKey(humanoid.Owner))
+            if (sprite.Visible && !_effectList.ContainsKey(humanoidUid))
             {
-                sprite.Visible = false;
+                _entManager.System<SpriteSystem>().SetVisible(sprite.AsEntity(), false);
                 var effect = _entManager.SpawnEntity("EffectUnknownHumanoid", xform.Coordinates);
-                _effectList.Add(humanoid.Owner, effect);
+                _effectList.Add(humanoidUid, effect);
             }
         }
 
@@ -69,7 +70,7 @@ public sealed class IgnoreHumanoidsOverlay : Overlay
             if (!xformQuery.TryGetComponent(effect, out var effectxform))
                 continue;
 
-            _transform.SetLocalPositionRotation(effectxform, underlyingxform.LocalPosition, underlyingxform.LocalRotation);
+            _transform.SetLocalPositionRotation(effect, underlyingxform.LocalPosition, underlyingxform.LocalRotation);
         }
     }
 
@@ -81,7 +82,7 @@ public sealed class IgnoreHumanoidsOverlay : Overlay
             _effectList.Remove(underlying);
 
             if (_entManager.TryGetComponent<SpriteComponent>(underlying, out var sprite))
-                sprite.Visible = true;
+                _entManager.System<SpriteSystem>().SetVisible(sprite.AsEntity(), true);
         }
     }
 }

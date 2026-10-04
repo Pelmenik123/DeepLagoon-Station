@@ -12,12 +12,12 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._Goobstation.ItemMiner;
 
-public sealed class ItemMinerSystem : EntitySystem
+public sealed partial class ItemMinerSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly PowerReceiverSystem _power = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly StackSystem _stack = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private PowerReceiverSystem _power = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private StackSystem _stack = default!;
 
     public override void Initialize()
     {

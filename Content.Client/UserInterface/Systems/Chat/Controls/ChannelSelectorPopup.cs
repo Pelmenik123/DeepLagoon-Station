@@ -104,7 +104,7 @@ public sealed class ChannelSelectorPopup : Popup
 
     private void OnSelectorPressed(ButtonEventArgs args)
     {
-        var button = (ChannelSelectorItemButton) args.Button;
+        var button = (ChannelSelectorItemButton)args.Button;
         Select(button.Channel);
     }
 
@@ -113,12 +113,10 @@ public sealed class ChannelSelectorPopup : Popup
         Selected?.Invoke(channel);
     }
 
-    protected override void Dispose(bool disposing)
+    protected override void ExitedTree()
     {
-        base.Dispose(disposing);
+        base.ExitedTree();
 
-        if (!disposing)
-            return;
 
         _chatUIController.SelectableChannelsChanged -= SetChannels;
     }

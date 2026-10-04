@@ -22,12 +22,12 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._EinsteinEngines.Language;
 
-public sealed class TranslatorSystem : SharedTranslatorSystem
+public sealed partial class TranslatorSystem : SharedTranslatorSystem
 {
-    [Dependency] private readonly SharedContainerSystem _containers = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly LanguageSystem _language = default!;
-    [Dependency] private readonly PowerCellSystem _powerCell = default!;
+    [Dependency] private SharedContainerSystem _containers = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private LanguageSystem _language = default!;
+    [Dependency] private PowerCellSystem _powerCell = default!;
 
     public override void Initialize()
     {
@@ -77,7 +77,7 @@ public sealed class TranslatorSystem : SharedTranslatorSystem
 
     private void OnTranslatorInserted(EntityUid translator, HandheldTranslatorComponent component, EntGotInsertedIntoContainerMessage args)
     {
-        if (args.Container.Owner is not {Valid: true} holder || !HasComp<LanguageSpeakerComponent>(holder))
+        if (args.Container.Owner is not { Valid: true } holder || !HasComp<LanguageSpeakerComponent>(holder))
             return;
 
         var intrinsic = EnsureComp<HoldsTranslatorComponent>(holder);
@@ -122,7 +122,7 @@ public sealed class TranslatorSystem : SharedTranslatorSystem
             _language.UpdateEntityLanguages(holder);
 
             // Update the current language of the entity if necessary
-            if (isEnabled && translatorComp.SetLanguageOnInteract && firstNewLanguage is {})
+            if (isEnabled && translatorComp.SetLanguageOnInteract && firstNewLanguage is { })
                 _language.SetLanguage((holder, languageComp), firstNewLanguage);
         }
 

@@ -10,12 +10,12 @@ using Content.Shared.Hands.EntitySystems; //Monolith IPC rework
 
 namespace Content.Server._EinsteinEngines.Silicon.Death;
 
-public sealed class SiliconDeathSystem : EntitySystem
+public sealed partial class SiliconDeathSystem : EntitySystem
 {
-    [Dependency] private readonly SleepingSystem _sleep = default!;
-    [Dependency] private readonly SiliconChargeSystem _silicon = default!;
-    [Dependency] private readonly HumanoidAppearanceSystem _humanoidAppearanceSystem = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!; //Monolith IPC rework
+    [Dependency] private SleepingSystem _sleep = default!;
+    [Dependency] private SiliconChargeSystem _silicon = default!;
+    [Dependency] private HumanoidAppearanceSystem _humanoidAppearanceSystem = default!;
+    [Dependency] private SharedHandsSystem _hands = default!; //Monolith IPC rework
 
     public override void Initialize()
     {
@@ -38,7 +38,7 @@ public sealed class SiliconDeathSystem : EntitySystem
         if (args.ChargePercent == 0 && !siliconDeadComp.Dead)
             SiliconDead(uid, siliconDeadComp, batteryComp, uid);
         else if (args.ChargePercent != 0 && siliconDeadComp.Dead)
-                SiliconUnDead(uid, siliconDeadComp, batteryComp, uid);
+            SiliconUnDead(uid, siliconDeadComp, batteryComp, uid);
     }
 
     private void SiliconDead(EntityUid uid, SiliconDownOnDeadComponent siliconDeadComp, BatteryComponent? batteryComp, EntityUid batteryUid)
@@ -52,7 +52,7 @@ public sealed class SiliconDeathSystem : EntitySystem
         /*EntityManager.EnsureComponent<SleepingComponent>(uid); Monolith IPC rework edit start
         EntityManager.EnsureComponent<ForcedSleepingComponent>(uid);*/
 
-        if(!TryComp<HandsComponent>(uid, out var handsComp))
+        if (!TryComp<HandsComponent>(uid, out var handsComp))
             return;
         _hands.RemoveHands(uid, handsComp); // edit end
 

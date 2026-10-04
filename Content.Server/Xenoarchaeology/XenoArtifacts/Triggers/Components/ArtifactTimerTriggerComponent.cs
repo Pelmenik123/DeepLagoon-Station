@@ -1,4 +1,4 @@
-﻿namespace Content.Server.Xenoarchaeology.XenoArtifacts.Triggers.Components;
+namespace Content.Server.Xenoarchaeology.XenoArtifacts.Triggers.Components;
 
 /// <summary>
 ///     Will try to activate artifact periodically.

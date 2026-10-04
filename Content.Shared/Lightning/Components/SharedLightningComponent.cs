@@ -61,7 +61,7 @@ public abstract partial class SharedLightningComponent : Component
     /// What should this arc to?
     /// </summary>
     [DataField("collisionMask")]
-    public int CollisionMask = (int) (CollisionGroup.MobMask | CollisionGroup.MachineMask);
+    public int CollisionMask = (int)(CollisionGroup.MobMask | CollisionGroup.MachineMask);
 
     // Mono
     /// <summary>

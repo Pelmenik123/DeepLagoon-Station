@@ -8,9 +8,9 @@ using Content.Server._DV.Station.Components;
 
 namespace Content.Server._DV.Station.Systems;
 
-public sealed class StationPlanetSpawnerSystem : EntitySystem
+public sealed partial class StationPlanetSpawnerSystem : EntitySystem
 {
-    [Dependency] private readonly PlanetSystem _planet = default!;
+    [Dependency] private PlanetSystem _planet = default!;
 
     public override void Initialize()
     {
@@ -22,7 +22,7 @@ public sealed class StationPlanetSpawnerSystem : EntitySystem
 
     private void OnMapInit(Entity<StationPlanetSpawnerComponent> ent, ref MapInitEvent args)
     {
-        if (ent.Comp.GridPath is not {} path)
+        if (ent.Comp.GridPath is not { } path)
             return;
 
         ent.Comp.Map = _planet.LoadPlanet(ent.Comp.Planet, path);

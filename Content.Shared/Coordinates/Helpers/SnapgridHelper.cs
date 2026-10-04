@@ -11,7 +11,7 @@ namespace Content.Shared.Coordinates.Helpers
             entMan ??= IoCManager.Resolve<IEntityManager>();
             mapManager ??= IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
 
-            var gridId = coordinates.GetGridUid(entMan);
+            var gridId = entMan.System<SharedTransformSystem>().GetGrid(coordinates);
 
             if (gridId == null)
             {
@@ -25,11 +25,11 @@ namespace Content.Shared.Coordinates.Helpers
 
             var grid = entMan.GetComponent<MapGridComponent>(gridId.Value);
             var tileSize = grid.TileSize;
-            var localPos = coordinates.WithEntityId(gridId.Value).Position;
+            var localPos = entMan.System<SharedTransformSystem>().WithEntityId(coordinates, gridId.Value).Position;
             var x = (int)Math.Floor(localPos.X / tileSize) + tileSize / 2f;
             var y = (int)Math.Floor(localPos.Y / tileSize) + tileSize / 2f;
             var gridPos = new EntityCoordinates(gridId.Value, new Vector2(x, y));
-            return gridPos.WithEntityId(coordinates.EntityId);
+            return entMan.System<SharedTransformSystem>().WithEntityId(gridPos, coordinates.EntityId);
         }
 
         public static EntityCoordinates SnapToGrid(this EntityCoordinates coordinates, MapGridComponent grid)

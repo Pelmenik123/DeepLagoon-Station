@@ -46,19 +46,19 @@ internal sealed class AmbientOcclusionVisibilityIndex
             var bounds = blockers[i].Bounds.Enlarged(0.00002f);
             var min = (bounds.BottomLeft / CellSize).Floored();
             var max = (bounds.TopRight / CellSize).Floored();
-            if ((long) (max.X - min.X + 1) * (max.Y - min.Y + 1) > 4096)
+            if ((long)(max.X - min.X + 1) * (max.Y - min.Y + 1) > 4096)
             {
                 _large.Add(i);
                 continue;
             }
             for (var y = min.Y; y <= max.Y; y++)
-            for (var x = min.X; x <= max.X; x++)
-            {
-                var cell = new Vector2i(x, y);
-                if (!_buckets.TryGetValue(cell, out var bucket))
-                    _buckets.Add(cell, bucket = _pool.Count > 0 ? _pool.Pop() : new List<int>());
-                bucket.Add(i);
-            }
+                for (var x = min.X; x <= max.X; x++)
+                {
+                    var cell = new Vector2i(x, y);
+                    if (!_buckets.TryGetValue(cell, out var bucket))
+                        _buckets.Add(cell, bucket = _pool.Count > 0 ? _pool.Pop() : new List<int>());
+                    bucket.Add(i);
+                }
         }
     }
 
@@ -69,7 +69,7 @@ internal sealed class AmbientOcclusionVisibilityIndex
         _generation++;
         var cell = (start / CellSize).Floored();
         var last = (end / CellSize).Floored();
-        var distance = Math.Abs((long) last.X - cell.X) + Math.Abs((long) last.Y - cell.Y);
+        var distance = Math.Abs((long)last.X - cell.X) + Math.Abs((long)last.Y - cell.Y);
         if (distance > 1024)
         {
             for (var i = 0; i < _blockers.Count; i++) if (Hit(i)) return true;

@@ -7,9 +7,9 @@ using Content.Shared.Movement.Systems;
 
 namespace Content.Shared.Damage
 {
-    public sealed class SlowOnDamageSystem : EntitySystem
+    public sealed partial class SlowOnDamageSystem : EntitySystem
     {
-        [Dependency] private readonly MovementSpeedModifierSystem _movementSpeedModifierSystem = default!;
+        [Dependency] private MovementSpeedModifierSystem _movementSpeedModifierSystem = default!;
 
         public override void Initialize()
         {
@@ -30,7 +30,7 @@ namespace Content.Shared.Damage
 
         private void OnRefreshMovespeed(EntityUid uid, SlowOnDamageComponent component, RefreshMovementSpeedModifiersEvent args)
         {
-            if (!EntityManager.TryGetComponent<DamageableComponent>(uid, out var damage))
+            if (!TryComp<DamageableComponent>(uid, out var damage))
                 return;
 
             if (damage.TotalDamage == FixedPoint2.Zero)

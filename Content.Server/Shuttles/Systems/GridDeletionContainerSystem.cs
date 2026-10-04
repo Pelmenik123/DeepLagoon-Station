@@ -11,11 +11,11 @@ namespace Content.Server.Shuttles.Systems;
 /// including those inside containers) are also deleted.
 /// This fixes an issue where entities inside containers were left behind in space after grid deletion.
 /// </summary>
-public sealed class GridDeletionContainerSystem : EntitySystem
+public sealed partial class GridDeletionContainerSystem : EntitySystem
 {
-    [Dependency] private readonly SharedContainerSystem _container = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     // Track grids currently being processed to prevent re-entrancy issues.
     private readonly HashSet<EntityUid> _gridsBeingDeleted = new();
@@ -39,11 +39,11 @@ public sealed class GridDeletionContainerSystem : EntitySystem
             // to avoid cycles and redundant work within the recursive calls.
             var processedEntities = new HashSet<EntityUid>();
 
-            Logger.Debug($"Grid {ToPrettyString(uid)} is terminating. Ensuring all child entities are deleted recursively.");
+            Log.Debug($"Grid {ToPrettyString(uid)} is terminating. Ensuring all child entities are deleted recursively.");
 
             // Start the recursive deletion process for all direct transform children of the grid.
             // We don't process the grid itself (uid) initially because it's already terminating.
-            if (TryComp<TransformComponent>(uid, out var gridXform))
+            if (TryComp(uid, out TransformComponent? gridXform))
             {
                 // Get the children of the transform using ChildEnumerator
                 var childEnumerator = gridXform.ChildEnumerator;
@@ -62,7 +62,7 @@ public sealed class GridDeletionContainerSystem : EntitySystem
                 }
             }
 
-            Logger.Debug($"Finished recursive deletion processing for terminating grid {ToPrettyString(uid)}. Processed entity count (excluding grid): {processedEntities.Count - 1}"); // Exclude the grid itself if it got added
+            Log.Debug($"Finished recursive deletion processing for terminating grid {ToPrettyString(uid)}. Processed entity count (excluding grid): {processedEntities.Count - 1}"); // Exclude the grid itself if it got added
         }
         finally
         {
@@ -107,7 +107,7 @@ public sealed class GridDeletionContainerSystem : EntitySystem
         }
 
         // 3. Recursively process transform children SECOND.
-        if (TryComp<TransformComponent>(entity, out var xform))
+        if (TryComp(entity, out TransformComponent? xform))
         {
             // Get the children of the transform using ChildEnumerator
             var childEnumerator = xform.ChildEnumerator;
@@ -131,7 +131,7 @@ public sealed class GridDeletionContainerSystem : EntitySystem
         // We also avoid queueing deletion during client prediction.
         if (Exists(entity) && !_timing.IsFirstTimePredicted)
         {
-            // Logger.Debug($"Queueing deletion for entity {ToPrettyString(entity)} during grid {ToPrettyString(rootGridUid)} termination.");
+            // Log.Debug($"Queueing deletion for entity {ToPrettyString(entity)} during grid {ToPrettyString(rootGridUid)} termination.");
             QueueDel(entity);
         }
     }

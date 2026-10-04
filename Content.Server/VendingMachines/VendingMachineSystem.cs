@@ -78,26 +78,26 @@ using Robust.Shared.Containers; // Frontier
 
 namespace Content.Server.VendingMachines
 {
-    public sealed class VendingMachineSystem : SharedVendingMachineSystem
+    public sealed partial class VendingMachineSystem : SharedVendingMachineSystem
     {
-        [Dependency] private readonly IRobustRandom _random = default!;
-        [Dependency] private readonly AccessReaderSystem _accessReader = default!;
-        [Dependency] private readonly AppearanceSystem _appearanceSystem = default!;
-        [Dependency] private readonly PricingSystem _pricing = default!;
-        [Dependency] private readonly ThrowingSystem _throwingSystem = default!;
-        [Dependency] private readonly IGameTiming _timing = default!;
-        [Dependency] private readonly SpeakOnUIClosedSystem _speakOnUIClosed = default!;
-        [Dependency] private readonly SharedPointLightSystem _light = default!;
-        [Dependency] private readonly EmagSystem _emag = default!;
+        [Dependency] private IRobustRandom _random = default!;
+        [Dependency] private AccessReaderSystem _accessReader = default!;
+        [Dependency] private AppearanceSystem _appearanceSystem = default!;
+        [Dependency] private PricingSystem _pricing = default!;
+        [Dependency] private ThrowingSystem _throwingSystem = default!;
+        [Dependency] private IGameTiming _timing = default!;
+        [Dependency] private SpeakOnUIClosedSystem _speakOnUIClosed = default!;
+        [Dependency] private SharedPointLightSystem _light = default!;
+        [Dependency] private EmagSystem _emag = default!;
 
-        [Dependency] private readonly IPrototypeManager _prototypeManager = default!; // Frontier
-        [Dependency] private readonly SharedAudioSystem _audioSystem = default!; // Frontier
-        [Dependency] private readonly BankSystem _bankSystem = default!; // Frontier
-        [Dependency] private readonly PopupSystem _popupSystem = default!; // Frontier
-        [Dependency] private readonly IAdminLogManager _adminLogger = default!; // Frontier
-        [Dependency] private readonly ContrabandTurnInSystem _contraband = default!; // Frontier
-        [Dependency] private readonly StackSystem _stack = default!; // Frontier
-        [Dependency] private readonly VendingMachinePurchaseSystem _vendingPurchase = default!; // Mono
+        [Dependency] private IPrototypeManager _prototypeManager = default!; // Frontier
+        [Dependency] private SharedAudioSystem _audioSystem = default!; // Frontier
+        [Dependency] private BankSystem _bankSystem = default!; // Frontier
+        [Dependency] private PopupSystem _popupSystem = default!; // Frontier
+        [Dependency] private IAdminLogManager _adminLogger = default!; // Frontier
+        [Dependency] private ContrabandTurnInSystem _contraband = default!; // Frontier
+        [Dependency] private StackSystem _stack = default!; // Frontier
+        [Dependency] private VendingMachinePurchaseSystem _vendingPurchase = default!; // Mono
 
         private const float WallVendEjectDistanceFromWall = 1f;
 
@@ -335,7 +335,7 @@ namespace Content.Server.VendingMachines
             if (string.IsNullOrEmpty(entry.ID))
                 return false;
 
-            if (!TryComp<TransformComponent>(vendComponent.Owner, out var transformComp))
+            if (!TryComp(uid, out TransformComponent? transformComp))
                 return false;
 
             // Start Ejecting, and prevent users from ordering while anim playing
@@ -381,15 +381,15 @@ namespace Content.Server.VendingMachines
             if (price == 0)
                 price = 20;
 
-            if (TryComp<MarketModifierComponent>(component.Owner, out var modifier))
+            if (TryComp<MarketModifierComponent>(uid, out var modifier))
                 price *= modifier.Mod;
 
-            var totalPrice = (int) price;
+            var totalPrice = (int)price;
 
             // If any price has a vendor price, explicitly use its value - higher OR lower, over others.
             var priceVend = _pricing.GetEstimatedVendPrice(proto);
             if (priceVend > 0.0) // if vending price exists, overwrite it.
-                totalPrice = (int) priceVend;
+                totalPrice = (int)priceVend;
 
             if (IsAuthorized(uid, sender, component))
             {
@@ -509,7 +509,7 @@ namespace Content.Server.VendingMachines
 
             if (vendComponent.EjectRandomCounter <= 0)
             {
-                _audioSystem.PlayPvs(_audioSystem.GetSound(vendComponent.SoundDeny), uid);
+                _audioSystem.PlayPvs(_audioSystem.ResolveSound(vendComponent.SoundDeny), uid);
                 _popupSystem.PopupEntity(Loc.GetString("vending-machine-component-try-eject-access-abused"), uid, PopupType.MediumCaution);
                 return;
             }
@@ -682,25 +682,6 @@ namespace Content.Server.VendingMachines
         private void OnPriceCalculation(EntityUid uid, VendingMachineRestockComponent component, ref PriceCalculationEvent args)
         {
             args.Price = 0; // This area of the code make it so the cargoblacklist gets ignored, this change was to resolve it.
-            return;
-
-            List<double> priceSets = new();
-            // Find the most expensive inventory and use that as the highest price.
-            foreach (var vendingInventory in component.CanRestock)
-            {
-                double total = 0;
-                if (PrototypeManager.TryIndex(vendingInventory, out VendingMachineInventoryPrototype? inventoryPrototype))
-                {
-                    foreach (var (item, amount) in inventoryPrototype.StartingInventory)
-                    {
-                        if (PrototypeManager.TryIndex(item, out EntityPrototype? entity))
-                            total += _pricing.GetEstimatedPrice(entity) * amount;
-                    }
-                }
-                priceSets.Add(total);
-            }
-
-            args.Price += priceSets.Max();
         }
 
         //private void OnEmpPulse(EntityUid uid, VendingMachineComponent component, ref EmpPulseEvent args) // Frontier: Upstream - #28984

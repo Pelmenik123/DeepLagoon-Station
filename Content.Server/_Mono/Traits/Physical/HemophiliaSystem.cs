@@ -13,10 +13,10 @@ namespace Content.Server._Mono.Traits.Physical;
 /// <summary>
 /// Applies Hemophilia trait effects.
 /// </summary>
-public sealed class HemophiliaSystem : EntitySystem
+public sealed partial class HemophiliaSystem : EntitySystem
 {
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
-    [Dependency] private readonly Content.Server.Body.Systems.BloodstreamSystem _bloodstream = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private Content.Server.Body.Systems.BloodstreamSystem _bloodstream = default!;
     public override void Initialize()
     {
         base.Initialize();
@@ -27,9 +27,9 @@ public sealed class HemophiliaSystem : EntitySystem
         SubscribeLocalEvent<HemophiliaComponent, DamageChangedEvent>(OnDamageChanged);
     }
 
-    private void OnStartup(Entity<HemophiliaComponent> ent, ref ComponentStartup args) {}
+    private void OnStartup(Entity<HemophiliaComponent> ent, ref ComponentStartup args) { }
 
-    private void OnShutdown(Entity<HemophiliaComponent> ent, ref ComponentShutdown args) {}
+    private void OnShutdown(Entity<HemophiliaComponent> ent, ref ComponentShutdown args) { }
 
     private void OnDamageModify(Entity<HemophiliaComponent> ent, ref DamageModifyEvent args)
     {

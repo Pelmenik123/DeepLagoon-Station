@@ -1,4 +1,4 @@
-﻿using Content.Shared.Movement.Systems;
+using Content.Shared.Movement.Systems;
 using Content.Shared.NameModifier.EntitySystems;
 
 namespace Content.Shared.Zombies;

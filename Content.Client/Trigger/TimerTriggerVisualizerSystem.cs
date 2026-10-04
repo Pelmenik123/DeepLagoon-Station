@@ -15,9 +15,10 @@ using Robust.Shared.GameObjects;
 
 namespace Content.Client.Trigger;
 
-public sealed class TimerTriggerVisualizerSystem : VisualizerSystem<TimerTriggerVisualsComponent>
+public sealed partial class TimerTriggerVisualizerSystem : VisualizerSystem<TimerTriggerVisualsComponent>
 {
-    [Dependency] private readonly SharedAudioSystem _audioSystem = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private SharedAudioSystem _audioSystem = default!;
 
     public override void Initialize()
     {
@@ -27,7 +28,8 @@ public sealed class TimerTriggerVisualizerSystem : VisualizerSystem<TimerTrigger
 
     private void OnComponentInit(EntityUid uid, TimerTriggerVisualsComponent comp, ComponentInit args)
     {
-        comp.PrimingAnimation = new Animation {
+        comp.PrimingAnimation = new Animation
+        {
             Length = TimeSpan.MaxValue,
             AnimationTracks = {
                 new AnimationTrackSpriteFlick() {
@@ -40,7 +42,8 @@ public sealed class TimerTriggerVisualizerSystem : VisualizerSystem<TimerTrigger
         if (comp.PrimingSound != null)
         {
             comp.PrimingAnimation.AnimationTracks.Add(
-                new AnimationTrackPlaySound() {
+                new AnimationTrackPlaySound()
+                {
                     KeyFrames = { new AnimationTrackPlaySound.KeyFrame(_audioSystem.ResolveSound(comp.PrimingSound), 0) }
                 }
             );
@@ -50,7 +53,7 @@ public sealed class TimerTriggerVisualizerSystem : VisualizerSystem<TimerTrigger
     protected override void OnAppearanceChange(EntityUid uid, TimerTriggerVisualsComponent comp, ref AppearanceChangeEvent args)
     {
         if (args.Sprite == null
-        ||  !TryComp<AnimationPlayerComponent>(uid, out var animPlayer))
+        || !TryComp<AnimationPlayerComponent>(uid, out var animPlayer))
             return;
 
         if (!AppearanceSystem.TryGetData<TriggerVisualState>(uid, TriggerVisuals.VisualState, out var state, args.Component))
@@ -63,7 +66,7 @@ public sealed class TimerTriggerVisualizerSystem : VisualizerSystem<TimerTrigger
                     AnimationSystem.Play((uid, animPlayer), comp.PrimingAnimation, TimerTriggerVisualsComponent.AnimationKey);
                 break;
             case TriggerVisualState.Unprimed:
-                args.Sprite.LayerSetState(TriggerVisualLayers.Base, comp.UnprimedSprite);
+                _sprite.LayerSetRsiState(args.Sprite.AsEntity(), TriggerVisualLayers.Base, comp.UnprimedSprite);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();

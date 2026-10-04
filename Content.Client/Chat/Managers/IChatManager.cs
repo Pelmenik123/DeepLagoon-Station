@@ -16,7 +16,7 @@ namespace Content.Client.Chat.Managers
 {
     public interface IChatManager : ISharedChatManager
     {
-        void Initialize();
+        new void Initialize();
 
         /// <summary>
         ///     Will refresh perms.

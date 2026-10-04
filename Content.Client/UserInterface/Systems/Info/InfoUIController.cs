@@ -10,12 +10,12 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client.UserInterface.Systems.Info;
 
-public sealed class InfoUIController : UIController, IOnStateExited<GameplayState>
+public sealed partial class InfoUIController : UIController, IOnStateExited<GameplayState>
 {
-    [Dependency] private readonly IClientConsoleHost _consoleHost = default!;
-    [Dependency] private readonly INetManager _netManager = default!;
-    [Dependency] private readonly IPrototypeManager _prototype = default!;
-    [Dependency] private readonly ILogManager _logMan = default!;
+    [Dependency] private IClientConsoleHost _consoleHost = default!;
+    [Dependency] private INetManager _netManager = default!;
+    [Dependency] private IPrototypeManager _prototype = default!;
+    [Dependency] private ILogManager _logMan = default!;
 
     private RulesPopup? _rulesPopup;
     private RulesAndInfoWindow? _infoWindow;
@@ -55,7 +55,7 @@ public sealed class InfoUIController : UIController, IOnStateExited<GameplayStat
         if (_infoWindow == null)
             return;
 
-        _infoWindow.Dispose();
+        _infoWindow.DisposeControl();
         _infoWindow = null;
     }
 
@@ -84,7 +84,7 @@ public sealed class InfoUIController : UIController, IOnStateExited<GameplayStat
     {
         _netManager.ClientSendMessage(new RulesAcceptedMessage());
 
-        _rulesPopup?.Orphan();
+        if (_rulesPopup is { Disposed: false }) _rulesPopup.Orphan();
         _rulesPopup = null;
     }
 

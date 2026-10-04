@@ -55,7 +55,7 @@ public sealed class InteractionPanelSpriteView : SpriteView
                 if (!_clothingShaders.TryGetValue(layer, out var shader))
                 {
                     shader = IoCManager.Resolve<IPrototypeManager>()
-                        .Index<ShaderPrototype>("DeepLagoonInteractionPanelDisplacement").InstanceUnique();
+                        .Index<ShaderPrototype>(new ProtoId<ShaderPrototype>("DeepLagoonInteractionPanelDisplacement")).InstanceUnique();
                     _clothingShaders.Add(layer, shader);
                 }
                 originals.Add((layer, layer.Shader));

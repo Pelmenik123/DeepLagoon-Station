@@ -94,7 +94,7 @@ public sealed partial class ChannelFilterPopup : Popup
 
     private void CheckboxPressed(ButtonEventArgs args)
     {
-        var checkbox = (ChannelFilterCheckbox) args.Button;
+        var checkbox = (ChannelFilterCheckbox)args.Button;
         OnChannelFilter?.Invoke(checkbox.Channel, checkbox.Pressed);
     }
 

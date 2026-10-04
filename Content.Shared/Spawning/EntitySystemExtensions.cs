@@ -1,6 +1,10 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Content.Shared.Physics;
 using Robust.Shared.Map;
+using Robust.Shared.Physics;
+using Robust.Shared.Physics.Components;
+using Robust.Shared.Physics.Dynamics;
 using Robust.Shared.Physics.Systems;
 
 namespace Content.Shared.Spawning
@@ -32,7 +36,23 @@ namespace Content.Shared.Spawning
             var boxOrDefault = box.GetValueOrDefault(Box2.UnitCentered).Translated(coordinates.Position);
             collision ??= entityManager.System<SharedPhysicsSystem>();
 
-            foreach (var body in collision.GetCollidingEntities(coordinates.MapId, in boxOrDefault))
+            var lookup = entityManager.System<EntityLookupSystem>();
+            var bodies = new HashSet<PhysicsComponent>();
+            lookup.ForEachFixtureIntersecting(
+                coordinates.MapId,
+                boxOrDefault,
+                ref bodies,
+                new CollectPhysicsBodiesCallback(),
+                new FixtureQueryArgs(
+                    new QueryFilter
+                    {
+                        LayerBits = -1L,
+                        MaskBits = -1L,
+                        Flags = QueryFlags.Dynamic | QueryFlags.Static | QueryFlags.Sensors,
+                    },
+                    Approximate: true));
+
+            foreach (var body in bodies)
             {
                 if (!body.Hard)
                 {
@@ -40,7 +60,7 @@ namespace Content.Shared.Spawning
                 }
 
                 // TODO: wtf fix this
-                if (collisionLayer == 0 || (body.CollisionMask & (int) collisionLayer) == 0)
+                if (collisionLayer == 0 || (body.CollisionMask & (int)collisionLayer) == 0)
                 {
                     continue;
                 }
@@ -49,6 +69,15 @@ namespace Content.Shared.Spawning
             }
 
             return entityManager.SpawnEntity(prototypeName, coordinates);
+        }
+
+        private readonly struct CollectPhysicsBodiesCallback : IFixtureQueryCallback<HashSet<PhysicsComponent>>
+        {
+            public bool Invoke(ref HashSet<PhysicsComponent> state, in FixtureProxy fixture)
+            {
+                state.Add(fixture.Body);
+                return true;
+            }
         }
 
         public static bool TrySpawnIfUnobstructed(

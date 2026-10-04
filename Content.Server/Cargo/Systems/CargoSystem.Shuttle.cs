@@ -57,13 +57,12 @@ namespace Content.Server.Cargo.Systems;
 
 public sealed partial class CargoSystem
 {
-    [Dependency] BankSystem _bank = default!; // Mono
+    [Dependency] BankSystem _bank = default!;
 
     /*
      * Handles cargo shuttle / trade mechanics.
      */
 
-    [Dependency] EntityWhitelistSystem _whitelist = default!; // Frontier
 
     // Frontier addition:
     // The maximum distance from the console to look for pallets.
@@ -407,7 +406,7 @@ public sealed partial class CargoSystem
                 }
 
                 // Frontier: whitelisted consoles
-                if (_whitelist.IsWhitelistFail(consoleUid.Comp.Whitelist, ent))
+                if (_whitelistSys.IsWhitelistFail(consoleUid.Comp.Whitelist, ent))
                     continue;
                 // End Frontier
 

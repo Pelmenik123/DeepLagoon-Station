@@ -32,7 +32,7 @@ namespace Content.Shared.Tools
         /// <summary>
         ///     The default entity prototype for this tool type.
         /// </summary>
-        [DataField("spawn", required:true)]
+        [DataField("spawn", required: true)]
         public EntProtoId Spawn { get; private set; } = string.Empty;
     }
 }

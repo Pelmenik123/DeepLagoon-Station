@@ -1,4 +1,4 @@
-﻿namespace Content.Server.Xenoarchaeology.XenoArtifacts.Triggers.Components;
+namespace Content.Server.Xenoarchaeology.XenoArtifacts.Triggers.Components;
 
 /// <summary>
 ///     Activate artifact when it contacted with an electricity source.

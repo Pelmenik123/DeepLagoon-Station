@@ -25,10 +25,9 @@ namespace Content.Server.Cargo.Systems;
 
 public sealed partial class CargoSystem
 {
-    [Dependency] private readonly ContainerSystem _container = default!;
-    [Dependency] private readonly NameIdentifierSystem _nameIdentifier = default!;
-    [Dependency] private readonly EntityWhitelistSystem _whitelistSys = default!;
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
+    [Dependency] ContainerSystem _container = default!;
+    [Dependency] NameIdentifierSystem _nameIdentifier = default!;
+    [Dependency] EntityWhitelistSystem _whitelistSys = default!;
 
     private const string BountyNameIdentifierGroup = "Bounty";
 
@@ -471,7 +470,7 @@ public sealed partial class CargoSystem
                     skipped
                         ? CargoBountyHistoryData.BountyResult.Skipped
                         : CargoBountyHistoryData.BountyResult.Completed,
-                    _gameTiming.CurTime,
+                    _timing.CurTime,
                     actorName));
                 ent.Comp.Bounties.RemoveAt(i);
                 return true;

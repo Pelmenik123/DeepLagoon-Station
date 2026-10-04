@@ -23,19 +23,19 @@ using Robust.Shared.Timing;
 
 namespace Content.Shared._Goobstation.Factory;
 
-public sealed class RoboticArmSystem : EntitySystem
+public sealed partial class RoboticArmSystem : EntitySystem
 {
-    [Dependency] private readonly AutomationSystem _automation = default!;
-    [Dependency] private readonly AutomationFilterSystem _filter = default!;
-    [Dependency] private readonly CollisionWakeSystem _wake = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedMapSystem _map = default!;
-    [Dependency] private readonly ItemSlotsSystem _slots = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] private readonly SharedDeviceLinkSystem _device = default!;
-    [Dependency] private readonly SharedPowerReceiverSystem _power = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly TurfSystem _turf = default!;
+    [Dependency] private AutomationSystem _automation = default!;
+    [Dependency] private AutomationFilterSystem _filter = default!;
+    [Dependency] private CollisionWakeSystem _wake = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private ItemSlotsSystem _slots = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private SharedDeviceLinkSystem _device = default!;
+    [Dependency] private SharedPowerReceiverSystem _power = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private TurfSystem _turf = default!;
 
     private EntityQuery<ItemComponent> _itemQuery;
     private EntityQuery<ThrownItemComponent> _thrownQuery;
@@ -80,13 +80,13 @@ public sealed class RoboticArmSystem : EntitySystem
             if (!_power.IsPowered(uid))
                 continue;
 
-            if (comp.NextMove is {} nextMove && now < nextMove)
+            if (comp.NextMove is { } nextMove && now < nextMove)
                 continue;
 
             var ent = (uid, comp);
             StopMoving(ent);
 
-            if (comp.HeldItem is {} item)
+            if (comp.HeldItem is { } item)
             {
                 if (!TryDrop(ent, item))
                     continue;
@@ -118,10 +118,10 @@ public sealed class RoboticArmSystem : EntitySystem
 
         using (args.PushGroup(nameof(RoboticArmComponent)))
         {
-            args.PushMarkup(_filter.GetSlot(ent) is {} filter
+            args.PushMarkup(_filter.GetSlot(ent) is { } filter
                 ? Loc.GetString("robotic-arm-examine-filter", ("filter", filter))
                 : Loc.GetString("robotic-arm-examine-no-filter"));
-            args.PushMarkup(ent.Comp.HeldItem is {} item
+            args.PushMarkup(ent.Comp.HeldItem is { } item
                 ? Loc.GetString("robotic-arm-examine-item", ("item", item))
                 : Loc.GetString("robotic-arm-examine-no-item"));
         }
@@ -182,7 +182,7 @@ public sealed class RoboticArmSystem : EntitySystem
         _wake.SetEnabled(args.OtherEntity, wake); // don't break conveyors for skipped items
     }
 
-    private void OnItemModified<T>(Entity<RoboticArmComponent> ent, ref T args) where T: ContainerModifiedMessage
+    private void OnItemModified<T>(Entity<RoboticArmComponent> ent, ref T args) where T : ContainerModifiedMessage
     {
         if (args.Container.ID != ent.Comp.ItemSlotId)
             return;
@@ -283,7 +283,7 @@ public sealed class RoboticArmSystem : EntitySystem
     /// </summary>
     public bool TryDrop(Entity<RoboticArmComponent> ent, EntityUid item)
     {
-        if (GetOutputMachine(ent) is {} machine && ent.Comp.OutputSlot is {} slot)
+        if (GetOutputMachine(ent) is { } machine && ent.Comp.OutputSlot is { } slot)
             return TryInsert(ent, item, machine, slot);
 
         // no dropping items into walls
@@ -307,7 +307,7 @@ public sealed class RoboticArmSystem : EntitySystem
 
     public bool TryPickupAny(Entity<RoboticArmComponent> ent)
     {
-        if (GetInputMachine(ent) is {} machine && ent.Comp.InputSlot is {} slot)
+        if (GetInputMachine(ent) is { } machine && ent.Comp.InputSlot is { } slot)
             return TryPickupFrom(ent, machine, slot);
 
         var count = ent.Comp.InputItems.Count;
@@ -360,11 +360,11 @@ public sealed class RoboticArmSystem : EntitySystem
             return false;
 
         var filter = _filter.GetSlot(ent);
-        if (slot.GetItem(filter) is not {} item)
+        if (slot.GetItem(filter) is not { } item)
             return false;
 
         // client can't predict splitting because it spawns entities
-        if (_filter.TrySplit(filter, item) is not {} stack)
+        if (_filter.TrySplit(filter, item) is not { } stack)
             return false;
 
         return _slots.TryInsert(ent, ent.Comp.ItemSlot, stack, user: null);
@@ -372,9 +372,9 @@ public sealed class RoboticArmSystem : EntitySystem
 
     private void UpdateSlots(Entity<RoboticArmComponent> ent)
     {
-        if (GetInputMachine(ent) is {} input && ent.Comp.InputMachinePort is {} inPort)
+        if (GetInputMachine(ent) is { } input && ent.Comp.InputMachinePort is { } inPort)
             ent.Comp.InputSlot = _automation.GetSlot(input, inPort, input: false);
-        if (GetOutputMachine(ent) is {} output && ent.Comp.OutputMachinePort is {} outPort)
+        if (GetOutputMachine(ent) is { } output && ent.Comp.OutputMachinePort is { } outPort)
             ent.Comp.OutputSlot = _automation.GetSlot(output, outPort, input: true);
     }
 
@@ -399,7 +399,7 @@ public sealed class RoboticArmSystem : EntitySystem
     private bool IsOutputBlocked(EntityUid uid)
     {
         var coords = OutputPosition(uid);
-        return coords.GetTileRef(EntityManager, _map) is {} turf &&
+        return coords.GetTileRef(EntityManager, _map) is { } turf &&
             _turf.IsTileBlocked(turf, CollisionGroup.MachineMask);
     }
 

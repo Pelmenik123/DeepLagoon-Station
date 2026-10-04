@@ -12,13 +12,13 @@ using Content.Shared.Stunnable;
 
 namespace Content.Server.Stunnable.Systems
 {
-    public sealed class StunbatonSystem : SharedStunbatonSystem
+    public sealed partial class StunbatonSystem : SharedStunbatonSystem
     {
-        [Dependency] private readonly SharedItemSystem _item = default!;
-        [Dependency] private readonly RiggableSystem _riggableSystem = default!;
-        [Dependency] private readonly SharedPopupSystem _popup = default!;
-        [Dependency] private readonly BatterySystem _battery = default!;
-        [Dependency] private readonly ItemToggleSystem _itemToggle = default!;
+        [Dependency] private SharedItemSystem _item = default!;
+        [Dependency] private RiggableSystem _riggableSystem = default!;
+        [Dependency] private SharedPopupSystem _popup = default!;
+        [Dependency] private BatterySystem _battery = default!;
+        [Dependency] private ItemToggleSystem _itemToggle = default!;
 
         public override void Initialize()
         {
@@ -50,7 +50,7 @@ namespace Content.Server.Stunnable.Systems
 
             if (TryComp<BatteryComponent>(entity.Owner, out var battery))
             {
-                var count = (int) (battery.CurrentCharge / entity.Comp.EnergyPerUse);
+                var count = (int)(battery.CurrentCharge / entity.Comp.EnergyPerUse);
                 args.PushMarkup(Loc.GetString("melee-battery-examine", ("color", "yellow"), ("count", count)));
             }
         }
@@ -67,7 +67,7 @@ namespace Content.Server.Stunnable.Systems
                 args.Cancelled = true;
                 if (args.User != null)
                 {
-                    _popup.PopupEntity(Loc.GetString("stunbaton-component-low-charge"), (EntityUid) args.User, (EntityUid) args.User);
+                    _popup.PopupEntity(Loc.GetString("stunbaton-component-low-charge"), (EntityUid)args.User, (EntityUid)args.User);
                 }
                 return;
             }

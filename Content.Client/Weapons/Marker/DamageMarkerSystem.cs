@@ -4,9 +4,10 @@ using Robust.Shared.Timing;
 
 namespace Content.Client.Weapons.Marker;
 
-public sealed class DamageMarkerSystem : SharedDamageMarkerSystem
+public sealed partial class DamageMarkerSystem : SharedDamageMarkerSystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     public override void Initialize()
     {
@@ -20,16 +21,16 @@ public sealed class DamageMarkerSystem : SharedDamageMarkerSystem
         if (!_timing.ApplyingState || component.Effect == null || !TryComp<SpriteComponent>(uid, out var sprite))
             return;
 
-        var layer = sprite.LayerMapReserveBlank(DamageMarkerKey.Key);
-        sprite.LayerSetState(layer, component.Effect.RsiState, component.Effect.RsiPath);
+        var layer = _sprite.LayerMapReserve(sprite.AsEntity(), DamageMarkerKey.Key);
+        _sprite.LayerSetRsi(sprite.AsEntity(), layer, component.Effect.RsiPath, component.Effect.RsiState);
     }
 
     private void OnMarkerShutdown(EntityUid uid, DamageMarkerComponent component, ComponentShutdown args)
     {
-        if (!_timing.ApplyingState || !TryComp<SpriteComponent>(uid, out var sprite) || !sprite.LayerMapTryGet(DamageMarkerKey.Key, out var weh))
+        if (!_timing.ApplyingState || !TryComp<SpriteComponent>(uid, out var sprite) || !_sprite.LayerMapTryGet(sprite.AsEntity(), DamageMarkerKey.Key, out var weh, false))
             return;
 
-        sprite.RemoveLayer(weh);
+        _sprite.RemoveLayer(sprite.AsEntity(), weh);
     }
 
     private enum DamageMarkerKey : byte

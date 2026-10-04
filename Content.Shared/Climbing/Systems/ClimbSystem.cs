@@ -47,21 +47,21 @@ namespace Content.Shared.Climbing.Systems;
 
 public sealed partial class ClimbSystem : VirtualController
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly ActionBlockerSystem _actionBlockerSystem = default!;
-    [Dependency] private readonly DamageableSystem _damageableSystem = default!;
-    [Dependency] private readonly FixtureSystem _fixtureSystem = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
-    [Dependency] private readonly SharedContainerSystem _containers = default!;
-    [Dependency] private readonly SharedInteractionSystem _interactionSystem = default!;
-    [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly SharedStunSystem _stunSystem = default!;
-    [Dependency] private readonly SharedTransformSystem _xformSystem = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] ActionBlockerSystem _actionBlockerSystem = default!;
+    [Dependency] DamageableSystem _damageableSystem = default!;
+    [Dependency] FixtureSystem _fixtureSystem = default!;
+    [Dependency] SharedAudioSystem _audio = default!;
+    [Dependency] SharedDoAfterSystem _doAfterSystem = default!;
+    [Dependency] SharedContainerSystem _containers = default!;
+    [Dependency] SharedInteractionSystem _interactionSystem = default!;
+    [Dependency] SharedPopupSystem _popupSystem = default!;
+    [Dependency] SharedPhysicsSystem _physics = default!;
+    [Dependency] SharedStunSystem _stunSystem = default!;
+    [Dependency] SharedTransformSystem _xformSystem = default!;
 
     private const string ClimbingFixtureName = "climb";
-    private const int ClimbingCollisionGroup = (int) (CollisionGroup.TableLayer | CollisionGroup.LowImpassable);
+    private const int ClimbingCollisionGroup = (int)(CollisionGroup.TableLayer | CollisionGroup.LowImpassable);
 
     private EntityQuery<ClimbableComponent> _climbableQuery;
     private EntityQuery<FixturesComponent> _fixturesQuery;
@@ -356,7 +356,7 @@ public sealed partial class ClimbSystem : VirtualController
                 uid,
                 new PhysShapeCircle(0.35f),
                 ClimbingFixtureName,
-                collisionLayer: (int) CollisionGroup.None,
+                collisionLayer: (int)CollisionGroup.None,
                 collisionMask: ClimbingCollisionGroup,
                 hard: false,
                 manager: fixturesComp))

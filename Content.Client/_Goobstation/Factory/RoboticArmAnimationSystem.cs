@@ -15,9 +15,10 @@ namespace Content.Client._Goobstation.Factory;
 /// Animations robotic arm's arm layer swinging.
 /// Can't be done with engine AnimationPlayer as it can't animate individual layers.
 /// </summary>
-public sealed class RoboticArmAnimationSystem : EntitySystem
+public sealed partial class RoboticArmAnimationSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     public override void FrameUpdate(float frameTime)
     {
@@ -27,7 +28,7 @@ public sealed class RoboticArmAnimationSystem : EntitySystem
             if (comp.ItemSlot == null)
                 continue;
 
-            if (comp.NextMove is {} nextMove)
+            if (comp.NextMove is { } nextMove)
                 Animate((uid, comp), nextMove);
             else
                 Reset((uid, comp));
@@ -48,7 +49,7 @@ public sealed class RoboticArmAnimationSystem : EntitySystem
             progress = 2f - progress;
         progress = Math.Clamp(progress, 0f, 1f); // Mono
         var angle = Angle.FromDegrees(progress * 180f);
-        sprite.LayerSetRotation(RoboticArmLayers.Arm, angle);
+        _sprite.LayerSetRotation(sprite.AsEntity(), RoboticArmLayers.Arm, angle);
     }
 
     private void Reset(Entity<RoboticArmComponent> ent)
@@ -57,6 +58,6 @@ public sealed class RoboticArmAnimationSystem : EntitySystem
             return;
 
         var angle = ent.Comp.HasItem ? new Angle(Math.PI) : Angle.Zero;
-        sprite.LayerSetRotation(RoboticArmLayers.Arm, angle);
+        _sprite.LayerSetRotation(sprite.AsEntity(), RoboticArmLayers.Arm, angle);
     }
 }

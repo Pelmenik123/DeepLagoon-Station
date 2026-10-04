@@ -28,9 +28,9 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
     public Action<string>? OnTechnologyCardPressed;
     public Action? OnServerButtonPressed;
 
-    [Dependency] private readonly IEntityManager _entity = default!;
-    [Dependency] private readonly IPrototypeManager _prototype = default!;
-    [Dependency] private readonly IPlayerManager _player = default!;
+    [Dependency] private IEntityManager _entity = default!;
+    [Dependency] private IPrototypeManager _prototype = default!;
+    [Dependency] private IPlayerManager _player = default!;
 
     private readonly ResearchSystem _research;
     private readonly SpriteSystem _sprite;
@@ -71,12 +71,11 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
     /// <summary>
     /// Captures the initial position to use with recenter button
     /// </summary>
-    private Vector2 _initialViewPosition;
+    private Vector2 _initialViewPosition = Vector2.Zero;
 
     /// <summary>
     /// Tracks if first initialization has happened
     /// </summary>
-    private bool _firstInitialization = true;
 
     /// <summary>
     /// Frontier: the distance between elements on the grid.
@@ -95,7 +94,6 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
 
     private ParallaxControl _parallaxControl; // Frontier: Parallax control for the background
 
-    private float _verticalScrollSpeed = 50; // Frontier: Allow mouse scroll
 
     public FancyResearchConsoleMenu()
     {
@@ -290,7 +288,6 @@ public sealed partial class FancyResearchConsoleMenu : FancyWindow
 
         DragContainer.RemoveAllChildren();
         InfoContainer.RemoveAllChildren();
-        _firstInitialization = true;
     }
 
     private sealed partial class DisciplineButton(TechDisciplinePrototype proto) : Button

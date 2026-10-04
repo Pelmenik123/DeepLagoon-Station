@@ -22,17 +22,17 @@ using Robust.Shared.Player;
 
 namespace Content.Server._DeepLagoon.DiscordLink;
 
-public sealed class DiscordLinkSystem : EntitySystem
+public sealed partial class DiscordLinkSystem : EntitySystem
 {
-    [Dependency] private readonly IPlayerManager _players = default!;
-    [Dependency] private readonly EuiManager _euis = default!;
-    [Dependency] private readonly IConfigurationManager _config = default!;
-    [Dependency] private readonly IResourceManager _resources = default!;
-    [Dependency] private readonly IStatusHost _status = default!;
-    [Dependency] private readonly ITaskManager _tasks = default!;
-    [Dependency] private readonly IServerDbManager _database = default!;
-    [Dependency] private readonly JobWhitelistManager _whitelist = default!;
-    [Dependency] private readonly IConnectionManager _connections = default!;
+    [Dependency] private IPlayerManager _players = default!;
+    [Dependency] private EuiManager _euis = default!;
+    [Dependency] private IConfigurationManager _config = default!;
+    [Dependency] private IResourceManager _resources = default!;
+    [Dependency] private IStatusHost _status = default!;
+    [Dependency] private ITaskManager _tasks = default!;
+    [Dependency] private IServerDbManager _database = default!;
+    [Dependency] private JobWhitelistManager _whitelist = default!;
+    [Dependency] private IConnectionManager _connections = default!;
     private readonly HashSet<ICommonSession> _admitted = new();
     private DiscordLinkStore? _store;
     private string _token = "";

@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._NF.Market;
 using Content.Shared._NF.Market.BUI;
@@ -8,14 +8,16 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Prototypes;
+using Robust.Shared.GameObjects;
 
 namespace Content.Client._NF.Market.UI;
 
 [GenerateTypedNameReferences]
 public sealed partial class MarketMenu : FancyWindow
 {
-    [Dependency] private readonly IPrototypeManager _protoManager = default!;
-    [Dependency] private readonly ILocalizationManager _loc = default!;
+    [Dependency] private IPrototypeManager _protoManager = default!;
+    [Dependency] private ILocalizationManager _loc = default!;
+    [Dependency] private IComponentFactory _componentFactory = default!;
 
     public event Action<BaseButton.ButtonEventArgs>? OnAddToCart1;
     public event Action<BaseButton.ButtonEventArgs>? OnAddToCart5;
@@ -102,7 +104,7 @@ public sealed partial class MarketMenu : FancyWindow
             if (!IsWithinSearchQuery(prototype))
                 continue;
 
-            if (!prototype.TryGetComponent<SpriteComponent>(out var sprite))
+            if (!prototype.TryComp<SpriteComponent>(out var sprite, _componentFactory))
             {
                 continue; // Skip this iteration if the prototype was not found
             }
@@ -113,7 +115,7 @@ public sealed partial class MarketMenu : FancyWindow
                 {
                     Title = { Text = prototype.Name },
                     Quantity = { Text = marketData.Quantity.ToString() },
-                    Price = { Text = $"${(int) double.Round(marketData.Quantity * marketData.Price * marketModifier)}" },
+                    Price = { Text = $"${(int)double.Round(marketData.Quantity * marketData.Price * marketModifier)}" },
                     Icon = { Texture = sprite.Icon?.Default }
                 };
                 productRow.Return.OnPressed += args => { OnReturn?.Invoke(args); };
@@ -123,10 +125,10 @@ public sealed partial class MarketMenu : FancyWindow
             }
             else
             {
-                var priceText = $"${(int) double.Round(marketData.Quantity * marketData.Price *marketModifier)}";
+                var priceText = $"${(int)double.Round(marketData.Quantity * marketData.Price * marketModifier)}";
                 if (marketData.Quantity > 1)
                 {
-                    priceText += " ($" + (int) double.Round(marketData.Price * marketModifier) + " ea)";
+                    priceText += " ($" + (int)double.Round(marketData.Price * marketModifier) + " ea)";
                 }
 
                 var productRow = new MarketProductRow(prototype)

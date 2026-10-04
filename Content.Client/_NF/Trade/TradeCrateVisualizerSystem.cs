@@ -7,11 +7,11 @@ namespace Content.Client._NF.Trade;
 /// <summary>
 /// Visualizer for trade crates, largely based on Nyano's mail visualizer (thank you)
 /// </summary>
-public sealed class TradeCrateVisualizerSystem : VisualizerSystem<TradeCrateComponent>
+public sealed partial class TradeCrateVisualizerSystem : VisualizerSystem<TradeCrateComponent>
 {
-    [Dependency] private readonly IPrototypeManager _proto = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] private readonly SpriteSystem _sprite = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
 
     private const string FallbackIconID = "CargoOther";
     private const string CargoPriorityActiveState = "cargo_priority_active";
@@ -30,18 +30,18 @@ public sealed class TradeCrateVisualizerSystem : VisualizerSystem<TradeCrateComp
         if (!_proto.TryIndex<TradeCrateDestinationPrototype>(job, out var icon))
             icon = _proto.Index<TradeCrateDestinationPrototype>(FallbackIconID);
 
-        args.Sprite.LayerSetTexture(TradeCrateVisualLayers.Icon, _sprite.Frame0(icon.Icon));
-        args.Sprite.LayerSetVisible(TradeCrateVisualLayers.Icon, true);
+        _sprite.LayerSetTexture(args.Sprite.AsEntity(), TradeCrateVisualLayers.Icon, _sprite.Frame0(icon.Icon));
+        _sprite.LayerSetVisible(args.Sprite.AsEntity(), TradeCrateVisualLayers.Icon, true);
         if (_appearance.TryGetData(uid, TradeCrateVisuals.IsPriority, out bool isPriority) && isPriority)
         {
-            args.Sprite.LayerSetVisible(TradeCrateVisualLayers.Priority, true);
+            _sprite.LayerSetVisible(args.Sprite.AsEntity(), TradeCrateVisualLayers.Priority, true);
             if (_appearance.TryGetData(uid, TradeCrateVisuals.IsPriorityInactive, out bool inactive) && inactive)
-                args.Sprite.LayerSetState(TradeCrateVisualLayers.Priority, CargoPriorityInactiveState);
+                _sprite.LayerSetRsiState(args.Sprite.AsEntity(), TradeCrateVisualLayers.Priority, CargoPriorityInactiveState);
             else
-                args.Sprite.LayerSetState(TradeCrateVisualLayers.Priority, CargoPriorityActiveState);
+                _sprite.LayerSetRsiState(args.Sprite.AsEntity(), TradeCrateVisualLayers.Priority, CargoPriorityActiveState);
         }
         else
-            args.Sprite.LayerSetVisible(TradeCrateVisualLayers.Priority, false);
+            _sprite.LayerSetVisible(args.Sprite.AsEntity(), TradeCrateVisualLayers.Priority, false);
     }
 }
 

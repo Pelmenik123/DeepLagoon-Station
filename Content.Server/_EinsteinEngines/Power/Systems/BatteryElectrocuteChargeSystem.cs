@@ -9,11 +9,11 @@ using Content.Server._EinsteinEngines.Power.Components;
 
 namespace Content.Server._EinsteinEngines.Power.Systems;
 
-public sealed class BatteryElectrocuteChargeSystem : EntitySystem
+public sealed partial class BatteryElectrocuteChargeSystem : EntitySystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly BatterySystem _battery = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private BatterySystem _battery = default!;
 
     public override void Initialize()
     {
@@ -31,7 +31,7 @@ public sealed class BatteryElectrocuteChargeSystem : EntitySystem
             / ElectrocutionSystem.ElectrifiedDamagePerWatt * 2,
                 battery.MaxCharge * 0.25f)
             * _random.NextFloat(0.75f, 1.25f);
-            
+
         _battery.SetCharge(uid, battery.CurrentCharge + charge);
 
         _popup.PopupEntity(Loc.GetString("battery-electrocute-charge"), uid, uid);

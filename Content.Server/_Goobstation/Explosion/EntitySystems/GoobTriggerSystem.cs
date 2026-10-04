@@ -24,11 +24,11 @@ using Content.Shared.Inventory;
 
 namespace Content.Server._Goobstation.Explosion.EntitySystems;
 
-public sealed class GoobTriggerSystem : EntitySystem
+public sealed partial class GoobTriggerSystem : EntitySystem
 {
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly TriggerSystem _trigger = default!;
-    [Dependency] private readonly InventorySystem _inventory = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private TriggerSystem _trigger = default!;
+    [Dependency] private InventorySystem _inventory = default!;
     public override void Initialize()
     {
         base.Initialize();
@@ -39,7 +39,7 @@ public sealed class GoobTriggerSystem : EntitySystem
 
     private void HandleDeleteParentTrigger(Entity<DeleteParentOnTriggerComponent> entity, ref TriggerEvent args)
     {
-        EntityManager.QueueDeleteEntity(Transform(entity).ParentUid); // cleanedup - goob mudles
+        QueueDel(Transform(entity).ParentUid); // cleanedup - goob mudles
         args.Handled = true;
     }
 

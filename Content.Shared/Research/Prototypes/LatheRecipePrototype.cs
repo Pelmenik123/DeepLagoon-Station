@@ -9,7 +9,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared.Research.Prototypes
 {
-    [NetSerializable, Serializable, Prototype]
+    [Prototype]
     public sealed partial class LatheRecipePrototype : IPrototype, IInheritingPrototype
     {
         [ViewVariables]
@@ -60,7 +60,7 @@ namespace Content.Shared.Research.Prototypes
         ///     Takes a material ID as string.
         /// </summary>
         [DataField]
-        public Dictionary<ProtoId<MaterialPrototype>, int> Materials = new();
+        public Dictionary<ProtoId<MaterialPrototype>, int> Materials = [];
 
         [DataField]
         public bool ApplyMaterialDiscount = true;
@@ -69,6 +69,6 @@ namespace Content.Shared.Research.Prototypes
         /// List of categories used for visually sorting lathe recipes in the UI.
         /// </summary>
         [DataField]
-        public List<ProtoId<LatheCategoryPrototype>> Categories = new();
+        public List<ProtoId<LatheCategoryPrototype>> Categories = [];
     }
 }

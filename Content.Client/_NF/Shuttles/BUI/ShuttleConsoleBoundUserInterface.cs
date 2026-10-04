@@ -32,7 +32,7 @@ namespace Content.Client.Shuttles.BUI
                 MaxSpeed = maxSpeed,
             });
         }
-        
+
         private void OnNetworkPortButtonPressed(string sourcePort, string targetPort)
         {
             SendMessage(new ShuttlePortButtonPressedMessage

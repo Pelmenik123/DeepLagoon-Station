@@ -6,10 +6,10 @@ using System.Linq;
 
 namespace Content.Shared.Chat;
 
-public sealed class SharedSuicideSystem : EntitySystem
+public sealed partial class SharedSuicideSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageableSystem = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+    [Dependency] private DamageableSystem _damageableSystem = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
 
     /// <summary>
     /// Applies lethal damage spread out across the damage types given.
@@ -35,7 +35,7 @@ public sealed class SharedSuicideSystem : EntitySystem
         // Split the total amount of damage needed to kill the target by every damage type in the DamageSpecifier
         foreach (var (key, value) in appliedDamageSpecifier.DamageDict)
         {
-            appliedDamageSpecifier.DamageDict[key] = Math.Ceiling((double) (value * lethalAmountOfDamage / totalDamage));
+            appliedDamageSpecifier.DamageDict[key] = Math.Ceiling((double)(value * lethalAmountOfDamage / totalDamage));
         }
 
         _damageableSystem.TryChangeDamage(target, appliedDamageSpecifier, true, origin: target);
@@ -58,7 +58,7 @@ public sealed class SharedSuicideSystem : EntitySystem
         if (!_prototypeManager.TryIndex(damageType, out var damagePrototype) || damagePrototype.ID == "Structural")
         {
             Log.Error($"{nameof(SharedSuicideSystem)} could not find the damage type prototype associated with {damageType}. Falling back to Blunt");
-            damagePrototype = _prototypeManager.Index<DamageTypePrototype>("Blunt");
+            damagePrototype = _prototypeManager.Index<DamageTypePrototype>(new ProtoId<DamageTypePrototype>("Blunt"));
         }
 
         var damage = new DamageSpecifier(damagePrototype, lethalAmountOfDamage);

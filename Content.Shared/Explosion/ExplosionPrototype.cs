@@ -43,7 +43,7 @@ public sealed partial class ExplosionPrototype : IPrototype
     ///     explosion intensity to a tile break chance via linear interpolation.
     /// </summary>
     [DataField("tileBreakIntensity")]
-    private float[] _tileBreakIntensity = {0f, 15f };
+    private float[] _tileBreakIntensity = { 0f, 15f };
 
     /// <summary>
     ///     When a tile is broken by an explosion, the intensity is reduced by this amount and is used to try and
@@ -117,7 +117,7 @@ public sealed partial class ExplosionPrototype : IPrototype
     {
         if (_tileBreakChance.Length == 0 || _tileBreakChance.Length != _tileBreakIntensity.Length)
         {
-            Logger.Error($"Malformed tile break chance definitions for explosion prototype: {ID}");
+            Logger.GetSawmill("explosion").Error($"Malformed tile break chance definitions for explosion prototype: {ID}");
             return 0;
         }
 

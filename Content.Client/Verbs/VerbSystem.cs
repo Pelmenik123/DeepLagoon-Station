@@ -21,18 +21,18 @@ using Robust.Shared.Utility;
 namespace Content.Client.Verbs
 {
     [UsedImplicitly]
-    public sealed class VerbSystem : SharedVerbSystem
+    public sealed partial class VerbSystem : SharedVerbSystem
     {
-        [Dependency] private readonly PopupSystem _popupSystem = default!;
-        [Dependency] private readonly ExamineSystem _examine = default!;
-        [Dependency] private readonly SpriteTreeSystem _tree = default!;
-        [Dependency] private readonly TagSystem _tagSystem = default!;
-        [Dependency] private readonly IStateManager _stateManager = default!;
-        [Dependency] private readonly IEyeManager _eyeManager = default!;
-        [Dependency] private readonly IPlayerManager _playerManager = default!;
-        [Dependency] private readonly SharedContainerSystem _containers = default!;
-        [Dependency] private readonly IConfigurationManager _cfg = default!;
-        [Dependency] private readonly EntityLookupSystem _lookup = default!;
+        [Dependency] private PopupSystem _popupSystem = default!;
+        [Dependency] private ExamineSystem _examine = default!;
+        [Dependency] private SpriteTreeSystem _tree = default!;
+        [Dependency] private TagSystem _tagSystem = default!;
+        [Dependency] private IStateManager _stateManager = default!;
+        [Dependency] private IEyeManager _eyeManager = default!;
+        [Dependency] private IPlayerManager _playerManager = default!;
+        [Dependency] private SharedContainerSystem _containers = default!;
+        [Dependency] private IConfigurationManager _cfg = default!;
+        [Dependency] private EntityLookupSystem _lookup = default!;
 
         private float _lookupSize;
 
@@ -205,7 +205,7 @@ namespace Content.Client.Verbs
         /// </remarks>
         public void ExecuteVerb(NetEntity target, Verb verb)
         {
-            if ( _playerManager.LocalEntity is not {} user)
+            if (_playerManager.LocalEntity is not { } user)
                 return;
 
             // is this verb actually valid?
@@ -222,7 +222,7 @@ namespace Content.Client.Verbs
                 // is this a client exclusive (gui) verb?
                 ExecuteVerb(verb, user, GetEntity(target));
             else
-                EntityManager.RaisePredictiveEvent(new ExecuteVerbEvent(target, verb));
+                RaisePredictiveEvent(new ExecuteVerbEvent(target, verb));
         }
 
         private void HandleVerbResponse(VerbsResponseEvent msg)

@@ -1,4 +1,4 @@
-﻿using Content.Shared.Whitelist;
+using Content.Shared.Whitelist;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
@@ -9,7 +9,7 @@ namespace Content.Shared.Cargo.Prototypes;
 /// that must be sold together in a labeled container in order
 /// to receive a monetary reward.
 /// </summary>
-[Prototype, Serializable, NetSerializable]
+[Prototype]
 public sealed partial class CargoBountyPrototype : IPrototype
 {
     /// <inheritdoc/>
@@ -32,7 +32,7 @@ public sealed partial class CargoBountyPrototype : IPrototype
     /// The entries that must be satisfied for the cargo bounty to be complete.
     /// </summary>
     [DataField(required: true)]
-    public List<CargoBountyItemEntry> Entries = new();
+    public List<CargoBountyItemEntry> Entries = [];
 
     /// <summary>
     /// A prefix appended to the beginning of a bounty's ID.

@@ -96,20 +96,19 @@ public sealed partial class PlayerTabHeader : Control
         HeaderClicked(args, Header.Balance);
     }
 
-    protected override void Dispose(bool disposing)
+    protected override void ExitedTree()
     {
-        base.Dispose(disposing);
+        base.ExitedTree();
 
-        if (disposing)
-        {
-            UsernameLabel.OnKeyBindDown -= UsernameClicked;
-            CharacterLabel.OnKeyBindDown -= CharacterClicked;
-            JobLabel.OnKeyBindDown -= JobClicked;
-            AntagonistLabel.OnKeyBindDown -= AntagonistClicked;
-            RoleTypeLabel.OnKeyBindDown -= RoleTypeClicked;
-            PlaytimeLabel.OnKeyBindDown -= PlaytimeClicked;
-            BalanceLabel.OnKeyBindDown -= BalanceClicked; // Frontier
-        }
+
+        UsernameLabel.OnKeyBindDown -= UsernameClicked;
+        CharacterLabel.OnKeyBindDown -= CharacterClicked;
+        JobLabel.OnKeyBindDown -= JobClicked;
+        AntagonistLabel.OnKeyBindDown -= AntagonistClicked;
+        RoleTypeLabel.OnKeyBindDown -= RoleTypeClicked;
+        PlaytimeLabel.OnKeyBindDown -= PlaytimeClicked;
+        BalanceLabel.OnKeyBindDown -= BalanceClicked; // Frontier
+
     }
 
     public enum Header

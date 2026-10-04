@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared.Actions.Events;
 using Robust.Shared.Prototypes;
@@ -6,11 +6,11 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared.Actions;
 
-public sealed class ActionUpgradeSystem : EntitySystem
+public sealed partial class ActionUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly SharedActionsSystem _actions = default!;
-    [Dependency] private readonly ActionContainerSystem _actionContainer = default!;
-    [Dependency] private readonly EntityManager _entityManager = default!;
+    [Dependency] private SharedActionsSystem _actions = default!;
+    [Dependency] private ActionContainerSystem _actionContainer = default!;
+    [Dependency] private EntityManager _entityManager = default!;
 
     public override void Initialize()
     {
@@ -110,7 +110,7 @@ public sealed class ActionUpgradeSystem : EntitySystem
         return canLevel;
     }
 
-    private bool CanUpgrade(int newLevel, Dictionary<int, EntProtoId> levelDict,  [NotNullWhen(true)]out EntProtoId? newLevelProto)
+    private bool CanUpgrade(int newLevel, Dictionary<int, EntProtoId> levelDict, [NotNullWhen(true)] out EntProtoId? newLevelProto)
     {
         var canUpgrade = false;
         newLevelProto = null;

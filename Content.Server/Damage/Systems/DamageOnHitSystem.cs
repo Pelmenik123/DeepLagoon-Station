@@ -6,9 +6,9 @@ using System.Linq;
 
 namespace Content.Server.Damage.Systems;
 
-public sealed class DamageOnHitSystem : EntitySystem
+public sealed partial class DamageOnHitSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageableSystem = default!;
+    [Dependency] private DamageableSystem _damageableSystem = default!;
 
     public override void Initialize()
     {
@@ -18,7 +18,8 @@ public sealed class DamageOnHitSystem : EntitySystem
     // Looks for a hit, then damages the held item an appropriate amount.
     private void DamageItem(EntityUid uid, DamageOnHitComponent component, MeleeHitEvent args)
     {
-        if (args.HitEntities.Any()) {
+        if (args.HitEntities.Any())
+        {
             _damageableSystem.TryChangeDamage(uid, component.Damage, component.IgnoreResistances);
         }
     }

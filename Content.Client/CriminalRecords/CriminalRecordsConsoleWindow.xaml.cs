@@ -27,7 +27,7 @@ public sealed partial class CriminalRecordsConsoleWindow : FancyWindow
     private readonly IPrototypeManager _proto;
     private readonly IRobustRandom _random;
     private readonly AccessReaderSystem _accessReader;
-    [Dependency] private readonly IEntityManager _entManager = default!;
+    [Dependency] private IEntityManager _entManager = default!;
     private readonly SpriteSystem _spriteSystem;
 
     public readonly EntityUid Console;
@@ -183,7 +183,7 @@ public sealed partial class CriminalRecordsConsoleWindow : FancyWindow
         PersonContainer.Visible = selected;
         RecordUnselected.Visible = !selected;
 
-        _access = _player.LocalSession?.AttachedEntity is {} player
+        _access = _player.LocalSession?.AttachedEntity is { } player
             && _accessReader.IsAllowed(player, Console);
 
         // hide access-required editing parts when no access
@@ -238,7 +238,7 @@ public sealed partial class CriminalRecordsConsoleWindow : FancyWindow
             else if (strcmp < 0)
             {
                 // A new entry which doesn't exist in RecordListing. Create it.
-                RecordListing.Insert(i + 1, new ItemList.Item(RecordListing){Text = entries[j].Value, Metadata = entries[j].Key});
+                RecordListing.Insert(i + 1, new ItemList.Item(RecordListing) { Text = entries[j].Value, Metadata = entries[j].Key });
                 j--;
             }
         }
@@ -253,7 +253,7 @@ public sealed partial class CriminalRecordsConsoleWindow : FancyWindow
         // And finally, any remaining items in `entries`, don't exist in RecordListing. Create them.
         while (j >= 0)
         {
-            RecordListing.Insert(0, new ItemList.Item(RecordListing){ Text = entries[j].Value, Metadata = entries[j].Key });
+            RecordListing.Insert(0, new ItemList.Item(RecordListing) { Text = entries[j].Value, Metadata = entries[j].Key });
             j--;
         }
     }
@@ -270,12 +270,12 @@ public sealed partial class CriminalRecordsConsoleWindow : FancyWindow
             PersonJobIcon.Texture = _spriteSystem.Frame0(proto.Icon);
         }
 
-        PersonPrints.Text = stationRecord.Fingerprint ??  Loc.GetString("generic-not-available-shorthand");
-        PersonDna.Text = stationRecord.DNA ??  Loc.GetString("generic-not-available-shorthand");
+        PersonPrints.Text = stationRecord.Fingerprint ?? Loc.GetString("generic-not-available-shorthand");
+        PersonDna.Text = stationRecord.DNA ?? Loc.GetString("generic-not-available-shorthand");
 
         if (criminalRecord.Status != SecurityStatus.None)
         {
-            specifier = new SpriteSpecifier.Rsi(new ResPath("Interface/Misc/security_icons.rsi"),  GetStatusIcon(criminalRecord.Status));
+            specifier = new SpriteSpecifier.Rsi(new ResPath("Interface/Misc/security_icons.rsi"), GetStatusIcon(criminalRecord.Status));
         }
         PersonStatusTX.SetFromSpriteSpecifier(specifier);
         PersonStatusTX.DisplayRect.TextureScale = new Vector2(3f, 3f);

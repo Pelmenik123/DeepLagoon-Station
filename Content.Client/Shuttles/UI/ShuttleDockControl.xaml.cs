@@ -27,8 +27,8 @@ namespace Content.Client.Shuttles.UI;
 [GenerateTypedNameReferences]
 public sealed partial class ShuttleDockControl : BaseShuttleControl
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    private SharedMapSystem _mapManager => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
+    [Dependency] private IGameTiming _timing = default!;
+    SharedMapSystem _mapManager => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
     private readonly DockingSystem _dockSystem;
     private readonly SharedShuttleSystem _shuttles;
     private readonly SharedTransformSystem _xformSystem;
@@ -380,12 +380,12 @@ public sealed partial class ShuttleDockControl : BaseShuttleControl
 
         foreach (var btn in _dockButtons.Values)
         {
-            btn.Dispose();
+            btn?.DisposeControl();
         }
 
         foreach (var container in _dockContainers.Values)
         {
-            container.Dispose();
+            container?.DisposeControl();
         }
 
         _dockButtons.Clear();
@@ -490,4 +490,3 @@ public sealed partial class ShuttleDockControl : BaseShuttleControl
         }
     }
 }
-

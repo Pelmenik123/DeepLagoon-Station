@@ -12,7 +12,7 @@ namespace Content.Client.Nyanotrasen.Kitchen.UI
     [Access(typeof(DeepFryerBoundUserInterface))]
     public sealed partial class DeepFryerWindow : DefaultWindow
     {
-        [Dependency] private readonly IEntityManager _entityManager = default!;
+        [Dependency] private IEntityManager _entityManager = default!;
 
         private static readonly Color WarningColor = Color.FromHsv(new Vector4(0.0f, 1.0f, 0.8f, 1.0f));
 
@@ -24,8 +24,8 @@ namespace Content.Client.Nyanotrasen.Kitchen.UI
 
         public void UpdateState(DeepFryerBoundUserInterfaceState state)
         {
-            OilLevel.Value = (float) state.OilLevel;
-            OilPurity.Value = (float) state.OilPurity;
+            OilLevel.Value = (float)state.OilLevel;
+            OilPurity.Value = (float)state.OilPurity;
 
             if (state.OilPurity < state.FryingOilThreshold)
             {
@@ -33,7 +33,7 @@ namespace Content.Client.Nyanotrasen.Kitchen.UI
                 {
                     OilPurity.ForegroundStyleBoxOverride = new StyleBoxFlat();
 
-                    var oilPurityStyle = (StyleBoxFlat) OilPurity.ForegroundStyleBoxOverride;
+                    var oilPurityStyle = (StyleBoxFlat)OilPurity.ForegroundStyleBoxOverride;
                     oilPurityStyle.BackgroundColor = WarningColor;
                 }
             }

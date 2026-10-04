@@ -34,15 +34,15 @@ namespace Content.Server.Revenant.EntitySystems;
 
 public sealed partial class RevenantSystem
 {
-    [Dependency] private readonly ThrowingSystem _throwing = default!;
-    [Dependency] private readonly EntityStorageSystem _entityStorage = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] private readonly MobThresholdSystem _mobThresholdSystem = default!;
-    [Dependency] private readonly GhostSystem _ghost = default!;
-    [Dependency] private readonly TileSystem _tile = default!;
-    [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
-    [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
-    private SharedMapSystem _mapSystem => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
+    [Dependency] ThrowingSystem _throwing = default!;
+    [Dependency] EntityStorageSystem _entityStorage = default!;
+    [Dependency] SharedAppearanceSystem _appearance = default!;
+    [Dependency] MobThresholdSystem _mobThresholdSystem = default!;
+    [Dependency] GhostSystem _ghost = default!;
+    [Dependency] TileSystem _tile = default!;
+    [Dependency] EntityWhitelistSystem _whitelistSystem = default!;
+    [Dependency] SharedTransformSystem _transformSystem = default!;
+    [Dependency] SharedMapSystem _mapSystem = default!;
 
     private void InitializeAbilities()
     {
@@ -144,7 +144,7 @@ public sealed partial class RevenantSystem
             return;
         }
 
-        if(_physics.GetEntitiesIntersectingBody(uid, (int) CollisionGroup.Impassable).Count > 0)
+        if (_physics.GetEntitiesIntersectingBody(uid, (int)CollisionGroup.Impassable).Count > 0)
         {
             _popup.PopupEntity(Loc.GetString("revenant-in-solid"), uid, uid);
             return;

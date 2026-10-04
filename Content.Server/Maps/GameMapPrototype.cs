@@ -61,7 +61,7 @@ public sealed partial class GameMapPrototype : IPrototype
     public ResPath MapPath { get; private set; } = default!;
 
     [DataField("stations", required: true)]
-    private Dictionary<string, StationConfig> _stations = new();
+    private Dictionary<string, StationConfig> _stations = [];
 
     /// <summary>
     /// The stations this map contains. The names should match with the BecomesStation components.
@@ -73,12 +73,8 @@ public sealed partial class GameMapPrototype : IPrototype
     /// </summary>
     public GameMapPrototype Persistence(ResPath mapPath)
     {
-        return new()
-        {
-            ID = ID,
-            MapName = MapName,
-            MapPath = mapPath,
-            _stations = _stations
-        };
+        var clone = (GameMapPrototype)MemberwiseClone();
+        clone.MapPath = mapPath;
+        return clone;
     }
 }

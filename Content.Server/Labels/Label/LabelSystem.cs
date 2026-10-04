@@ -15,14 +15,14 @@ namespace Content.Server.Labels
     /// A system that lets players see the contents of a label on an object.
     /// </summary>
     [UsedImplicitly]
-    public sealed class LabelSystem : SharedLabelSystem
+    public sealed partial class LabelSystem : SharedLabelSystem
     {
-        [Dependency] private readonly ItemSlotsSystem _itemSlotsSystem = default!;
-        [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-        [Dependency] private readonly TagSystem _tagSystem = default!; // Frontier
+        [Dependency] private ItemSlotsSystem _itemSlotsSystem = default!;
+        [Dependency] private SharedAppearanceSystem _appearance = default!;
+        [Dependency] private TagSystem _tagSystem = default!; // Frontier
 
         public const string ContainerName = "paper_label";
-         // Frontier: label prevention
+        // Frontier: label prevention
         private const string PreventTag = "PreventLabel"; // Frontier: label prevention
 
         public override void Initialize()
@@ -70,7 +70,7 @@ namespace Content.Server.Labels
 
         private void OnExamined(EntityUid uid, PaperLabelComponent comp, ExaminedEvent args)
         {
-            if (comp.LabelSlot.Item is not {Valid: true} item)
+            if (comp.LabelSlot.Item is not { Valid: true } item)
                 return;
 
             using (args.PushGroup(nameof(PaperLabelComponent)))
@@ -81,7 +81,7 @@ namespace Content.Server.Labels
                     return;
                 }
 
-                if (!EntityManager.TryGetComponent(item, out PaperComponent? paper))
+                if (!TryComp(item, out PaperComponent? paper))
                     // Assuming yaml has the correct entity whitelist, this should not happen.
                     return;
 

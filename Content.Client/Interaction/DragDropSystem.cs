@@ -27,22 +27,23 @@ namespace Content.Client.Interaction;
 /// <summary>
 /// Handles clientside drag and drop logic
 /// </summary>
-public sealed class DragDropSystem : SharedDragDropSystem
+public sealed partial class DragDropSystem : SharedDragDropSystem
 {
-    [Dependency] private readonly IStateManager _stateManager = default!;
-    [Dependency] private readonly IInputManager _inputManager = default!;
-    [Dependency] private readonly IEyeManager _eyeManager = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IConfigurationManager _cfgMan = default!;
-    [Dependency] private readonly InteractionOutlineSystem _outline = default!;
-    [Dependency] private readonly SharedInteractionSystem _interactionSystem = default!;
-    [Dependency] private readonly CombatModeSystem _combatMode = default!;
-    [Dependency] private readonly InputSystem _inputSystem = default!;
-    [Dependency] private readonly ActionBlockerSystem _actionBlockerSystem = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IStateManager _stateManager = default!;
+    [Dependency] private IInputManager _inputManager = default!;
+    [Dependency] private IEyeManager _eyeManager = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IConfigurationManager _cfgMan = default!;
+    [Dependency] private InteractionOutlineSystem _outline = default!;
+    [Dependency] private SharedInteractionSystem _interactionSystem = default!;
+    [Dependency] private CombatModeSystem _combatMode = default!;
+    [Dependency] private InputSystem _inputSystem = default!;
+    [Dependency] private ActionBlockerSystem _actionBlockerSystem = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedTransformSystem _transformSystem = default!;
 
     // how often to recheck possible targets (prevents calling expensive
     // check logic each update)
@@ -176,7 +177,7 @@ public sealed class DragDropSystem : SharedDragDropSystem
 
     private bool OnUseMouseDown(in PointerInputCmdHandler.PointerInputCmdArgs args)
     {
-        if (args.Session?.AttachedEntity is not {Valid: true} dragger ||
+        if (args.Session?.AttachedEntity is not { Valid: true } dragger ||
             _combatMode.IsInCombatMode())
         {
             return false;
@@ -245,13 +246,13 @@ public sealed class DragDropSystem : SharedDragDropSystem
 
             // pop up drag shadow under mouse
             var mousePos = _eyeManager.PixelToMap(screenPos);
-            _dragShadow = EntityManager.SpawnEntity("dragshadow", mousePos);
+            _dragShadow = Spawn("dragshadow", mousePos);
             var dragSprite = Comp<SpriteComponent>(_dragShadow.Value);
-            dragSprite.CopyFrom(draggedSprite);
+            _sprite.CopySprite(draggedSprite.AsEntity(), dragSprite.AsEntity());
             dragSprite.RenderOrder = EntityManager.CurrentTick.Value;
-            dragSprite.Color = dragSprite.Color.WithAlpha(0.7f);
+            _sprite.SetColor(dragSprite.AsEntity(), dragSprite.Color.WithAlpha(0.7f));
             // keep it on top of everything
-            dragSprite.DrawDepth = (int) DrawDepth.Overlays;
+            _sprite.SetDrawDepth(dragSprite.AsEntity(), (int)DrawDepth.Overlays);
             if (!dragSprite.NoRotation)
             {
                 _transformSystem.SetWorldRotationNoLerp(_dragShadow.Value, _transformSystem.GetWorldRotation(_draggedEntity.Value));
@@ -456,15 +457,15 @@ public sealed class DragDropSystem : SharedDragDropSystem
                         && _interactionSystem.InRangeUnobstructed(user.Value, entity);
             }
 
-            if (inRangeSprite.PostShader != null &&
-                inRangeSprite.PostShader != _dropTargetInRangeShader &&
-                inRangeSprite.PostShader != _dropTargetOutOfRangeShader)
+            if (_sprite.GetLegacyPostShader(inRangeSprite.AsEntity()) != null &&
+                _sprite.GetLegacyPostShader(inRangeSprite.AsEntity()) != _dropTargetInRangeShader &&
+                _sprite.GetLegacyPostShader(inRangeSprite.AsEntity()) != _dropTargetOutOfRangeShader)
             {
                 continue;
             }
 
             // highlight depending on whether its in or out of range
-            inRangeSprite.PostShader = valid.Value ? _dropTargetInRangeShader : _dropTargetOutOfRangeShader;
+            _sprite.SetLegacyPostShader(inRangeSprite.AsEntity(), valid.Value ? _dropTargetInRangeShader : _dropTargetOutOfRangeShader);
             inRangeSprite.RenderOrder = EntityManager.CurrentTick.Value;
             _highlightedSprites.Add(inRangeSprite);
         }
@@ -474,10 +475,10 @@ public sealed class DragDropSystem : SharedDragDropSystem
     {
         foreach (var highlightedSprite in _highlightedSprites)
         {
-            if (highlightedSprite.PostShader != _dropTargetInRangeShader && highlightedSprite.PostShader != _dropTargetOutOfRangeShader)
+            if (_sprite.GetLegacyPostShader(highlightedSprite.AsEntity()) != _dropTargetInRangeShader && _sprite.GetLegacyPostShader(highlightedSprite.AsEntity()) != _dropTargetOutOfRangeShader)
                 continue;
 
-            highlightedSprite.PostShader = null;
+            _sprite.SetLegacyPostShader(highlightedSprite.AsEntity(), null);
             highlightedSprite.RenderOrder = 0;
         }
 
@@ -535,15 +536,15 @@ public sealed class DragDropSystem : SharedDragDropSystem
         {
             // check if dragging should begin
             case DragState.MouseDown:
-            {
-                var screenPos = _inputManager.MouseScreenPosition;
-                if ((_mouseDownScreenPos!.Value.Position - screenPos.Position).Length() > Deadzone)
                 {
-                    StartDrag();
-                }
+                    var screenPos = _inputManager.MouseScreenPosition;
+                    if ((_mouseDownScreenPos!.Value.Position - screenPos.Position).Length() > Deadzone)
+                    {
+                        StartDrag();
+                    }
 
-                break;
-            }
+                    break;
+                }
             case DragState.Dragging:
                 UpdateDrag(frameTime);
                 break;

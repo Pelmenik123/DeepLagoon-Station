@@ -83,12 +83,12 @@ namespace Content.Server.GameTicking
 {
     public sealed partial class GameTicker
     {
-        [Dependency] private readonly DiscordWebhook _discord = default!;
-        [Dependency] private readonly RoleSystem _role = default!;
-        [Dependency] private readonly ITaskManager _taskManager = default!;
-        [Dependency] private readonly CrewManifestSystem _crewManifest = default!;
-        [Dependency] private readonly StationSystem _stationSystem = default!;
-        [Dependency] private readonly BankSystem _bank = default!;
+        [Dependency] private DiscordWebhook _discord = default!;
+        RoleSystem _role => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<RoleSystem>();
+        [Dependency] private ITaskManager _taskManager = default!;
+        CrewManifestSystem _crewManifest => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<CrewManifestSystem>();
+        StationSystem _stationSystem => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<StationSystem>();
+        BankSystem _bank => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<BankSystem>();
 
         private static readonly Counter RoundNumberMetric = Metrics.CreateCounter(
             "ss14_round_number",
@@ -265,7 +265,7 @@ namespace Content.Server.GameTicking
                 }
 
                 _metaData.SetEntityName(mapUid, proto.MapName);
-                var g = new List<EntityUid> {grid.Value.Owner};
+                var g = new List<EntityUid> { grid.Value.Owner };
                 RaiseLocalEvent(new PostGameMapLoad(proto, mapId, g, stationName));
                 return g;
             }
@@ -315,7 +315,7 @@ namespace Content.Server.GameTicking
                 }
 
                 _metaData.SetEntityName(mapUid, proto.MapName);
-                var g = new List<EntityUid> {grid.Value.Owner};
+                var g = new List<EntityUid> { grid.Value.Owner };
                 RaiseLocalEvent(new PostGameMapLoad(proto, mapId, g, stationName));
                 return g;
             }
@@ -365,7 +365,7 @@ namespace Content.Server.GameTicking
                     throw new Exception($"Failed to load game-map grid {ev.GameMap.ID}");
                 }
 
-                var g = new List<EntityUid> {grid.Value.Owner};
+                var g = new List<EntityUid> { grid.Value.Owner };
                 // TODO MAP LOADING use a new event?
                 RaiseLocalEvent(new PostGameMapLoad(proto, targetMap, g, stationName));
                 return g;
@@ -448,7 +448,7 @@ namespace Content.Server.GameTicking
                 HumanoidCharacterProfile profile;
                 if (_prefsManager.TryGetCachedPreferences(userId, out var preferences))
                 {
-                    profile = (HumanoidCharacterProfile) preferences.SelectedCharacter;
+                    profile = (HumanoidCharacterProfile)preferences.SelectedCharacter;
                 }
                 else
                 {
@@ -712,7 +712,6 @@ namespace Content.Server.GameTicking
                 const int MaxEmbedCharacters = 6000;
                 const int MaxFieldsPerEmbed = 25;
                 const int MaxFieldValueLength = 1024;
-                const int MaxFieldNameLength = 256;
 
                 var webhookUrl = _cfg.GetCVar(CCVars.DiscordCrewManifestWebhook);
                 if (string.IsNullOrEmpty(webhookUrl))

@@ -25,7 +25,7 @@ public sealed class AddAccentPickupSystem : EntitySystem
             return;
 
         // add accent to the user
-        var accentComponent = (Component) Factory.GetComponent(componentType);
+        var accentComponent = (Component)Factory.GetComponent(componentType);
         AddComp(args.User, accentComponent);
 
         // snowflake case for replacement accent
@@ -83,12 +83,12 @@ public sealed class AddAccentPickupSystem : EntitySystem
                 return;
 
             // add accent to the user
-            var accentComponent = (Component) Factory.GetComponent(componentType);
+            var accentComponent = (Component)Factory.GetComponent(componentType);
             AddComp(component.Holder, accentComponent);
 
             // snowflake case for replacement accent
             if (accentComponent is ReplacementAccentComponent rep)
-            rep.Accent = component.ReplacementPrototype!.Value;
+                rep.Accent = component.ReplacementPrototype!.Value;
 
             component.IsActive = true;
         }

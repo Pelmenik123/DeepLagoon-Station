@@ -27,15 +27,15 @@ public abstract partial class SharedProjectileSystem : EntitySystem
 {
     public const string ProjectileFixture = "projectile";
 
-    [Dependency] private readonly INetManager _netManager = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly TagSystem _tag = default!;
-    [Dependency] private readonly IParallelManager _parallel = default!;
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
+    [Dependency] private INetManager _netManager = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedDoAfterSystem _doAfter = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private TagSystem _tag = default!;
+    [Dependency] private IParallelManager _parallel = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
 
     // Cache of projectiles waiting for collision checks
     private readonly ConcurrentQueue<(EntityUid Uid, ProjectileComponent Component, EntityUid Target)> _pendingCollisionChecks = new();
@@ -78,9 +78,9 @@ public abstract partial class SharedProjectileSystem : EntitySystem
     private void OnProjectileMetaStartup(EntityUid uid, ProjectileComponent component, ComponentStartup args)
     {
         // Check if the entity still exists before trying to add a component
-        if (!EntityManager.EntityExists(uid))
+        if (!Exists(uid))
             return;
-            
+
         EnsureComp<MetaDataComponent>(uid);
     }
 
@@ -115,7 +115,7 @@ public abstract partial class SharedProjectileSystem : EntitySystem
                 continue;
 
             // Check if entities still exist
-            if (!EntityManager.EntityExists(check.Uid) || !EntityManager.EntityExists(check.Target))
+            if (!Exists(check.Uid) || !Exists(check.Target))
                 continue;
 
             collisionChecks.Add(check);
@@ -175,7 +175,7 @@ public abstract partial class SharedProjectileSystem : EntitySystem
     public bool CheckShieldCollision(EntityUid uid, ProjectileComponent component, EntityUid target)
     {
         // Check if projectile entity still exists (might have been deleted during processing)
-        if (!EntityManager.EntityExists(uid) || !EntityManager.EntityExists(target))
+        if (!Exists(uid) || !Exists(target))
             return false;
 
         // Raise event to check if any shield system wants to prevent collision
@@ -452,7 +452,7 @@ public record struct ProjectileCollisionAttemptEvent(EntityUid Projectile, Entit
 }
 
 // Parallel job implementation for processing projectile collisions
-public class ProjectileCollisionJob : IParallelRobustJob
+public sealed class ProjectileCollisionJob : IParallelRobustJob
 {
     public SharedProjectileSystem ParentSystem = default!;
     public List<(EntityUid Uid, ProjectileComponent Component, EntityUid Target)> ProjectileChecks = default!;

@@ -16,11 +16,11 @@ using Robust.Shared.Utility;
 
 namespace Content.Server.Medical.Stethoscope
 {
-    public sealed class StethoscopeSystem : EntitySystem
+    public sealed partial class StethoscopeSystem : EntitySystem
     {
-        [Dependency] private readonly PopupSystem _popupSystem = default!;
-        [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
-        [Dependency] private readonly MobStateSystem _mobStateSystem = default!;
+        [Dependency] private PopupSystem _popupSystem = default!;
+        [Dependency] private SharedDoAfterSystem _doAfterSystem = default!;
+        [Dependency] private MobStateSystem _mobStateSystem = default!;
 
         public override void Initialize()
         {
@@ -78,7 +78,7 @@ namespace Content.Server.Medical.Stethoscope
                     StartListening(component.Stethoscope, uid, args.Target, stetho); // start doafter
                 },
                 Text = Loc.GetString("stethoscope-verb"),
-                Icon = new SpriteSpecifier.Rsi(new ("Clothing/Neck/Misc/stethoscope.rsi"), "icon"),
+                Icon = new SpriteSpecifier.Rsi(new("Clothing/Neck/Misc/stethoscope.rsi"), "icon"),
                 Priority = 2
             };
             args.Verbs.Add(verb);
@@ -140,7 +140,7 @@ namespace Content.Server.Medical.Stethoscope
 
         private string GetDamageMessage(FixedPoint2 totalOxyloss)
         {
-            var msg = (int) totalOxyloss switch
+            var msg = (int)totalOxyloss switch
             {
                 < 20 => "stethoscope-normal",
                 < 60 => "stethoscope-hyper",

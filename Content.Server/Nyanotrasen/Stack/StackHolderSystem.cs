@@ -5,9 +5,9 @@ using Content.Shared.Stacks;
 
 namespace Content.Server.Stack
 {
-    public sealed class StackHolderSystem : EntitySystem
+    public sealed partial class StackHolderSystem : EntitySystem
     {
-        [Dependency] private readonly ItemSlotsSystem _itemSlotsSystem = default!;
+        [Dependency] private ItemSlotsSystem _itemSlotsSystem = default!;
 
         public override void Initialize()
         {
@@ -41,11 +41,11 @@ namespace Content.Server.Stack
                     _itemSlotsSystem.TryInsert(uid, "stack_slot", args.Target.Value, args.User);
                 return;
             }
-            var afterEv = new AfterInteractEvent(args.User, (EntityUid) item, args.Target, args.ClickLocation, args.CanReach);
-            RaiseLocalEvent((EntityUid) item, afterEv, false);
+            var afterEv = new AfterInteractEvent(args.User, (EntityUid)item, args.Target, args.ClickLocation, args.CanReach);
+            RaiseLocalEvent((EntityUid)item, afterEv, false);
             if (args.Target != null)
             {
-                var ev = new InteractUsingEvent(args.User, (EntityUid) item, args.Target.Value, args.ClickLocation);
+                var ev = new InteractUsingEvent(args.User, (EntityUid)item, args.Target.Value, args.ClickLocation);
                 RaiseLocalEvent(args.Target.Value, ev, false);
             }
         }

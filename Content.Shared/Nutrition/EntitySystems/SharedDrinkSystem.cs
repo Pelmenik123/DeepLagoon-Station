@@ -8,8 +8,8 @@ namespace Content.Shared.Nutrition.EntitySystems;
 
 public abstract partial class SharedDrinkSystem : EntitySystem
 {
-    [Dependency] private readonly SharedSolutionContainerSystem _solutionContainer = default!;
-    [Dependency] private readonly OpenableSystem _openable = default!;
+    [Dependency] private SharedSolutionContainerSystem _solutionContainer = default!;
+    [Dependency] private OpenableSystem _openable = default!;
 
     public override void Initialize()
     {
@@ -46,7 +46,7 @@ public abstract partial class SharedDrinkSystem : EntitySystem
         else
         {
             //general approximation
-            var remainingString = (int) _solutionContainer.PercentFull(entity) switch
+            var remainingString = (int)_solutionContainer.PercentFull(entity) switch
             {
                 100 => "drink-component-on-examine-is-full",
                 > 66 => "drink-component-on-examine-is-mostly-full",

@@ -1,4 +1,4 @@
-﻿using Robust.Shared.Audio;
+using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 using Robust.Shared.Utility;
@@ -53,7 +53,7 @@ public abstract partial class BaseActionComponent : Component
     /// <summary>
     ///     Keywords that can be used to search for this action in the action menu.
     /// </summary>
-    [DataField("keywords")] public HashSet<string> Keywords = new();
+    [DataField("keywords")] public HashSet<string> Keywords = [];
 
     /// <summary>
     ///     Whether this action is currently enabled. If not enabled, this action cannot be performed.
@@ -102,7 +102,7 @@ public abstract partial class BaseActionComponent : Component
     /// <summary>
     ///     If enabled, charges will regenerate after a <see cref="Cooldown"/> is complete
     /// </summary>
-    [DataField("renewCharges")]public bool RenewCharges;
+    [DataField("renewCharges")] public bool RenewCharges;
 
     /// <summary>
     /// The entity that contains this action. If the action is innate, this may be the user themselves.
@@ -232,7 +232,9 @@ public abstract class BaseActionComponentState : ComponentState
         EntityIcon = entManager.GetNetEntity(component.EntIcon);
         AttachedEntity = entManager.GetNetEntity(component.AttachedEntity);
         RaiseOnUser = component.RaiseOnUser;
+#pragma warning disable CS0618 // Upstream SS14 master keeps the same obsolete RaiseOnAction datafield active; still used by recall/repulse spells.
         RaiseOnAction = component.RaiseOnAction;
+#pragma warning restore CS0618
         Icon = component.Icon;
         IconOn = component.IconOn;
         IconColor = component.IconColor;

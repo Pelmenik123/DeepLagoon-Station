@@ -48,7 +48,9 @@ namespace Content.Shared.Movement.Components
             {
                 if (MathHelper.CloseToPercent(GrabRange, value)) return;
                 GrabRange = value;
+#pragma warning disable CS0612 // Matches upstream SS14: VV setter has no EntityUid to call Dirty(uid, comp).
                 Dirty();
+#pragma warning restore CS0612
             }
         }
 
@@ -60,7 +62,9 @@ namespace Content.Shared.Movement.Components
             {
                 if (MathHelper.CloseToPercent(PushStrength, value)) return;
                 PushStrength = value;
+#pragma warning disable CS0612 // Matches upstream SS14: VV setter has no EntityUid to call Dirty(uid, comp).
                 Dirty();
+#pragma warning restore CS0612
             }
         }
     }

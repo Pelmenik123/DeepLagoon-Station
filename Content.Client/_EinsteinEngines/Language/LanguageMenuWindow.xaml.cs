@@ -31,12 +31,11 @@ public sealed partial class LanguageMenuWindow : DefaultWindow
         _clientLanguageSystem.OnLanguagesChanged += UpdateState;
     }
 
-    protected override void Dispose(bool disposing)
+    protected override void ExitedTree()
     {
-        base.Dispose(disposing);
+        base.ExitedTree();
 
-        if (disposing)
-            _clientLanguageSystem.OnLanguagesChanged -= UpdateState;
+        _clientLanguageSystem.OnLanguagesChanged -= UpdateState;
     }
 
     protected override void Opened()
@@ -141,7 +140,7 @@ public sealed partial class LanguageMenuWindow : DefaultWindow
         _clientLanguageSystem.RequestSetLanguage(id);
 
         // Predict the change
-        if (_clientLanguageSystem.GetLocalSpeaker()?.SpokenLanguages is {} languages)
+        if (_clientLanguageSystem.GetLocalSpeaker()?.SpokenLanguages is { } languages)
             UpdateState(id, languages);
     }
 

@@ -8,7 +8,7 @@ namespace Content.Server.Radiation.Systems;
 // create and update map of radiation blockers
 public partial class RadiationSystem
 {
-    private SharedMapSystem _map => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
+    [Dependency] SharedMapSystem _map = default!;
 
     private void InitRadBlocking()
     {

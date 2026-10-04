@@ -15,8 +15,8 @@ namespace Content.Server.ParticleAccelerator.EntitySystems;
 
 public sealed partial class ParticleAcceleratorSystem
 {
-    [Dependency] private readonly IAdminManager _adminManager = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] private IAdminManager _adminManager = default!;
+    [Dependency] SharedAudioSystem _audio = default!;
 
     private void InitializeControlBoxSystem()
     {
@@ -45,9 +45,9 @@ public sealed partial class ParticleAcceleratorSystem
         DebugTools.Assert(controller.Powered);
         DebugTools.Assert(controller.SelectedStrength != ParticleAcceleratorPowerState.Standby);
         DebugTools.Assert(controller.Assembled);
-        DebugTools.Assert(EntityManager.EntityExists(controller.PortEmitter));
-        DebugTools.Assert(EntityManager.EntityExists(controller.ForeEmitter));
-        DebugTools.Assert(EntityManager.EntityExists(controller.StarboardEmitter));
+        DebugTools.Assert(Exists(controller.PortEmitter));
+        DebugTools.Assert(Exists(controller.ForeEmitter));
+        DebugTools.Assert(Exists(controller.StarboardEmitter));
     }
 
     public void Fire(EntityUid uid, TimeSpan curTime, ParticleAcceleratorControlBoxComponent? comp = null)
@@ -145,10 +145,10 @@ public sealed partial class ParticleAcceleratorSystem
         if (comp.StrengthLocked)
             return;
 
-        strength = (ParticleAcceleratorPowerState) MathHelper.Clamp(
-            (int) strength,
-            (int) ParticleAcceleratorPowerState.Standby,
-            (int) comp.MaxStrength
+        strength = (ParticleAcceleratorPowerState)MathHelper.Clamp(
+            (int)strength,
+            (int)ParticleAcceleratorPowerState.Standby,
+            (int)comp.MaxStrength
         );
 
         if (strength == comp.SelectedStrength)
@@ -180,7 +180,7 @@ public sealed partial class ParticleAcceleratorSystem
                         ("machine", ToPrettyString(uid)),
                         ("powerState", GetPANumericalLevel(strength)),
                         ("coordinates", pos.Coordinates)));
-                    _audio.PlayGlobal("/Audio/Misc/adminlarm.ogg",
+                    _audio.PlayGlobal(new SoundPathSpecifier("/Audio/Misc/adminlarm.ogg"),
                         Filter.Empty().AddPlayers(_adminManager.ActiveAdmins),
                         false,
                         AudioParams.Default.WithVolume(-8f));
@@ -228,7 +228,7 @@ public sealed partial class ParticleAcceleratorSystem
 
         var powerDraw = comp.BasePowerDraw;
         if (comp.Enabled)
-            powerDraw += comp.LevelPowerDraw * (int) comp.SelectedStrength;
+            powerDraw += comp.LevelPowerDraw * (int)comp.SelectedStrength;
 
         powerConsumer.DrawRate = powerDraw;
     }
@@ -256,8 +256,8 @@ public sealed partial class ParticleAcceleratorSystem
             comp.Assembled,
             comp.Enabled,
             comp.SelectedStrength,
-            (int) draw,
-            (int) receive,
+            (int)draw,
+            (int)receive,
             comp.StarboardEmitter != null,
             comp.ForeEmitter != null,
             comp.PortEmitter != null,
@@ -280,7 +280,7 @@ public sealed partial class ParticleAcceleratorSystem
             ParticleAcceleratorVisuals.VisualState,
             TryComp<ApcPowerReceiverComponent>(uid, out var apcPower) && !apcPower.Powered
                 ? ParticleAcceleratorVisualState.Unpowered
-                : (ParticleAcceleratorVisualState) comp.SelectedStrength,
+                : (ParticleAcceleratorVisualState)comp.SelectedStrength,
             appearance
         );
     }
@@ -290,7 +290,7 @@ public sealed partial class ParticleAcceleratorSystem
         if (!Resolve(uid, ref controller))
             return;
 
-        var state = controller.Powered ? (ParticleAcceleratorVisualState) controller.SelectedStrength : ParticleAcceleratorVisualState.Unpowered;
+        var state = controller.Powered ? (ParticleAcceleratorVisualState)controller.SelectedStrength : ParticleAcceleratorVisualState.Unpowered;
 
         // UpdatePartVisualState(ControlBox); (We are the control box)
         if (controller.FuelChamber.HasValue)

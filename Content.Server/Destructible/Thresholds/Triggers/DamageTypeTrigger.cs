@@ -12,7 +12,7 @@ namespace Content.Server.Destructible.Thresholds.Triggers
     [DataDefinition]
     public sealed partial class DamageTypeTrigger : IThresholdTrigger
     {
-        [DataField("damageType", required:true)]
+        [DataField("damageType", required: true)]
         public ProtoId<DamageTypePrototype> DamageType { get; set; } = default!;
 
         [DataField("damage", required: true)]

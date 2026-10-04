@@ -124,9 +124,9 @@ public sealed partial class ShuttleSystem
     private const float CoordRollover = 40000f;
     // End Frontier: coordinate rollover
 
-    private readonly HashSet<EntityUid> _lookupEnts = new();
-    private readonly HashSet<EntityUid> _immuneEnts = new();
-    private readonly HashSet<Entity<NoFTLComponent>> _noFtls = new();
+    private readonly HashSet<EntityUid> _lookupEnts = [];
+    private readonly HashSet<EntityUid> _immuneEnts = [];
+    private readonly HashSet<Entity<NoFTLComponent>> _noFtls = [];
 
     private EntityQuery<BodyComponent> _bodyQuery;
     private EntityQuery<FTLSmashImmuneComponent> _immuneQuery;
@@ -199,18 +199,12 @@ public sealed partial class ShuttleSystem
     {
         var state = component.State;
 
-        switch (state)
+        return state switch
         {
-            case FTLState.Starting:
-            case FTLState.Travelling:
-            case FTLState.Arriving:
-            case FTLState.Cooldown:
-                return component.StateTime;
-            case FTLState.Available:
-                return default;
-            default:
-                throw new NotImplementedException();
-        }
+            FTLState.Starting or FTLState.Travelling or FTLState.Arriving or FTLState.Cooldown => component.StateTime,
+            FTLState.Available => default,
+            _ => throw new NotImplementedException(),
+        };
     }
 
     /// <summary>
@@ -286,7 +280,7 @@ public sealed partial class ShuttleSystem
         {
 
             // Too large to FTL
-            if (FTLMassLimit > 0 &&  shuttlePhysics.Mass > FTLMassLimit)
+            if (FTLMassLimit > 0 && shuttlePhysics.Mass > FTLMassLimit)
             {
                 reason = Loc.GetString("shuttle-console-mass");
                 return false;
@@ -300,7 +294,7 @@ public sealed partial class ShuttleSystem
         }
 
         // Check if the shuttle is in an expedition
-        if (TryComp<TransformComponent>(shuttleUid, out var xform) &&
+        if (TryComp(shuttleUid, out TransformComponent? xform) &&
             xform.MapUid != null &&
             HasComp<SalvageExpeditionComponent>(xform.MapUid))
         {
@@ -334,7 +328,7 @@ public sealed partial class ShuttleSystem
         string? priorityTag = null)
     {
         // Check if destination is an expedition map
-        bool isExpedition = IsTargetExpedition(coordinates);
+        var isExpedition = IsTargetExpedition(coordinates);
 
         // If going to an expedition, undock all other shuttles before FTL
         if (isExpedition)
@@ -411,7 +405,7 @@ public sealed partial class ShuttleSystem
 
         // Check if destination is in an expedition map
         var targetCoords = new EntityCoordinates(target, Vector2.Zero);
-        bool isExpedition = IsTargetExpedition(targetCoords);
+        var isExpedition = IsTargetExpedition(targetCoords);
 
         // If going to an expedition, undock all other shuttles before FTL
         if (isExpedition)
@@ -443,7 +437,7 @@ public sealed partial class ShuttleSystem
         }
 
         var hyperspace = EnsureComp<FTLComponent>(shuttleUid);
-        SetupFTL(hyperspace, startupTime, hyperspaceTime, priorityTag);
+        SetupFTL(shuttleUid, hyperspace, startupTime, hyperspaceTime, priorityTag);
 
         if (TryComp<DockingComponent>(target, out var dock) && dock.Docked && dock.DockedWith != null)
         {
@@ -471,7 +465,7 @@ public sealed partial class ShuttleSystem
     /// <summary>
     /// Sets up the FTL component with startup and travel times and priority tag.
     /// </summary>
-    private void SetupFTL(FTLComponent hyperspace, float? startupTime, float? hyperspaceTime, string? priorityTag)
+    private void SetupFTL(EntityUid uid, FTLComponent hyperspace, float? startupTime, float? hyperspaceTime, string? priorityTag)
     {
         startupTime ??= DefaultStartupTime;
         hyperspaceTime ??= DefaultTravelTime;
@@ -483,7 +477,7 @@ public sealed partial class ShuttleSystem
             TimeSpan.FromSeconds(hyperspace.StartupTime));
         hyperspace.PriorityTag = priorityTag;
 
-        _console.RefreshShuttleConsoles(hyperspace.Owner);
+        _console.RefreshShuttleConsoles(uid);
     }
 
     /// <summary>
@@ -596,7 +590,7 @@ public sealed partial class ShuttleSystem
         else
         {
             // Check if all docked shuttles can FTL
-            bool canAllFTL = true;
+            var canAllFTL = true;
             foreach (var dockedUid in dockedShuttles)
             {
                 if (dockedUid == uid)
@@ -1583,7 +1577,7 @@ public sealed partial class ShuttleSystem
         LeaveNoFTLBehind((entity.Owner, xform), oldGridMatrix, oldMapUid);
 
         // Reset rotation so they always face the same direction.
-        xform.LocalRotation = Angle.Zero;
+        _transform.SetLocalRotation(entity.Owner, Angle.Zero, xform);
         _index += width + Buffer;
 
         // Frontier: rollover coordinates

@@ -67,28 +67,27 @@ using Content.Shared._NF.Bank.BUI; // Frontier
 
 namespace Content.Server.Forensics
 {
-    public sealed class ForensicScannerSystem : EntitySystem
+    public sealed partial class ForensicScannerSystem : EntitySystem
     {
-        [Dependency] private readonly IGameTiming _gameTiming = default!;
-        [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
-        [Dependency] private readonly UserInterfaceSystem _uiSystem = default!;
-        [Dependency] private readonly PopupSystem _popupSystem = default!;
-        [Dependency] private readonly PaperSystem _paperSystem = default!;
-        [Dependency] private readonly SharedHandsSystem _handsSystem = default!;
-        [Dependency] private readonly SharedAudioSystem _audioSystem = default!;
-        [Dependency] private readonly MetaDataSystem _metaData = default!;
-        [Dependency] private readonly ForensicsSystem _forensicsSystem = default!;
-        [Dependency] private readonly TagSystem _tag = default!;
-        [Dependency] private readonly StackSystem _stackSystem = default!; // Frontier
-        [Dependency] private readonly SharedAudioSystem _audio = default!; // Frontier
-        [Dependency] private readonly IPrototypeManager _prototypeManager = default!; // Frontier
-        [Dependency] private readonly RadioSystem _radio = default!; // Frontier
-        [Dependency] private readonly DeadDropSystem _deadDrop = default!; // Frontier
-        [Dependency] private readonly ItemSlotsSystem _itemSlots = default!; // Frontier
-        [Dependency] private readonly CargoSystem _cargo = default!; // Frontier
-        [Dependency] private readonly SectorServiceSystem _service = default!; // Frontier
-        [Dependency] private readonly IConfigurationManager _cfg = default!; // Frontier
-        [Dependency] private readonly BankSystem _bank = default!; // Frontier
+        [Dependency] private IGameTiming _gameTiming = default!;
+        [Dependency] private SharedDoAfterSystem _doAfterSystem = default!;
+        [Dependency] private UserInterfaceSystem _uiSystem = default!;
+        [Dependency] private PopupSystem _popupSystem = default!;
+        [Dependency] private PaperSystem _paperSystem = default!;
+        [Dependency] private SharedHandsSystem _handsSystem = default!;
+        [Dependency] private SharedAudioSystem _audioSystem = default!;
+        [Dependency] private MetaDataSystem _metaData = default!;
+        [Dependency] private ForensicsSystem _forensicsSystem = default!;
+        [Dependency] private TagSystem _tag = default!;
+        [Dependency] private StackSystem _stackSystem = default!; // Frontier
+        [Dependency] private IPrototypeManager _prototypeManager = default!; // Frontier
+        [Dependency] private RadioSystem _radio = default!; // Frontier
+        [Dependency] private DeadDropSystem _deadDrop = default!; // Frontier
+        [Dependency] private ItemSlotsSystem _itemSlots = default!; // Frontier
+        [Dependency] private CargoSystem _cargo = default!; // Frontier
+        [Dependency] private SectorServiceSystem _service = default!; // Frontier
+        [Dependency] private IConfigurationManager _cfg = default!; // Frontier
+        [Dependency] private BankSystem _bank = default!; // Frontier
 
         // Frontier: payout constants
         // Temporary values, sane defaults, will be overwritten by CVARs.
@@ -132,7 +131,7 @@ namespace Content.Server.Forensics
         private void GiveReward(EntityUid uidOrigin, EntityUid target, int spesoAmount, FixedPoint2 fmcAmount, string msg)
         {
             SoundSpecifier confirmSound = new SoundPathSpecifier("/Audio/Effects/Cargo/ping.ogg");
-            _audio.PlayPvs(_audio.GetSound(confirmSound), uidOrigin);
+            _audioSystem.PlayPvs(_audioSystem.ResolveSound(confirmSound), uidOrigin);
 
             if (spesoAmount > 0)
                 _bank.TrySectorDeposit(SectorBankAccount.Nfsd, spesoAmount, LedgerEntryType.AntiSmugglingBonus);
@@ -151,7 +150,7 @@ namespace Content.Server.Forensics
                         int payout = sectorDD.FMCAccumulator.Int();
                         sectorDD.FMCAccumulator -= payout;
 
-                        var stackPrototype = _prototypeManager.Index<StackPrototype>("FederationMilitaryCredit");
+                        var stackPrototype = _prototypeManager.Index<StackPrototype>(new ProtoId<StackPrototype>("FederationMilitaryCredit"));
                         _stackSystem.Spawn(payout, stackPrototype, Transform(target).Coordinates);
                     }
                 }
@@ -159,7 +158,7 @@ namespace Content.Server.Forensics
             else
                 fmcAmount = 0;
 
-            var channel = _prototypeManager.Index<RadioChannelPrototype>("Nfsd");
+            var channel = _prototypeManager.Index<RadioChannelPrototype>(new ProtoId<RadioChannelPrototype>("Nfsd"));
             string msgString = Loc.GetString(msg);
             if (fmcAmount >= 1)
             {
@@ -196,7 +195,7 @@ namespace Content.Server.Forensics
             if (args.Handled || args.Cancelled)
                 return;
 
-            if (!EntityManager.TryGetComponent(uid, out ForensicScannerComponent? scanner))
+            if (!TryComp(uid, out ForensicScannerComponent? scanner))
                 return;
 
             if (args.Args.Target != null)
@@ -261,7 +260,8 @@ namespace Content.Server.Forensics
                 if (_tag.HasTag(args.Args.Target.Value, "DNASolutionScannable"))
                 {
                     scanner.SolutionDNAs = _forensicsSystem.GetSolutionsDNA(args.Args.Target.Value);
-                } else
+                }
+                else
                 {
                     scanner.SolutionDNAs = new();
                 }
@@ -365,7 +365,7 @@ namespace Content.Server.Forensics
             }
 
             // Spawn a piece of paper.
-            var printed = EntityManager.SpawnEntity(component.MachineOutput, Transform(uid).Coordinates);
+            var printed = Spawn(component.MachineOutput, Transform(uid).Coordinates);
             _handsSystem.PickupOrDrop(args.Actor, printed, checkActionBlocker: false);
 
             if (!TryComp<PaperComponent>(printed, out var paperComp))

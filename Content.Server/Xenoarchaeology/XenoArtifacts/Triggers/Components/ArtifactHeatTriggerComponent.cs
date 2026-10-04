@@ -1,4 +1,4 @@
-﻿namespace Content.Server.Xenoarchaeology.XenoArtifacts.Triggers.Components;
+namespace Content.Server.Xenoarchaeology.XenoArtifacts.Triggers.Components;
 
 // TODO: This should probably be generalized for cold temperature too,
 // but right now there is no sane way to make a freezer.

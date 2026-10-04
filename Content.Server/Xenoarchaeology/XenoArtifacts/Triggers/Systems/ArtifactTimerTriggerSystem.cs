@@ -1,12 +1,12 @@
-﻿using Content.Server.Xenoarchaeology.XenoArtifacts.Triggers.Components;
+using Content.Server.Xenoarchaeology.XenoArtifacts.Triggers.Components;
 using Robust.Shared.Timing;
 
 namespace Content.Server.Xenoarchaeology.XenoArtifacts.Triggers.Systems;
 
-public sealed class ArtifactTimerTriggerSystem : EntitySystem
+public sealed partial class ArtifactTimerTriggerSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _time = default!;
-    [Dependency] private readonly ArtifactSystem _artifactSystem = default!;
+    [Dependency] private IGameTiming _time = default!;
+    [Dependency] private ArtifactSystem _artifactSystem = default!;
 
     public override void Initialize()
     {

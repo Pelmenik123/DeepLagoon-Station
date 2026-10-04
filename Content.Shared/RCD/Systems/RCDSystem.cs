@@ -53,24 +53,24 @@ using Robust.Shared.Audio;
 namespace Content.Shared.RCD.Systems;
 
 [Virtual]
-public class RCDSystem : EntitySystem
+public partial class RCDSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly INetManager _net = default!;
-    [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
-    [Dependency] private readonly ITileDefinitionManager _tileDefMan = default!;
-    [Dependency] private readonly FloorTileSystem _floors = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedChargesSystem _charges = default!;
-    [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
-    [Dependency] private readonly SharedInteractionSystem _interaction = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly TurfSystem _turf = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly IPrototypeManager _protoManager = default!;
-    [Dependency] private readonly SharedMapSystem _mapSystem = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly TagSystem _tags = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private INetManager _net = default!;
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
+    [Dependency] private ITileDefinitionManager _tileDefMan = default!;
+    [Dependency] private FloorTileSystem _floors = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedChargesSystem _charges = default!;
+    [Dependency] private SharedDoAfterSystem _doAfter = default!;
+    [Dependency] private SharedInteractionSystem _interaction = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private TurfSystem _turf = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private IPrototypeManager _protoManager = default!;
+    [Dependency] private SharedMapSystem _mapSystem = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private TagSystem _tags = default!;
 
     private readonly int _instantConstructionDelay = 0;
     private readonly EntProtoId _instantConstructionFx = "EffectRCDConstruct0";
@@ -171,7 +171,7 @@ public class RCDSystem : EntitySystem
         args.Handled = true;
 
         // If the id card has no registered ship we cant continue.
-        if (!TryComp<ShuttleDeedComponent>(comp.Owner, out var shuttleDeedComponent))
+        if (!TryComp<ShuttleDeedComponent>(uid, out var shuttleDeedComponent))
         {
             _popup.PopupClient(Loc.GetString("rcd-component-missing-id-deed"),
                 uid, args.User, PopupType.Medium);
@@ -195,7 +195,7 @@ public class RCDSystem : EntitySystem
             rcdComponent.LinkedShuttleUid = shuttleDeedComponent.ShuttleUid;
         }
 
-        Dirty(rcdComponent.Owner, rcdComponent);
+        Dirty(rcdEntityUid, rcdComponent);
     }
 
     private void OnAfterInteract(EntityUid uid, RCDComponent component, AfterInteractEvent args)
@@ -282,7 +282,7 @@ public class RCDSystem : EntitySystem
 
         // Try to start the do after
         var effect = Spawn(effectPrototype, mapGridData.Value.Location);
-        var ev = new RCDDoAfterEvent(GetNetCoordinates(mapGridData.Value.Location), component.ConstructionDirection, component.ProtoId, cost, EntityManager.GetNetEntity(effect));
+        var ev = new RCDDoAfterEvent(GetNetCoordinates(mapGridData.Value.Location), component.ConstructionDirection, component.ProtoId, cost, GetNetEntity(effect));
 
         var doAfterArgs = new DoAfterArgs(EntityManager, user, delay, ev, uid, target: args.Target, used: uid)
         {
@@ -310,8 +310,7 @@ public class RCDSystem : EntitySystem
         {
             return true;
         }
-        var mapGrid = Comp<MapGridComponent>(gridId.Value);
-        var gridUid = mapGrid.Owner;
+        var gridUid = gridId.Value;
 
         // Frontier - Remove all RCD use on outpost.
         if (TryComp<ProtectedGridComponent>(gridUid, out var prot) && prot.PreventRCDUse)
@@ -366,7 +365,7 @@ public class RCDSystem : EntitySystem
     private void OnDoAfter(EntityUid uid, RCDComponent component, RCDDoAfterEvent args)
     {
         if (args.Cancelled && _net.IsServer)
-            QueueDel(EntityManager.GetEntity(args.Effect));
+            QueueDel(GetEntity(args.Effect));
 
         if (args.Handled || args.Cancelled || !_timing.IsFirstTimePredicted)
             return;
@@ -539,7 +538,7 @@ public class RCDSystem : EntitySystem
                 foreach (var fixture in fixtures.Fixtures.Values)
                 {
                     // Continue if no collision is possible
-                    if (!fixture.Hard || fixture.CollisionLayer <= 0 || (fixture.CollisionLayer & (int) component.CachedPrototype.CollisionMask) == 0)
+                    if (!fixture.Hard || fixture.CollisionLayer <= 0 || (fixture.CollisionLayer & (int)component.CachedPrototype.CollisionMask) == 0)
                         continue;
 
                     // Continue if our custom collision bounds are not intersected
@@ -583,7 +582,7 @@ public class RCDSystem : EntitySystem
             }
 
             // The tile cannot be destroyed
-            var tileDef = (ContentTileDefinition) _tileDefMan[mapGridData.Tile.Tile.TypeId];
+            var tileDef = (ContentTileDefinition)_tileDefMan[mapGridData.Tile.Tile.TypeId];
 
             if (tileDef.Indestructible)
             {
@@ -635,13 +634,13 @@ public class RCDSystem : EntitySystem
                 switch (component.CachedPrototype.Rotation)
                 {
                     case RcdRotation.Fixed:
-                        Transform(ent).LocalRotation = Angle.Zero;
+                        _transform.SetLocalRotation(ent, Angle.Zero);
                         break;
                     case RcdRotation.Camera:
-                        Transform(ent).LocalRotation = Transform(uid).LocalRotation;
+                        _transform.SetLocalRotation(ent, Transform(uid).LocalRotation);
                         break;
                     case RcdRotation.User:
-                        Transform(ent).LocalRotation = direction.ToAngle();
+                        _transform.SetLocalRotation(ent, direction.ToAngle());
                         break;
                 }
 

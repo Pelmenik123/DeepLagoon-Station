@@ -4,9 +4,9 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client.Implants.UI;
 
-public sealed class DeimplantBoundUserInterface : BoundUserInterface
+public sealed partial class DeimplantBoundUserInterface : BoundUserInterface
 {
-    [Dependency] private readonly IPrototypeManager _protomanager = default!;
+    [Dependency] private IPrototypeManager _protomanager = default!;
 
     [ViewVariables]
     private DeimplantChoiceWindow? _window;
@@ -23,7 +23,7 @@ public sealed class DeimplantBoundUserInterface : BoundUserInterface
 
         _window.OnImplantChange += implant => SendMessage(new DeimplantChangeVerbMessage(implant));
     }
-    
+
     public void UpdateState(Dictionary<string, string> implantList, string? implant)
     {
         if (_window != null)

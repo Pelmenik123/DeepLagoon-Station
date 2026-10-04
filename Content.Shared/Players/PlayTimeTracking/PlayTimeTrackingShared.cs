@@ -1,4 +1,4 @@
-﻿using Content.Shared.Dataset;
+using Content.Shared.Dataset;
 
 namespace Content.Shared.Players.PlayTimeTracking;
 

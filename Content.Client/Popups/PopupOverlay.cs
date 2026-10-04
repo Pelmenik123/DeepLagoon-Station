@@ -48,7 +48,7 @@ public sealed class PopupOverlay : Overlay
         _popup = popup;
         _controller = controller;
 
-        _shader = protoManager.Index<ShaderPrototype>("unshaded").Instance();
+        _shader = protoManager.Index<ShaderPrototype>(new ProtoId<ShaderPrototype>("unshaded")).Instance();
     }
 
     protected override void Draw(in OverlayDrawArgs args)
@@ -85,7 +85,7 @@ public sealed class PopupOverlay : Overlay
 
         foreach (var popup in _popup.WorldLabels)
         {
-            var mapPos = popup.InitialPos.ToMap(_entManager, _transform);
+            var mapPos = _transform.ToMapCoordinates(popup.InitialPos);
 
             if (mapPos.MapId != args.MapId)
                 continue;

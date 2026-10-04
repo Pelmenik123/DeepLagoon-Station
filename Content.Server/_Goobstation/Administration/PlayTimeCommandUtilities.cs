@@ -8,6 +8,10 @@ namespace Content.Server._Goobstation.Administration;
 /// </summary>
 public static class PlayTimeCommandUtilities
 {
+    private static readonly Regex DayRegex = new(@"(\d+\.?\d*)d", RegexOptions.Compiled);
+    private static readonly Regex HourRegex = new(@"(\d+\.?\d*)h", RegexOptions.Compiled);
+    private static readonly Regex MinuteRegex = new(@"(\d+\.?\d*)m", RegexOptions.Compiled);
+
     /// <summary>
     /// Parses a time string into minutes.
     /// </summary>
@@ -21,9 +25,9 @@ public static class PlayTimeCommandUtilities
         double totalMinutes = 0;
 
         // Match patterns like "1d", "2h", "30m", "1.5h", etc.
-        var dayMatch = Regex.Match(timeString, @"(\d+\.?\d*)d");
-        var hourMatch = Regex.Match(timeString, @"(\d+\.?\d*)h");
-        var minuteMatch = Regex.Match(timeString, @"(\d+\.?\d*)m");
+        var dayMatch = DayRegex.Match(timeString);
+        var hourMatch = HourRegex.Match(timeString);
+        var minuteMatch = MinuteRegex.Match(timeString);
 
         // Parse days
         if (dayMatch.Success && double.TryParse(dayMatch.Groups[1].Value, out var days))
@@ -38,10 +42,10 @@ public static class PlayTimeCommandUtilities
             totalMinutes += minutes;
 
         // If no specific unit is provided, assume it's minutes
-        if (!dayMatch.Success && !hourMatch.Success && !minuteMatch.Success && 
+        if (!dayMatch.Success && !hourMatch.Success && !minuteMatch.Success &&
             double.TryParse(timeString, out var plainMinutes))
             totalMinutes = plainMinutes;
 
         return totalMinutes;
     }
-} 
+}

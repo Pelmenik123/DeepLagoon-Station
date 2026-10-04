@@ -11,9 +11,9 @@ namespace Content.Server.SprayPainter;
 /// Handles spraying pipes using a spray painter.
 /// Airlocks are handled in shared.
 /// </summary>
-public sealed class SprayPainterSystem : SharedSprayPainterSystem
+public sealed partial class SprayPainterSystem : SharedSprayPainterSystem
 {
-    [Dependency] private readonly AtmosPipeColorSystem _pipeColor = default!;
+    [Dependency] private AtmosPipeColorSystem _pipeColor = default!;
 
     public override void Initialize()
     {
@@ -29,7 +29,7 @@ public sealed class SprayPainterSystem : SharedSprayPainterSystem
         if (args.Handled || args.Cancelled)
             return;
 
-        if (args.Args.Target is not {} target)
+        if (args.Args.Target is not { } target)
             return;
 
         if (!TryComp<AtmosPipeColorComponent>(target, out var color))
@@ -47,7 +47,7 @@ public sealed class SprayPainterSystem : SharedSprayPainterSystem
         if (args.Handled)
             return;
 
-        if (!TryComp<SprayPainterComponent>(args.Used, out var painter) || painter.PickedColor is not {} colorName)
+        if (!TryComp<SprayPainterComponent>(args.Used, out var painter) || painter.PickedColor is not { } colorName)
             return;
 
         if (!painter.ColorPalette.TryGetValue(colorName, out var color))

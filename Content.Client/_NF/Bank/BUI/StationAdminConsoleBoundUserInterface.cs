@@ -7,7 +7,7 @@ public sealed class StationAdminConsoleBoundUserInterface : BoundUserInterface
 {
     private StationAdminConsoleMenu? _menu;
 
-    public StationAdminConsoleBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey) {}
+    public StationAdminConsoleBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey) { }
 
     protected override void Open()
     {
@@ -26,7 +26,7 @@ public sealed class StationAdminConsoleBoundUserInterface : BoundUserInterface
         base.Dispose(disposing);
         if (disposing)
         {
-            _menu?.Dispose();
+            _menu?.DisposeControl();
         }
     }
 

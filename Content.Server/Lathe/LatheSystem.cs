@@ -73,36 +73,36 @@ using Robust.Shared.Containers; // Frontier
 namespace Content.Server.Lathe
 {
     [UsedImplicitly]
-    public sealed class LatheSystem : SharedLatheSystem
+    public sealed partial class LatheSystem : SharedLatheSystem
     {
-        [Dependency] private readonly IGameTiming _timing = default!;
-        [Dependency] private readonly IPrototypeManager _proto = default!;
-        [Dependency] private readonly IAdminLogManager _adminLogger = default!;
-        [Dependency] private readonly AtmosphereSystem _atmosphere = default!;
-        [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-        [Dependency] private readonly SharedAudioSystem _audio = default!;
-        [Dependency] private readonly ContainerSystem _container = default!;
-        [Dependency] private readonly EmagSystem _emag = default!;
-        [Dependency] private readonly UserInterfaceSystem _uiSys = default!;
-        [Dependency] private readonly MaterialStorageSystem _materialStorage = default!;
-        [Dependency] private readonly PopupSystem _popup = default!;
-        [Dependency] private readonly PuddleSystem _puddle = default!;
-        [Dependency] private readonly ReagentSpeedSystem _reagentSpeed = default!;
-        [Dependency] private readonly SharedSolutionContainerSystem _solution = default!;
-        [Dependency] private readonly StackSystem _stack = default!;
-        [Dependency] private readonly TransformSystem _transform = default!;
-        [Dependency] private readonly ContrabandTurnInSystem _contraband = default!; // Frontier
-        [Dependency] private readonly DeviceLinkSystem _deviceLink = default!; // Mono
+        [Dependency] private IGameTiming _timing = default!;
+        [Dependency] private IPrototypeManager _proto = default!;
+        [Dependency] private IAdminLogManager _adminLogger = default!;
+        [Dependency] private AtmosphereSystem _atmosphere = default!;
+        [Dependency] private SharedAppearanceSystem _appearance = default!;
+        [Dependency] private SharedAudioSystem _audio = default!;
+        [Dependency] private ContainerSystem _container = default!;
+        [Dependency] private EmagSystem _emag = default!;
+        [Dependency] private UserInterfaceSystem _uiSys = default!;
+        [Dependency] private MaterialStorageSystem _materialStorage = default!;
+        [Dependency] private PopupSystem _popup = default!;
+        [Dependency] private PuddleSystem _puddle = default!;
+        [Dependency] private ReagentSpeedSystem _reagentSpeed = default!;
+        [Dependency] private SharedSolutionContainerSystem _solution = default!;
+        [Dependency] private StackSystem _stack = default!;
+        [Dependency] private TransformSystem _transform = default!;
+        [Dependency] private ContrabandTurnInSystem _contraband = default!; // Frontier
+        [Dependency] private DeviceLinkSystem _deviceLink = default!; // Mono
 
         /// <summary>
         /// Per-tick cache
         /// </summary>
-        private readonly List<GasMixture> _environments = new();
-        private readonly HashSet<ProtoId<LatheRecipePrototype>> _availableRecipes = new();
+        private readonly List<GasMixture> _environments = [];
+        private readonly HashSet<ProtoId<LatheRecipePrototype>> _availableRecipes = [];
 
         // Mono - re-check whether we can continue production if current recipe is frozen
         private TimeSpan _checkAccumulator = TimeSpan.FromSeconds(0);
-        private TimeSpan _checkSpacing = TimeSpan.FromSeconds(1);
+        private readonly TimeSpan _checkSpacing = TimeSpan.FromSeconds(1);
 
         public override void Initialize()
         {
@@ -236,7 +236,7 @@ namespace Content.Server.Lathe
                 Recipes = _availableRecipes
             };
             RaiseLocalEvent(uid, ev);
-            return ev.Recipes.ToList();
+            return [.. ev.Recipes];
         }
 
         public bool TryAddToQueue(EntityUid uid, LatheRecipePrototype recipe, int quantity, LatheComponent? component = null, // Frontier: add quantity
@@ -255,7 +255,7 @@ namespace Content.Server.Lathe
                 return false;
 
             // Frontier: queue up a batch
-            if (component.Queue.Count > 0 && component.Queue[^1].Recipe.ID == recipe.ID)
+            if (component.Queue.Count > 0 && component.Queue[^1].Recipe == recipe)
                 component.Queue[^1].ItemsRequested += quantity;
             else
                 component.Queue.Add(new LatheRecipeBatch(recipe, 0, quantity));
@@ -275,7 +275,7 @@ namespace Content.Server.Lathe
 
             // Frontier: handle batches
             var batch = component.Queue.First();
-            var recipe = batch.Recipe;
+            var recipe = _proto.Index(batch.Recipe);
             // <Mono> - resources now consumed as the production goes
             if (!CanProduce(uid, recipe, 1, component))
             {
@@ -292,7 +292,7 @@ namespace Content.Server.Lathe
             foreach (var (mat, amount) in recipe.Materials)
             {
                 var adjustedAmount = recipe.ApplyMaterialDiscount
-                    ? (int) (-amount * component.FinalMaterialUseMultiplier) // Frontier: MaterialUseMultiplier<FinalMaterialUseMultiplier
+                    ? (int)(-amount * component.FinalMaterialUseMultiplier) // Frontier: MaterialUseMultiplier<FinalMaterialUseMultiplier
                     : -amount;
 
                 _materialStorage.TryChangeMaterialAmount(uid, mat, adjustedAmount);
@@ -392,7 +392,11 @@ namespace Content.Server.Lathe
             if (!Resolve(uid, ref component))
                 return;
 
-            var producing = component.CurrentRecipe ?? component.Queue.FirstOrDefault()?.Recipe; // Frontier: add ?.Recipe
+            ProtoId<LatheRecipePrototype>? producing = null;
+            if (component.CurrentRecipe != null)
+                producing = component.CurrentRecipe.ID;
+            else if (component.Queue.Count > 0)
+                producing = component.Queue[0].Recipe;
 
             var state = new LatheUpdateState(GetAvailableRecipes(uid, component), component.Queue, producing, component.Loop, component.SkipBad); // Mono
             _uiSys.SetUiState(uid, LatheUiKey.Key, state);

@@ -8,12 +8,12 @@ using Robust.Shared.Timing;
 
 namespace Content.Client.UserInterface.Systems.DamageOverlays.Overlays;
 
-public sealed class DamageOverlay : Overlay
+public sealed partial class DamageOverlay : Overlay
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
 
     public override OverlaySpace Space => OverlaySpace.WorldSpace;
 
@@ -50,9 +50,9 @@ public sealed class DamageOverlay : Overlay
     {
         // TODO: Replace
         IoCManager.InjectDependencies(this);
-        _oxygenShader = _prototypeManager.Index<ShaderPrototype>("GradientCircleMask").InstanceUnique();
-        _critShader = _prototypeManager.Index<ShaderPrototype>("GradientCircleMask").InstanceUnique();
-        _bruteShader = _prototypeManager.Index<ShaderPrototype>("GradientCircleMask").InstanceUnique();
+        _oxygenShader = _prototypeManager.Index<ShaderPrototype>(new ProtoId<ShaderPrototype>("GradientCircleMask")).InstanceUnique();
+        _critShader = _prototypeManager.Index<ShaderPrototype>(new ProtoId<ShaderPrototype>("GradientCircleMask")).InstanceUnique();
+        _bruteShader = _prototypeManager.Index<ShaderPrototype>(new ProtoId<ShaderPrototype>("GradientCircleMask")).InstanceUnique();
     }
 
     protected override void Draw(in OverlayDrawArgs args)
@@ -75,8 +75,8 @@ public sealed class DamageOverlay : Overlay
         var handle = args.WorldHandle;
         var distance = args.ViewportBounds.Width;
 
-        var time = (float) _timing.RealTime.TotalSeconds;
-        var lastFrameTime = (float) _timing.FrameTime.TotalSeconds;
+        var time = (float)_timing.RealTime.TotalSeconds;
+        var lastFrameTime = (float)_timing.FrameTime.TotalSeconds;
 
         // If they just died then lerp out the white overlay.
         if (State != MobState.Dead)

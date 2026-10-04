@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Numerics;
 using Content.Client.Administration.Managers;
 using Content.Client.ContextMenu.UI;
@@ -35,20 +35,20 @@ using static Robust.Shared.Input.Binding.PointerInputCmdHandler;
 
 namespace Content.Client.Mapping;
 
-public sealed class MappingState : GameplayStateBase
+public sealed partial class MappingState : GameplayStateBase
 {
-    [Dependency] private readonly IClientAdminManager _admin = default!;
-    [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly IEntityNetworkManager _entityNetwork = default!;
-    [Dependency] private readonly IInputManager _input = default!;
-    [Dependency] private readonly ILogManager _log = default!;
-    private SharedMapSystem _mapMan => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
-    [Dependency] private readonly MappingManager _mapping = default!;
-    [Dependency] private readonly IOverlayManager _overlays = default!;
-    [Dependency] private readonly IPlacementManager _placement = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IResourceCache _resources = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private IClientAdminManager _admin = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
+    [Dependency] private IEntityNetworkManager _entityNetwork = default!;
+    [Dependency] private IInputManager _input = default!;
+    [Dependency] private ILogManager _log = default!;
+    SharedMapSystem _mapMan => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
+    [Dependency] private MappingManager _mapping = default!;
+    [Dependency] private IOverlayManager _overlays = default!;
+    [Dependency] private IPlacementManager _placement = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IResourceCache _resources = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private EntityMenuUIController _entityMenuController = default!;
 
@@ -69,7 +69,7 @@ public sealed class MappingState : GameplayStateBase
     private bool _updatePlacement;
     private bool _updateEraseDecal;
 
-    private MappingScreen Screen => (MappingScreen) UserInterfaceManager.ActiveScreen!;
+    private MappingScreen Screen => (MappingScreen)UserInterfaceManager.ActiveScreen!;
     private MainViewport Viewport => UserInterfaceManager.ActiveScreen!.GetWidget<MainViewport>()!;
 
     public CursorState State { get; set; }
@@ -149,7 +149,7 @@ public sealed class MappingState : GameplayStateBase
     {
         Deselect();
 
-        var coords = args.Coordinates.ToMap(_entityManager, _transform);
+        var coords = _transform.ToMapCoordinates(args.Coordinates);
         if (_verbs.TryGetEntityMenuEntities(coords, out var entities))
             _entityMenuController.OpenRootMenu(entities);
 
@@ -454,7 +454,7 @@ public sealed class MappingState : GameplayStateBase
         switch (prototype)
         {
             case EntityPrototype entity:
-                textures.AddRange(SpriteComponent.GetPrototypeTextures(entity, _resources).Select(t => t.Default));
+                textures.AddRange(_sprite.GetPrototypeTextures(entity).Select(t => t.Default));
                 break;
             case DecalPrototype decal:
                 textures.Add(_sprite.Frame0(decal.Sprite));
@@ -551,21 +551,21 @@ public sealed class MappingState : GameplayStateBase
         switch (prototype)
         {
             case EntityPrototype entity:
-            {
-                var placementId = Screen.EntityPlacementMode.SelectedId;
-
-                var placement = new PlacementInformation
                 {
-                    PlacementOption = placementId > 0 ? EntitySpawnWindow.InitOpts[placementId] : entity.PlacementMode,
-                    EntityType = entity.ID,
-                    IsTile = false
-                };
+                    var placementId = Screen.EntityPlacementMode.SelectedId;
 
-                Screen.EntityContainer.Visible = true;
-                _decal.SetActive(false);
-                _placement.BeginPlacing(placement);
-                break;
-            }
+                    var placement = new PlacementInformation
+                    {
+                        PlacementOption = placementId > 0 ? _placement.AllModeNames[placementId] : entity.PlacementMode,
+                        EntityType = entity.ID,
+                        IsTile = false
+                    };
+
+                    Screen.EntityContainer.Visible = true;
+                    _decal.SetActive(false);
+                    _placement.BeginPlacing(placement);
+                    break;
+                }
             case DecalPrototype decal:
                 _placement.Clear();
 
@@ -574,18 +574,18 @@ public sealed class MappingState : GameplayStateBase
                 Screen.DecalContainer.Visible = true;
                 break;
             case ContentTileDefinition tile:
-            {
-                var placement = new PlacementInformation
                 {
-                    PlacementOption = "AlignTileAny",
-                    TileType = tile.TileId,
-                    IsTile = true
-                };
+                    var placement = new PlacementInformation
+                    {
+                        PlacementOption = "AlignTileAny",
+                        TileType = tile.TileId,
+                        IsTile = true
+                    };
 
-                _decal.SetActive(false);
-                _placement.BeginPlacing(placement);
-                break;
-            }
+                    _decal.SetActive(false);
+                    _placement.BeginPlacing(placement);
+                    break;
+                }
             default:
                 _placement.Clear();
                 break;
@@ -655,7 +655,7 @@ public sealed class MappingState : GameplayStateBase
         {
             var placement = new PlacementInformation
             {
-                PlacementOption = EntitySpawnWindow.InitOpts[args.Id],
+                PlacementOption = _placement.AllModeNames[args.Id],
                 EntityType = _placement.CurrentPermission!.EntityType,
                 TileType = _placement.CurrentPermission.TileType,
                 Range = 2,
@@ -861,7 +861,7 @@ public sealed class MappingState : GameplayStateBase
         }
         else
         {
-            button.ChildrenPrototypes.DisposeAllChildren();
+            button.ChildrenPrototypes.RemoveAllChildren();
             button.CollapseButton.Label.Text = "▶";
         }
     }

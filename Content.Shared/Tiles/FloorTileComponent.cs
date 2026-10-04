@@ -15,7 +15,8 @@ namespace Content.Shared.Tiles
         [DataField("outputs")]
         public List<ProtoId<ContentTileDefinition>>? OutputTiles;
 
-        [DataField("placeTileSound")] public SoundSpecifier PlaceTileSound =
+        [DataField("placeTileSound")]
+        public SoundSpecifier PlaceTileSound =
             new SoundPathSpecifier("/Audio/Items/genhit.ogg")
             {
                 Params = AudioParams.Default.WithVariation(0.125f),

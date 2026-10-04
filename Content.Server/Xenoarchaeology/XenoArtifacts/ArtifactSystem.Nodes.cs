@@ -9,7 +9,7 @@ namespace Content.Server.Xenoarchaeology.XenoArtifacts;
 
 public sealed partial class ArtifactSystem
 {
-    [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
+    [Dependency] EntityWhitelistSystem _whitelistSystem = default!;
 
     private const int MaxEdgesPerNode = 4;
 
@@ -31,7 +31,7 @@ public sealed partial class ArtifactSystem
 
         _usedNodeIds.Clear();
 
-        var uninitializedNodes = new List<ArtifactNode> { new(){ Id = GetValidNodeId() } };
+        var uninitializedNodes = new List<ArtifactNode> { new() { Id = GetValidNodeId() } };
         var createdNodes = 1;
 
         while (uninitializedNodes.Count > 0)
@@ -51,7 +51,7 @@ public sealed partial class ArtifactSystem
                     break;
                 }
 
-                var child = new ArtifactNode {Id = GetValidNodeId(), Depth = node.Depth + 1};
+                var child = new ArtifactNode { Id = GetValidNodeId(), Depth = node.Depth + 1 };
                 node.Edges.Add(child.Id);
                 child.Edges.Add(node.Id);
 
@@ -173,21 +173,21 @@ public sealed partial class ArtifactSystem
         {
             var reg = Factory.GetRegistration(name);
 
-            if (node.Discovered && EntityManager.HasComponent(uid, reg.Type))
+            if (node.Discovered && HasComp(uid, reg.Type))
             {
                 // Don't re-add permanent components unless this is the first time you've entered this node
                 if (effect.PermanentComponents.ContainsKey(name))
                     continue;
 
-                EntityManager.RemoveComponent(uid, reg.Type);
+                RemComp(uid, reg.Type);
             }
 
-            var comp = (Component) Factory.GetComponent(reg);
+            var comp = (Component)Factory.GetComponent(reg);
 
             var temp = (object)comp;
             _serialization.CopyTo(entry.Component, ref temp);
-            EntityManager.RemoveComponent(uid, temp!.GetType());
-            EntityManager.AddComponent(uid, (Component)temp!);
+            RemComp(uid, temp!.GetType());
+            AddComp(uid, (Component)temp!);
         }
 
         node.Discovered = true;
@@ -217,15 +217,15 @@ public sealed partial class ArtifactSystem
             // if the entity prototype contained the component originally
             if (entityPrototype?.Components.TryGetComponent(name, out var entry) ?? false)
             {
-                var comp = (Component) Factory.GetComponent(name);
+                var comp = (Component)Factory.GetComponent(name);
                 var temp = (object)comp;
                 _serialization.CopyTo(entry, ref temp);
-                EntityManager.RemoveComponent(uid, temp!.GetType());
-                EntityManager.AddComponent(uid, (Component)temp);
+                RemComp(uid, temp!.GetType());
+                AddComp(uid, (Component)temp);
                 continue;
             }
 
-            EntityManager.RemoveComponentDeferred(uid, Factory.GetRegistration(name).Type);
+            RemCompDeferred(uid, Factory.GetRegistration(name).Type);
         }
 
         component.CurrentNodeId = null;

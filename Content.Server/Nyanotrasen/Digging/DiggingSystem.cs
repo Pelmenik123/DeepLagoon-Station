@@ -1,4 +1,4 @@
-﻿using Content.Shared.Interaction;
+using Content.Shared.Interaction;
 using Content.Shared.Maps;
 using Content.Shared.Nyanotrasen.Digging;
 using Content.Shared.Physics;
@@ -9,14 +9,14 @@ using Robust.Shared.Map.Components;
 
 namespace Content.Server.Digging;
 
-public sealed class DiggingSystem : EntitySystem
+public sealed partial class DiggingSystem : EntitySystem
 {
-    [Dependency] private readonly TileSystem _tiles = default!;
-    [Dependency] private readonly SharedMapSystem _maps = default!;
-    [Dependency] private readonly SharedToolSystem _tools = default!;
-    [Dependency] private readonly TurfSystem _turfs = default!;
-    [Dependency] private readonly ITileDefinitionManager _tileDefManager = default!;
-    [Dependency] private readonly SharedInteractionSystem _interactionSystem = default!;
+    [Dependency] private TileSystem _tiles = default!;
+    [Dependency] private SharedMapSystem _maps = default!;
+    [Dependency] private SharedToolSystem _tools = default!;
+    [Dependency] private TurfSystem _turfs = default!;
+    [Dependency] private ITileDefinitionManager _tileDefManager = default!;
+    [Dependency] private SharedInteractionSystem _interactionSystem = default!;
 
     public override void Initialize()
     {
@@ -33,7 +33,7 @@ public sealed class DiggingSystem : EntitySystem
         if (!TryComp<EarthDiggingComponent>(shovel, out var _))
             return;
 
-        var gridUid = coordinates.GetGridUid(EntityManager);
+        var gridUid = EntityManager.System<SharedTransformSystem>().GetGrid(coordinates);
         if (gridUid == null)
             return;
 
@@ -65,10 +65,10 @@ public sealed class DiggingSystem : EntitySystem
         EntityCoordinates clickLocation)
     {
         ToolComponent? tool = null;
-        if (component.ToolComponentNeeded && !TryComp(shovel, out  tool))
+        if (component.ToolComponentNeeded && !TryComp(shovel, out tool))
             return false;
 
-        var mapUid = clickLocation.GetGridUid(EntityManager);
+        var mapUid = EntityManager.System<SharedTransformSystem>().GetGrid(clickLocation);
         if (mapUid == null || !TryComp(mapUid, out MapGridComponent? mapGrid))
             return false;
 

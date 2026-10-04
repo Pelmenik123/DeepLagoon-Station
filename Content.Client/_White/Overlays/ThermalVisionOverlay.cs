@@ -18,11 +18,12 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._White.Overlays;
 
-public sealed class ThermalVisionOverlay : Overlay
+public sealed partial class ThermalVisionOverlay : Overlay
 {
-    [Dependency] private readonly IEntityManager _entity = default!;
-    [Dependency] private readonly IPlayerManager _player = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    SpriteSystem _sprite => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SpriteSystem>();
+    [Dependency] private IEntityManager _entity = default!;
+    [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private readonly TransformSystem _transform;
     private readonly StealthSystem _stealth;
@@ -144,9 +145,9 @@ public sealed class ThermalVisionOverlay : Overlay
 
 
         var originalColor = sprite.Color;
-        sprite.Color = color.WithAlpha(alpha);
-        sprite.Render(handle, eyeRot, rotation, position: position);
-        sprite.Color = originalColor;
+        _sprite.SetColor(sprite.AsEntity(), color.WithAlpha(alpha));
+        _sprite.RenderSprite(sprite.AsEntityComp(), handle, eyeRot, rotation, position);
+        _sprite.SetColor(sprite.AsEntity(), originalColor);
     }
 
     private bool CanSee(EntityUid uid, SpriteComponent sprite)

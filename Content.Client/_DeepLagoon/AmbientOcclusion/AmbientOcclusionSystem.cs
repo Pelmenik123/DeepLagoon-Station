@@ -18,17 +18,17 @@ using SixLabors.ImageSharp.PixelFormats;
 namespace Content.Client._DeepLagoon.AmbientOcclusion;
 
 /// <summary>Local contact shading. Runs beneath sprites and the engine's hard FOV pass.</summary>
-public sealed class AmbientOcclusionSystem : EntitySystem
+public sealed partial class AmbientOcclusionSystem : EntitySystem
 {
-    [Dependency] private readonly IOverlayManager _overlays = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-        [Dependency] private readonly SharedMapSystem _map = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly TagSystem _tags = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly SpriteSystem _sprites = default!;
-    [Dependency] private readonly IClyde _clyde = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private IOverlayManager _overlays = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private TagSystem _tags = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private SpriteSystem _sprites = default!;
+    [Dependency] private IClyde _clyde = default!;
+    [Dependency] private IGameTiming _timing = default!;
     private AmbientOcclusionProfiler? _profiler;
     private ContactOverlay? _overlay;
 
@@ -357,16 +357,16 @@ public sealed class AmbientOcclusionSystem : EntitySystem
                 var max = (footprint.TopRight / grid.TileSize).Floored();
                 args.WorldHandle.SetTransform(system._transform.GetWorldMatrix(system.Transform(obj.Grid)));
                 for (var y = min.Y; y <= max.Y; y++)
-                for (var x = min.X; x <= max.X; x++)
-                {
-                    var tile = new Vector2i(x, y);
-                    if (system._map.GetTileRef(obj.Grid, grid, tile).Tile.IsEmpty || IsWall(obj.Grid, grid, tile)) continue;
-                    var floor = Box2.FromDimensions(new Vector2(x, y) * grid.TileSize, new Vector2(grid.TileSize));
-                    if (!AmbientOcclusionMobSpot.TryClip(footprint, floor, out var quad, out var source)) continue;
-                    args.WorldHandle.DrawTextureRectRegion(_mobTexture, quad,
-                        new Color(0f, 0f, 0f, obj.Alpha * intensity), source);
-                    if (_measure) _stats.Commands++;
-                }
+                    for (var x = min.X; x <= max.X; x++)
+                    {
+                        var tile = new Vector2i(x, y);
+                        if (system._map.GetTileRef(obj.Grid, grid, tile).Tile.IsEmpty || IsWall(obj.Grid, grid, tile)) continue;
+                        var floor = Box2.FromDimensions(new Vector2(x, y) * grid.TileSize, new Vector2(grid.TileSize));
+                        if (!AmbientOcclusionMobSpot.TryClip(footprint, floor, out var quad, out var source)) continue;
+                        args.WorldHandle.DrawTextureRectRegion(_mobTexture, quad,
+                            new Color(0f, 0f, 0f, obj.Alpha * intensity), source);
+                        if (_measure) _stats.Commands++;
+                    }
             }
         }
 
@@ -387,7 +387,7 @@ public sealed class AmbientOcclusionSystem : EntitySystem
                 // Bound overlapping layers within a sprite. One stronger copy replaces the soft-edge copies.
                 var worldRotation = system._transform.GetWorldRotation(xform);
                 var position = system._transform.GetWorldPosition(xform) + offset;
-                var direction = sprite.EnableDirectionOverride ? sprite.DirectionOverride : (Direction?) null;
+                var direction = sprite.EnableDirectionOverride ? sprite.DirectionOverride : (Direction?)null;
                 var core = new Color(0f, 0f, 0f, 0.16f * intensity / layers);
                 AmbientOcclusionSilhouette.Render(system._sprites, sprite, args.WorldHandle, eyeRotation,
                     worldRotation, position, direction, core, scale);
@@ -477,7 +477,7 @@ public sealed class AmbientOcclusionSystem : EntitySystem
                 // Reject irrelevant candidates before metadata, transforms, tags or layer walks.
                 var hasOccluder = occluders.TryGetComponent(uid, out var occluder) && occluder.Enabled;
                 var caster = sprites.TryGetComponent(uid, out var sprite) &&
-                    CanCastContact(sprite.Visible, sprite.ContainerOccluded, sprite.Color.A, sprite.GetScreenTexture,
+                    CanCastContact(sprite.Visible, sprite.ContainerOccluded, sprite.Color.A, SpriteComponentExt.Sys.GetLegacyPostShaderGetScreenTexture(sprite.AsEntity()),
                         sprite.DrawDepth) && !items.HasComponent(uid) && !lights.HasComponent(uid) &&
                     (!_silhouette || !airlocks.HasComponent(uid));
                 if (!caster && !hasOccluder) continue;
@@ -545,8 +545,8 @@ public sealed class AmbientOcclusionSystem : EntitySystem
 
         internal static bool CanCastContact(bool visible, bool contained, float alpha, bool screenShader, int depth)
             => visible && !contained && alpha > 0 && !screenShader &&
-               depth >= (int) Content.Shared.DrawDepth.DrawDepth.FloorObjects &&
-               depth <= (int) Content.Shared.DrawDepth.DrawDepth.Overdoors;
+               depth >= (int)Content.Shared.DrawDepth.DrawDepth.FloorObjects &&
+               depth <= (int)Content.Shared.DrawDepth.DrawDepth.Overdoors;
 
         private void ClearContacts()
         {
@@ -592,39 +592,39 @@ public sealed class AmbientOcclusionSystem : EntitySystem
                 var min = (centre - radius).Floored();
                 var max = (centre + radius).Floored();
                 for (var y = min.Y; y <= max.Y; y++)
-                for (var x = min.X; x <= max.X; x++)
-                {
-                    var tile = new Vector2i(x, y);
-                    if (system._map.GetTileRef(gridUid, grid, tile).Tile.IsEmpty || IsWall(gridUid, grid, tile))
-                        continue;
-                    if (!_contacts.TryGetValue(tile, out var values))
+                    for (var x = min.X; x <= max.X; x++)
                     {
-                        if (_contacts.Count >= MaxContactTiles)
+                        var tile = new Vector2i(x, y);
+                        if (system._map.GetTileRef(gridUid, grid, tile).Tile.IsEmpty || IsWall(gridUid, grid, tile))
                             continue;
-                        values = _samples.Count > 0 ? _samples.Pop() : new float[Steps * Steps];
-                        Array.Clear(values);
-                        _contacts.Add(tile, values);
+                        if (!_contacts.TryGetValue(tile, out var values))
+                        {
+                            if (_contacts.Count >= MaxContactTiles)
+                                continue;
+                            values = _samples.Count > 0 ? _samples.Pop() : new float[Steps * Steps];
+                            Array.Clear(values);
+                            _contacts.Add(tile, values);
+                        }
+                        var samples = _legacy ? AddContactLegacy(values, tile, centre, radius, obj.Alpha) :
+                            AddContact(values, tile, centre, radius, obj.Alpha);
+                        if (_measure) _stats.ContactSamples += samples;
                     }
-                    var samples = _legacy ? AddContactLegacy(values, tile, centre, radius, obj.Alpha) :
-                        AddContact(values, tile, centre, radius, obj.Alpha);
-                    if (_measure) _stats.ContactSamples += samples;
-                }
             }
         }
 
         internal static int AddContactLegacy(float[] values, Vector2i tile, Vector2 centre, Vector2 radius, float opacity)
         {
             for (var y = 0; y < Steps; y++)
-            for (var x = 0; x < Steps; x++)
-            {
-                var point = new Vector2(tile.X + (x + 0.5f) / Steps, tile.Y + (y + 0.5f) / Steps);
-                var delta = (point - centre) / radius;
-                var falloff = Math.Max(0, 1 - delta.LengthSquared());
-                // Quantized pixel shading and max-compositing prevent darkening from item stacks.
-                var alpha = MathF.Round(falloff * falloff * 8) / 8 * 0.22f * Math.Clamp(opacity, 0, 1);
-                var index = y * Steps + x;
-                values[index] = Math.Max(values[index], alpha);
-            }
+                for (var x = 0; x < Steps; x++)
+                {
+                    var point = new Vector2(tile.X + (x + 0.5f) / Steps, tile.Y + (y + 0.5f) / Steps);
+                    var delta = (point - centre) / radius;
+                    var falloff = Math.Max(0, 1 - delta.LengthSquared());
+                    // Quantized pixel shading and max-compositing prevent darkening from item stacks.
+                    var alpha = MathF.Round(falloff * falloff * 8) / 8 * 0.22f * Math.Clamp(opacity, 0, 1);
+                    var index = y * Steps + x;
+                    values[index] = Math.Max(values[index], alpha);
+                }
             return Steps * Steps;
         }
 
@@ -634,10 +634,10 @@ public sealed class AmbientOcclusionSystem : EntitySystem
                 return 0;
             var min = (centre - radius - new Vector2(tile.X, tile.Y)) * Steps - new Vector2(0.5f);
             var max = (centre + radius - new Vector2(tile.X, tile.Y)) * Steps - new Vector2(0.5f);
-            var left = Math.Clamp((int) MathF.Ceiling(min.X), 0, Steps);
-            var right = Math.Clamp((int) MathF.Floor(max.X) + 1, 0, Steps);
-            var bottom = Math.Clamp((int) MathF.Ceiling(min.Y), 0, Steps);
-            var top = Math.Clamp((int) MathF.Floor(max.Y) + 1, 0, Steps);
+            var left = Math.Clamp((int)MathF.Ceiling(min.X), 0, Steps);
+            var right = Math.Clamp((int)MathF.Floor(max.X) + 1, 0, Steps);
+            var bottom = Math.Clamp((int)MathF.Ceiling(min.Y), 0, Steps);
+            var top = Math.Clamp((int)MathF.Floor(max.Y) + 1, 0, Steps);
             var alphaScale = 0.22f * Math.Clamp(opacity, 0, 1);
             for (var y = bottom; y < top; y++)
             {
@@ -679,7 +679,7 @@ public sealed class AmbientOcclusionSystem : EntitySystem
             if (_walls.TryGetValue(p, out var wall))
                 return wall;
 
-            var entities = system._map.GetAnchoredEntitiesEnumerator(uid, grid, p);
+            var entities = system._map.GetAnchoredEntities(uid, grid, p);
             while (entities.MoveNext(out var entity))
             {
                 if (!system.TryComp<MetaDataComponent>(entity, out var meta) ||

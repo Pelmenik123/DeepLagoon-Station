@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 namespace Content.IntegrationTests.Pair;
 
@@ -23,7 +23,7 @@ public sealed partial class TestPair
     /// </summary>
     public int SecondsToTicks(float seconds)
     {
-        return (int) Math.Ceiling(seconds / Server.Timing.TickPeriod.TotalSeconds);
+        return (int)Math.Ceiling(seconds / Server.Timing.TickPeriod.TotalSeconds);
     }
 
     /// <summary>

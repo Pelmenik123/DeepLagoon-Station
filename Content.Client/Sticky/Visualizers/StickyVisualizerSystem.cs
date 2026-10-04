@@ -3,8 +3,9 @@ using Robust.Client.GameObjects;
 
 namespace Content.Client.Sticky.Visualizers;
 
-public sealed class StickyVisualizerSystem : VisualizerSystem<StickyVisualizerComponent>
+public sealed partial class StickyVisualizerSystem : VisualizerSystem<StickyVisualizerComponent>
 {
+    [Dependency] private SpriteSystem _sprite = default!;
     private EntityQuery<SpriteComponent> _spriteQuery;
 
     public override void Initialize()
@@ -33,6 +34,6 @@ public sealed class StickyVisualizerSystem : VisualizerSystem<StickyVisualizerCo
             return;
 
         var drawDepth = isStuck ? comp.StuckDrawDepth : comp.OriginalDrawDepth;
-        args.Sprite.DrawDepth = drawDepth;
+        _sprite.SetDrawDepth(args.Sprite.AsEntity(), drawDepth);
     }
 }

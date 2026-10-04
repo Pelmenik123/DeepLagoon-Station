@@ -31,7 +31,8 @@ public sealed partial class HandTeleporterComponent : Component
     [DataField("secondPortalPrototype")]
     public EntProtoId SecondPortalPrototype = "PortalBlue";
 
-    [DataField("newPortalSound")] public SoundSpecifier NewPortalSound =
+    [DataField("newPortalSound")]
+    public SoundSpecifier NewPortalSound =
         new SoundPathSpecifier("/Audio/Machines/high_tech_confirm.ogg")
         {
             Params = AudioParams.Default.WithVolume(-2f)

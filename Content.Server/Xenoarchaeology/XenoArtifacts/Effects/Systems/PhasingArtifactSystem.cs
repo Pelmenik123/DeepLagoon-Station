@@ -1,4 +1,4 @@
-﻿using Content.Server.Xenoarchaeology.XenoArtifacts.Effects.Components;
+using Content.Server.Xenoarchaeology.XenoArtifacts.Effects.Components;
 using Content.Server.Xenoarchaeology.XenoArtifacts.Events;
 using Content.Shared.Physics;
 using Robust.Shared.Physics;
@@ -11,9 +11,9 @@ namespace Content.Server.Xenoarchaeology.XenoArtifacts.Effects.Systems;
 /// <summary>
 ///     Handles allowing activated artifacts to phase through walls.
 /// </summary>
-public sealed class PhasingArtifactSystem : EntitySystem
+public sealed partial class PhasingArtifactSystem : EntitySystem
 {
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
 
     /// <inheritdoc/>
     public override void Initialize()

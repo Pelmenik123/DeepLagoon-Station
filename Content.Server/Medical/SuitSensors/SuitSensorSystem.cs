@@ -57,7 +57,6 @@ using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
-using System.Numerics; //Frontier modification
 using Content.Server.Salvage.Expeditions;
 using Content.Server._Mono.Radar; // Monolith
 using Content.Server.Explosion.EntitySystems;
@@ -66,23 +65,23 @@ using Content.Shared.DeviceNetwork.Components;
 
 namespace Content.Server.Medical.SuitSensors;
 
-public sealed class SuitSensorSystem : EntitySystem
+public sealed partial class SuitSensorSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly DeviceNetworkSystem _deviceNetworkSystem = default!;
-    [Dependency] private readonly IdCardSystem _idCardSystem = default!;
-    [Dependency] private readonly MobStateSystem _mobStateSystem = default!;
-    [Dependency] private readonly PopupSystem _popupSystem = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    // [Dependency] private readonly StationSystem _stationSystem = default!; // Frontier
-    [Dependency] private readonly MetaDataSystem _metaData = default!; // Frontier
-    [Dependency] private readonly SingletonDeviceNetServerSystem _singletonServerSystem = default!;
-    [Dependency] private readonly MobThresholdSystem _mobThresholdSystem = default!;
-    [Dependency] private readonly SharedInteractionSystem _interactionSystem = default!;
-    [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
-    [Dependency] private readonly ActionBlockerSystem _actionBlocker = default!;
-    [Dependency] private readonly IPrototypeManager _proto = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private DeviceNetworkSystem _deviceNetworkSystem = default!;
+    [Dependency] private IdCardSystem _idCardSystem = default!;
+    [Dependency] private MobStateSystem _mobStateSystem = default!;
+    [Dependency] private PopupSystem _popupSystem = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    // [Dependency] private  StationSystem _stationSystem = default!; // Frontier
+    [Dependency] private MetaDataSystem _metaData = default!; // Frontier
+    [Dependency] private SingletonDeviceNetServerSystem _singletonServerSystem = default!;
+    [Dependency] private MobThresholdSystem _mobThresholdSystem = default!;
+    [Dependency] private SharedInteractionSystem _interactionSystem = default!;
+    [Dependency] private SharedDoAfterSystem _doAfterSystem = default!;
+    [Dependency] private ActionBlockerSystem _actionBlocker = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
 
     public override void Initialize()
     {
@@ -328,7 +327,7 @@ public sealed class SuitSensorSystem : EntitySystem
         {
             Text = GetModeName(mode),
             Disabled = component.Mode == mode,
-            Priority = -(int) mode, // sort them in descending order
+            Priority = -(int)mode, // sort them in descending order
             Category = VerbCategory.SetSensor,
             Act = () => TrySetSensor((uid, component), mode, userUid)
         };
@@ -408,7 +407,7 @@ public sealed class SuitSensorSystem : EntitySystem
 
         // check if sensor is enabled and worn by user
         // Frontier modification, made sensor work with grid being null
-        if (sensor.Mode == SuitSensorMode.SensorOff || sensor.User == null || !HasComp<MobStateComponent>(sensor.User) ) // || transform.GridUid == null
+        if (sensor.Mode == SuitSensorMode.SensorOff || sensor.User == null || !HasComp<MobStateComponent>(sensor.User)) // || transform.GridUid == null
             return null;
 
         // try to get mobs id from ID slot
@@ -432,7 +431,7 @@ public sealed class SuitSensorSystem : EntitySystem
 
         // get health mob state
         var isAlive = false;
-        if (EntityManager.TryGetComponent(sensor.User.Value, out MobStateComponent? mobState))
+        if (TryComp(sensor.User.Value, out MobStateComponent? mobState))
             isAlive = !_mobStateSystem.IsDead(sensor.User.Value, mobState);
 
         // get mob total damage
@@ -475,7 +474,7 @@ public sealed class SuitSensorSystem : EntitySystem
 
                     // Frontier modification
                     /// Checks if sensor is present on expedition grid
-                    if(TryComp<SalvageExpeditionComponent>(transform.GridUid.Value, out var salvageComp))
+                    if (TryComp<SalvageExpeditionComponent>(transform.GridUid.Value, out var salvageComp))
                     {
                         locationName = Loc.GetString("suit-sensor-location-expedition");
                     }

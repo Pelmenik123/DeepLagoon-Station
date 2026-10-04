@@ -14,4 +14,4 @@ namespace Content.Shared._NF.Shuttles.Events
         public NetEntity? ShuttleEntityUid { get; set; }
         public float MaxSpeed { get; set; }
     }
-} 
+}

@@ -13,12 +13,12 @@ using Robust.Shared.Physics.Systems;
 
 namespace Content.Server.Physics.Controllers;
 
-public sealed class ConveyorController : SharedConveyorController
+public sealed partial class ConveyorController : SharedConveyorController
 {
-    [Dependency] private readonly FixtureSystem _fixtures = default!;
-    [Dependency] private readonly DeviceLinkSystem _signalSystem = default!;
-    [Dependency] private readonly MaterialReclaimerSystem _materialReclaimer = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
+    FixtureSystem _fixtures => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<FixtureSystem>();
+    DeviceLinkSystem _signalSystem => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<DeviceLinkSystem>();
+    MaterialReclaimerSystem _materialReclaimer => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<MaterialReclaimerSystem>();
+    SharedAppearanceSystem _appearance => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedAppearanceSystem>();
 
     public override void Initialize()
     {
@@ -43,7 +43,7 @@ public sealed class ConveyorController : SharedConveyorController
             shape.SetAsBox(0.55f, 0.55f);
 
             _fixtures.TryCreateFixture(uid, shape, ConveyorFixture,
-                collisionLayer: (int) (CollisionGroup.LowImpassable | CollisionGroup.MidImpassable |
+                collisionLayer: (int)(CollisionGroup.LowImpassable | CollisionGroup.MidImpassable |
                                        CollisionGroup.Impassable), hard: false, body: physics);
 
         }

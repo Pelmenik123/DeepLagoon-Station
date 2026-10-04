@@ -274,7 +274,7 @@ namespace Content.IntegrationTests.Tests
             await pair.RunTicksSync(3);
 
             // We consider only non-audio entities, as some entities will just play sounds when they spawn.
-            int Count(IEntityManager ent) =>  ent.EntityCount - ent.Count<AudioComponent>();
+            int Count(IEntityManager ent) => ent.EntityCount - ent.Count<AudioComponent>();
 
             foreach (var protoId in protoIds)
             {
@@ -388,7 +388,7 @@ namespace Content.IntegrationTests.Tests
 
                     foreach (var type in componentFactory.AllRegisteredTypes)
                     {
-                        var component = (Component) componentFactory.GetComponent(type);
+                        var component = (Component)componentFactory.GetComponent(type);
                         var name = componentFactory.GetComponentName(type);
 
                         // If this component is ignored

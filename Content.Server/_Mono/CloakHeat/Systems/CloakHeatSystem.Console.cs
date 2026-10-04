@@ -13,9 +13,9 @@ namespace Content.Server._Mono.CloakHeat.Systems;
 /// <summary>
 /// Adds CloakHeat component to grids that have IFF consoles with Hide capability.
 /// </summary>
-public sealed class CloakHeatServerSystem : EntitySystem
+public sealed partial class CloakHeatServerSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     public override void Initialize()
     {
@@ -37,7 +37,7 @@ public sealed class CloakHeatServerSystem : EntitySystem
             return;
 
         // Get the grid this console is on
-        if (!TryComp<TransformComponent>(consoleUid, out var xform) || xform.GridUid == null)
+        if (!TryComp(consoleUid, out TransformComponent? xform) || xform.GridUid == null)
             return;
 
         var gridUid = xform.GridUid.Value;
@@ -56,7 +56,7 @@ public sealed class CloakHeatServerSystem : EntitySystem
             return;
 
         // Get the grid this console is on
-        if (!TryComp<TransformComponent>(uid, out var xform) || xform.GridUid == null)
+        if (!TryComp(uid, out TransformComponent? xform) || xform.GridUid == null)
             return;
 
         // Get the heat component from the grid

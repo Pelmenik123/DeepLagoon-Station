@@ -47,7 +47,7 @@ public abstract partial class AutomationSlot
     [ViewVariables]
     public EntityUid Owner;
 
-    [Dependency] public readonly IEntityManager EntMan = default!;
+    [Dependency] public IEntityManager EntMan = default!;
     protected AutomationFilterSystem _filter;
     protected EntityWhitelistSystem _whitelist;
     protected SharedDeviceLinkSystem _device;
@@ -98,9 +98,9 @@ public abstract partial class AutomationSlot
     /// </summary>
     public virtual void AddPorts()
     {
-        if (Input is {} input)
+        if (Input is { } input)
             _device.EnsureSinkPorts(Owner, input);
-        if (Output is {} output)
+        if (Output is { } output)
             _device.EnsureSourcePorts(Owner, output);
     }
 
@@ -109,9 +109,9 @@ public abstract partial class AutomationSlot
     /// </summary>
     public virtual void RemovePorts()
     {
-        if (Input is {} input)
+        if (Input is { } input)
             _device.RemoveSinkPort(Owner, input);
-        if (Output is {} output)
+        if (Output is { } output)
             _device.RemoveSourcePort(Owner, output);
     }
 }

@@ -81,7 +81,7 @@ internal sealed class AmbientOcclusionMask : IDisposable
             {
                 var index = row * Steps + column;
                 var alpha = Math.Max(walls[index], contacts?[index] ?? 0) * intensity;
-                var quantized = (byte) Math.Clamp((int) MathF.Round(alpha * 255), 0, 255);
+                var quantized = (byte)Math.Clamp((int)MathF.Round(alpha * 255), 0, 255);
                 pixels[offset + column].A = preserve ? Math.Max(pixels[offset + column].A, quantized) : quantized;
             }
         }
@@ -94,12 +94,12 @@ internal sealed class AmbientOcclusionMask : IDisposable
         {
             var samples = result[mask] = new float[Steps * Steps];
             for (var y = 0; y < Steps; y++)
-            for (var x = 0; x < Steps; x++)
-            {
-                var horizontal = Math.Max((mask & 1) != 0 ? Falloff(x) : 0, (mask & 2) != 0 ? Falloff(Steps - 1 - x) : 0);
-                var vertical = Math.Max((mask & 4) != 0 ? Falloff(y) : 0, (mask & 8) != 0 ? Falloff(Steps - 1 - y) : 0);
-                samples[y * Steps + x] = Math.Min(0.22f, 0.22f * (Math.Max(horizontal, vertical) + 0.35f * Math.Min(horizontal, vertical)));
-            }
+                for (var x = 0; x < Steps; x++)
+                {
+                    var horizontal = Math.Max((mask & 1) != 0 ? Falloff(x) : 0, (mask & 2) != 0 ? Falloff(Steps - 1 - x) : 0);
+                    var vertical = Math.Max((mask & 4) != 0 ? Falloff(y) : 0, (mask & 8) != 0 ? Falloff(Steps - 1 - y) : 0);
+                    samples[y * Steps + x] = Math.Min(0.22f, 0.22f * (Math.Max(horizontal, vertical) + 0.35f * Math.Min(horizontal, vertical)));
+                }
         }
         return result;
 

@@ -7,11 +7,11 @@ using Robust.Shared.Random;
 
 namespace Content.Server.Xenoarchaeology.XenoArtifacts.Effects.Systems;
 
-public sealed class SpawnArtifactSystem : EntitySystem
+public sealed partial class SpawnArtifactSystem : EntitySystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly ArtifactSystem _artifact = default!;
-    [Dependency] private readonly TransformSystem _transform = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private ArtifactSystem _artifact = default!;
+    [Dependency] private TransformSystem _transform = default!;
 
     public const string NodeDataSpawnAmount = "nodeDataSpawnAmount";
 
@@ -29,7 +29,7 @@ public sealed class SpawnArtifactSystem : EntitySystem
         if (amount >= component.MaxSpawns)
             return;
 
-        if (component.Spawns is not {} spawns)
+        if (component.Spawns is not { } spawns)
             return;
 
         var artifactCord = _transform.GetMapCoordinates(uid);

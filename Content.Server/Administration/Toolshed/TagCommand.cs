@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Content.Shared.Administration;
 using Content.Shared.Tag;
 using Robust.Shared.Prototypes;

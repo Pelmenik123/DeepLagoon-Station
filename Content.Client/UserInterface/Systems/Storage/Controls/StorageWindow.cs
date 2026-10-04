@@ -21,9 +21,9 @@ using Robust.Shared.Utility;
 
 namespace Content.Client.UserInterface.Systems.Storage.Controls;
 
-public sealed class StorageWindow : BaseWindow
+public sealed partial class StorageWindow : BaseWindow
 {
-    [Dependency] private readonly IEntityManager _entity = default!;
+    [Dependency] private IEntityManager _entity = default!;
     private readonly StorageUIController _storageController;
 
     public EntityUid? StorageEntity;
@@ -389,7 +389,7 @@ public sealed class StorageWindow : BaseWindow
 
     public void RemoveGrid(ItemGridPiece control)
     {
-        control.Orphan();
+        if (!control.Disposed) control.Orphan();
         _pieces.Remove(control.Entity);
         control.OnPiecePressed -= OnPiecePressed;
         control.OnPieceUnpressed -= OnPieceUnpressed;
@@ -448,7 +448,8 @@ public sealed class StorageWindow : BaseWindow
                 // Update
                 data.Control.Location = updated;
                 var index = GetGridIndex(data.Control);
-                data.Control.Orphan();
+                if (!data.Control.Disposed)
+                    data.Control.Orphan();
                 _controlGrid[index].AddChild(data.Control);
                 _pieces[ent] = (updated, data.Control);
                 continue;
@@ -460,7 +461,8 @@ public sealed class StorageWindow : BaseWindow
         foreach (var ent in _toRemove)
         {
             _pieces.Remove(ent, out var data);
-            data.Control.Orphan();
+            if (!data.Control.Disposed)
+                data.Control.Orphan();
         }
 
         // Add new ones
@@ -656,7 +658,7 @@ public sealed class StorageWindow : BaseWindow
         if (StorageEntity != null)
             origin = _entity.GetComponent<StorageComponent>(StorageEntity.Value).Grid.GetBoundingBox().BottomLeft;
 
-        var textureSize = (Vector2) _emptyTexture!.Size * 2;
+        var textureSize = (Vector2)_emptyTexture!.Size * 2;
         var position = ((UserInterfaceManager.MousePositionScaled.Position
                          - _backgroundGrid.GlobalPosition
                          - ItemGridPiece.GetCenterOffset(entity, location, _entity) * 2

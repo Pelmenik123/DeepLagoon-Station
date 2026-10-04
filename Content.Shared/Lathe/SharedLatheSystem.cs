@@ -28,13 +28,13 @@ namespace Content.Shared.Lathe;
 /// <summary>
 /// This handles...
 /// </summary>
-public abstract class SharedLatheSystem : EntitySystem
+public abstract partial class SharedLatheSystem : EntitySystem
 {
-    [Dependency] private readonly IPrototypeManager _proto = default!;
-    [Dependency] private readonly SharedMaterialStorageSystem _materialStorage = default!;
-    [Dependency] private readonly EmagSystem _emag = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private SharedMaterialStorageSystem _materialStorage = default!;
+    [Dependency] private EmagSystem _emag = default!;
 
-    public readonly Dictionary<string, List<LatheRecipePrototype>> InverseRecipes = new();
+    public readonly Dictionary<string, List<LatheRecipePrototype>> InverseRecipes = [];
 
     public override void Initialize()
     {
@@ -83,12 +83,12 @@ public abstract class SharedLatheSystem : EntitySystem
     public Dictionary<ProtoId<MaterialPrototype>, int> GetEndMaterialAmounts(Entity<LatheComponent?> ent)
     {
         if (!Resolve(ent, ref ent.Comp))
-            return new();
+            return [];
 
         var currentMaterial = _materialStorage.GetStoredMaterials(ent.Owner);
         foreach (var batch in ent.Comp.Queue)
         {
-            var recipe = batch.Recipe;
+            var recipe = _proto.Index(batch.Recipe);
             foreach (var (material, needed) in recipe.Materials)
             {
                 var adjustedAmount = AdjustMaterial(needed, recipe.ApplyMaterialDiscount, ent.Comp.FinalMaterialUseMultiplier);
@@ -163,7 +163,9 @@ public abstract class SharedLatheSystem : EntitySystem
     // End Frontier: demag
 
     public static int AdjustMaterial(int original, bool reduce, float multiplier)
-        => reduce ? (int) MathF.Ceiling(original * multiplier) : original;
+    {
+        return reduce ? (int)MathF.Ceiling(original * multiplier) : original;
+    }
 
     protected abstract bool HasRecipe(EntityUid uid, LatheRecipePrototype recipe, LatheComponent component);
 
@@ -179,7 +181,7 @@ public abstract class SharedLatheSystem : EntitySystem
         InverseRecipes.Clear();
         foreach (var latheRecipe in _proto.EnumeratePrototypes<LatheRecipePrototype>())
         {
-            if (latheRecipe.Result is not {} result)
+            if (latheRecipe.Result is not { } result)
                 continue;
 
             InverseRecipes.GetOrNew(result).Add(latheRecipe);
@@ -188,7 +190,7 @@ public abstract class SharedLatheSystem : EntitySystem
 
     public bool TryGetRecipesFromEntity(string prototype, [NotNullWhen(true)] out List<LatheRecipePrototype>? recipes)
     {
-        recipes = new();
+        recipes = [];
         if (InverseRecipes.TryGetValue(prototype, out var r))
             recipes.AddRange(r);
         return recipes.Count != 0;
@@ -204,16 +206,14 @@ public abstract class SharedLatheSystem : EntitySystem
         if (!string.IsNullOrWhiteSpace(proto.Name))
             return Loc.GetString(proto.Name);
 
-        if (proto.Result is {} result)
+        if (proto.Result is { } result)
         {
             return _proto.Index(result).Name;
         }
 
         if (proto.ResultReagents is { } resultReagents)
         {
-            return ContentLocalizationManager.FormatList(resultReagents
-                .Select(p => Loc.GetString("lathe-menu-result-reagent-display", ("reagent", _proto.Index(p.Key).LocalizedName), ("amount", p.Value)))
-                .ToList());
+            return ContentLocalizationManager.FormatList([.. resultReagents.Select(p => Loc.GetString("lathe-menu-result-reagent-display", ("reagent", _proto.Index(p.Key).LocalizedName), ("amount", p.Value)))]);
         }
 
         return string.Empty;
@@ -230,7 +230,7 @@ public abstract class SharedLatheSystem : EntitySystem
         if (!string.IsNullOrWhiteSpace(proto.Description))
             return Loc.GetString(proto.Description);
 
-        if (proto.Result is {} result)
+        if (proto.Result is { } result)
         {
             return _proto.Index(result).Description;
         }

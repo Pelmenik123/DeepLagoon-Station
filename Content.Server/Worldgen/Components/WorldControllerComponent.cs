@@ -1,4 +1,4 @@
-﻿using Content.Server.Worldgen.Systems;
+using Content.Server.Worldgen.Systems;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server.Worldgen.Components;

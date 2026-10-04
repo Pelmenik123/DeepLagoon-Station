@@ -97,7 +97,7 @@ namespace Content.Server._NF.M_Emp
     [CopyByRef, DataRecord]
     public partial record struct GeneratorState(GeneratorStateType StateType, TimeSpan Until)
     {
-        public static readonly GeneratorState Inactive = new (GeneratorStateType.Inactive, TimeSpan.Zero);
+        public static readonly GeneratorState Inactive = new(GeneratorStateType.Inactive, TimeSpan.Zero);
     };
 
     public sealed class M_EmpGeneratorActivatedEvent : EntityEventArgs

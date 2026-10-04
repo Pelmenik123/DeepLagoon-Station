@@ -46,6 +46,5 @@ public sealed partial class VocalComponent : Component
     ///     Null if no valid prototype for entity sex was found.
     /// </summary>
     [ViewVariables]
-    [AutoNetworkedField]
     public EmoteSoundsPrototype? EmoteSounds = null;
 }

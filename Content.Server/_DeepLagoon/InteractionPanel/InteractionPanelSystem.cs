@@ -24,13 +24,13 @@ namespace Content.Server._DeepLagoon.InteractionPanel;
 
 public sealed partial class InteractionPanelSystem : EntitySystem
 {
-    [Dependency] private readonly SharedInteractionSystem _interaction = default!;
-    [Dependency] private readonly ActionBlockerSystem _blocker = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly AudioSystem _audio = default!;
-    [Dependency] private readonly IChatManager _chat = default!;
-    [Dependency] private readonly InteractionPanelManaSystem _mana = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private SharedInteractionSystem _interaction = default!;
+    [Dependency] private ActionBlockerSystem _blocker = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private AudioSystem _audio = default!;
+    [Dependency] private IChatManager _chat = default!;
+    [Dependency] private InteractionPanelManaSystem _mana = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private readonly Dictionary<EntityUid, Panel> _panels = new();
     private readonly Dictionary<(EntityUid User, InteractionPanelCategory Category), TimeSpan> _cooldowns = new();

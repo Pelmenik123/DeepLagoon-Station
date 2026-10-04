@@ -54,21 +54,21 @@ using Robust.Shared.Map.Components;
 
 namespace Content.Server.Implants;
 
-public sealed class SubdermalImplantSystem : SharedSubdermalImplantSystem
+public sealed partial class SubdermalImplantSystem : SharedSubdermalImplantSystem
 {
-    [Dependency] private readonly CuffableSystem _cuffable = default!;
-    [Dependency] private readonly HumanoidAppearanceSystem _humanoidAppearance = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly MetaDataSystem _metaData = default!;
-    [Dependency] private readonly StoreSystem _store = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly SharedTransformSystem _xform = default!;
-    [Dependency] private readonly ForensicsSystem _forensicsSystem = default!;
-    [Dependency] private readonly PullingSystem _pullingSystem = default!;
-    [Dependency] private readonly EntityLookupSystem _lookupSystem = default!;
-    [Dependency] private readonly SharedMapSystem _mapSystem = default!;
-    [Dependency] private readonly IdentitySystem _identity = default!;
+    [Dependency] private CuffableSystem _cuffable = default!;
+    [Dependency] private HumanoidAppearanceSystem _humanoidAppearance = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private MetaDataSystem _metaData = default!;
+    [Dependency] private StoreSystem _store = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedTransformSystem _xform = default!;
+    [Dependency] private ForensicsSystem _forensicsSystem = default!;
+    [Dependency] private PullingSystem _pullingSystem = default!;
+    [Dependency] private EntityLookupSystem _lookupSystem = default!;
+    [Dependency] private SharedMapSystem _mapSystem = default!;
+    [Dependency] private IdentitySystem _identity = default!;
 
     private EntityQuery<PhysicsComponent> _physicsQuery;
     private HashSet<Entity<MapGridComponent>> _targetGrids = [];
@@ -176,7 +176,8 @@ public sealed class SubdermalImplantSystem : SharedSubdermalImplantSystem
         }
 
         if (targetGrid == null)
-            targetGrid = _random.GetRandom().PickAndTake(_targetGrids);
+            targetGrid = _random.Pick(_targetGrids);
+        _targetGrids.Remove(targetGrid.Value);
 
         EntityCoordinates? targetCoords = null;
 
@@ -184,9 +185,9 @@ public sealed class SubdermalImplantSystem : SharedSubdermalImplantSystem
         {
             var valid = false;
 
-            var range = (float) Math.Sqrt(radius);
+            var range = (float)Math.Sqrt(radius);
             var box = Box2.CenteredAround(userCoords.Position, new Vector2(range, range));
-            var tilesInRange = _mapSystem.GetTilesEnumerator(targetGrid.Value.Owner, targetGrid.Value.Comp, box, false);
+            var tilesInRange = _mapSystem.GetTilesIntersecting(targetGrid.Value.Owner, targetGrid.Value.Comp, box, false);
             var tileList = new ValueList<Vector2i>();
 
             while (tilesInRange.MoveNext(out var tile))
@@ -206,7 +207,7 @@ public sealed class SubdermalImplantSystem : SharedSubdermalImplantSystem
 
                     if (body.BodyType != BodyType.Static ||
                         !body.Hard ||
-                        (body.CollisionLayer & (int) CollisionGroup.MobMask) == 0)
+                        (body.CollisionLayer & (int)CollisionGroup.MobMask) == 0)
                         continue;
 
                     valid = false;
@@ -224,7 +225,8 @@ public sealed class SubdermalImplantSystem : SharedSubdermalImplantSystem
             if (valid || _targetGrids.Count == 0) // if we don't do the check here then PickAndTake will blow up on an empty set.
                 break;
 
-            targetGrid = _random.GetRandom().PickAndTake(_targetGrids);
+            targetGrid = _random.Pick(_targetGrids);
+            _targetGrids.Remove(targetGrid.Value);
         } while (true);
 
         return targetCoords;

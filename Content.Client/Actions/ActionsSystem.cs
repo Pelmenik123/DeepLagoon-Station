@@ -18,14 +18,14 @@ using YamlDotNet.RepresentationModel;
 namespace Content.Client.Actions
 {
     [UsedImplicitly]
-    public sealed class ActionsSystem : SharedActionsSystem
+    public sealed partial class ActionsSystem : SharedActionsSystem
     {
         public delegate void OnActionReplaced(EntityUid actionId);
 
-        [Dependency] private readonly IPlayerManager _playerManager = default!;
-        [Dependency] private readonly IResourceManager _resources = default!;
-        [Dependency] private readonly ISerializationManager _serialization = default!;
-        [Dependency] private readonly MetaDataSystem _metaData = default!;
+        [Dependency] private IPlayerManager _playerManager = default!;
+        [Dependency] private IResourceManager _resources = default!;
+        [Dependency] private ISerializationManager _serialization = default!;
+        [Dependency] private MetaDataSystem _metaData = default!;
 
         public event Action<EntityUid>? OnActionAdded;
         public event Action<EntityUid>? OnActionRemoved;
@@ -35,8 +35,8 @@ namespace Content.Client.Actions
         public event Action? ClearAssignments;
         public event Action<List<SlotAssignment>>? AssignSlot;
 
-        private readonly List<EntityUid> _removed = new();
-        private readonly List<(EntityUid, BaseActionComponent?)> _added = new();
+        private readonly List<EntityUid> _removed = [];
+        private readonly List<(EntityUid, BaseActionComponent?)> _added = [];
 
         public override void Initialize()
         {
@@ -138,7 +138,9 @@ namespace Content.Client.Actions
             component.Priority = state.Priority;
             component.AttachedEntity = EnsureEntity<T>(state.AttachedEntity, uid);
             component.RaiseOnUser = state.RaiseOnUser;
+#pragma warning disable CS0618 // Upstream SS14 master keeps the same obsolete RaiseOnAction datafield active; still used by recall/repulse spells.
             component.RaiseOnAction = state.RaiseOnAction;
+#pragma warning restore CS0618
             component.AutoPopulate = state.AutoPopulate;
             component.Temporary = state.Temporary;
             component.ItemIconStyle = state.ItemIconStyle;
@@ -238,7 +240,7 @@ namespace Content.Client.Actions
         public IEnumerable<(EntityUid Id, BaseActionComponent Comp)> GetClientActions()
         {
             if (_playerManager.LocalEntity is not { } user)
-                return Enumerable.Empty<(EntityUid, BaseActionComponent)>();
+                return [];
 
             return GetActions(user);
         }
@@ -293,7 +295,7 @@ namespace Content.Client.Actions
             else
             {
                 var request = new RequestPerformActionEvent(GetNetEntity(actionId));
-                EntityManager.RaisePredictiveEvent(request);
+                RaisePredictiveEvent(request);
             }
         }
 
@@ -341,9 +343,9 @@ namespace Content.Client.Actions
 
                 var nodeAssignments = _serialization.Read<List<(byte Hotbar, byte Slot)>>(assignmentNode, notNullableOverride: true);
 
-                foreach (var index in nodeAssignments)
+                foreach (var (Hotbar, Slot) in nodeAssignments)
                 {
-                    var assignment = new SlotAssignment(index.Hotbar, index.Slot, actionId);
+                    var assignment = new SlotAssignment(Hotbar, Slot, actionId);
                     assignments.Add(assignment);
                 }
             }

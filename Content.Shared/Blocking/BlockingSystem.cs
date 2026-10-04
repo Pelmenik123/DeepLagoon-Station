@@ -51,19 +51,19 @@ namespace Content.Shared.Blocking;
 
 public sealed partial class BlockingSystem : SharedBlockingSystem // Mono
 {
-    [Dependency] private readonly SharedActionsSystem _actionsSystem = default!;
-    [Dependency] private readonly ActionContainerSystem _actionContainer = default!;
-    [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
-    [Dependency] private readonly FixtureSystem _fixtureSystem = default!;
-    [Dependency] private readonly SharedHandsSystem _handsSystem = default!;
-    [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly ExamineSystemShared _examine = default!;
-    [Dependency] private readonly INetManager _net = default!;
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
-    [Dependency] private readonly ItemToggleSystem _toggle = default!; // Goobstation
-    [Dependency] private readonly IPrototypeManager _protoMan = default!;
+    [Dependency] private SharedActionsSystem _actionsSystem = default!;
+    [Dependency] private ActionContainerSystem _actionContainer = default!;
+    [Dependency] private SharedTransformSystem _transformSystem = default!;
+    [Dependency] private FixtureSystem _fixtureSystem = default!;
+    [Dependency] private SharedHandsSystem _handsSystem = default!;
+    [Dependency] private SharedPopupSystem _popupSystem = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private ExamineSystemShared _examine = default!;
+    [Dependency] private INetManager _net = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
+    [Dependency] private ItemToggleSystem _toggle = default!; // Goobstation
+    [Dependency] private IPrototypeManager _protoMan = default!;
 
     public override void Initialize()
     {
@@ -244,7 +244,7 @@ public sealed partial class BlockingSystem : SharedBlockingSystem // Mono
             }
 
             // Don't allow someone to block if they're not holding the shield
-            if(!_handsSystem.IsHolding(user, item, out _))
+            if (!_handsSystem.IsHolding(user, item, out _))
             {
                 CantBlockError(user);
                 return false;
@@ -277,7 +277,7 @@ public sealed partial class BlockingSystem : SharedBlockingSystem // Mono
             if (_gameTiming.IsFirstTimePredicted)
             {
                 _popupSystem.PopupEntity(msgOther, user, Filter.PvsExcept(user), true);
-                if(_gameTiming.InPrediction)
+                if (_gameTiming.InPrediction)
                     _popupSystem.PopupEntity(msgUser, user, user);
             }
         }
@@ -288,7 +288,7 @@ public sealed partial class BlockingSystem : SharedBlockingSystem // Mono
                 component.Shape,
                 BlockingComponent.BlockFixtureID,
                 hard: false, // Frontier - True to false, mobs AI abuse.
-                collisionLayer: (int) CollisionGroup.WallLayer,
+                collisionLayer: (int)CollisionGroup.WallLayer,
                 body: physicsComponent);
         }
 
@@ -345,7 +345,7 @@ public sealed partial class BlockingSystem : SharedBlockingSystem // Mono
             if (_gameTiming.IsFirstTimePredicted)
             {
                 _popupSystem.PopupEntity(msgOther, user, Filter.PvsExcept(user), true);
-                if(_gameTiming.InPrediction)
+                if (_gameTiming.InPrediction)
                     _popupSystem.PopupEntity(msgUser, user, user);
             }
         }
@@ -400,10 +400,10 @@ public sealed partial class BlockingSystem : SharedBlockingSystem // Mono
         var modifier = component.IsBlocking ? component.ActiveBlockDamageModifier : component.PassiveBlockDamageModifer;
 
         var msg = new FormattedMessage();
-            msg.AddMarkupOrThrow(
-            Loc.GetString((component.IsClothing ? "blocking-fraction-armor" : "blocking-fraction"),
-            ("value", MathF.Round(fraction * 100, 1)))
-        );
+        msg.AddMarkupOrThrow(
+        Loc.GetString((component.IsClothing ? "blocking-fraction-armor" : "blocking-fraction"),
+        ("value", MathF.Round(fraction * 100, 1)))
+    );
 
         AppendCoefficients(modifier, msg);
 

@@ -29,19 +29,19 @@ namespace Content.Shared.Lathe
         /// All of the recipe packs that the lathe has by default
         /// </summary>
         [DataField]
-        public List<ProtoId<LatheRecipePackPrototype>> StaticPacks = new();
+        public List<ProtoId<LatheRecipePackPrototype>> StaticPacks = [];
 
         /// <summary>
         /// All of the recipe packs that the lathe is capable of researching
         /// </summary>
         [DataField]
-        public List<ProtoId<LatheRecipePackPrototype>> DynamicPacks = new();
+        public List<ProtoId<LatheRecipePackPrototype>> DynamicPacks = [];
 
         /// <summary>
         /// The lathe's construction queue
         /// </summary>
         [DataField]
-        public List<LatheRecipeBatch> Queue = new(); // Frontier: LatheRecipePrototype<LatheRecipeBatch
+        public List<LatheRecipeBatch> Queue = []; // Frontier: LatheRecipePrototype<LatheRecipeBatch
 
         /// <summary>
         /// The sound that plays when the lathe is producing an item, if any
@@ -176,38 +176,24 @@ namespace Content.Shared.Lathe
         // </Mono>
     }
 
-    public sealed class LatheGetRecipesEvent : EntityEventArgs
+    public sealed class LatheGetRecipesEvent(EntityUid lathe, bool forced) : EntityEventArgs
     {
-        public readonly EntityUid Lathe;
+        public readonly EntityUid Lathe = lathe;
 
-        public bool getUnavailable;
+        public bool getUnavailable = forced;
 
-        public HashSet<ProtoId<LatheRecipePrototype>> Recipes = new();
-
-        public LatheGetRecipesEvent(EntityUid lathe, bool forced)
-        {
-            Lathe = lathe;
-            getUnavailable = forced;
-        }
+        public HashSet<ProtoId<LatheRecipePrototype>> Recipes = [];
     }
 
     // Frontier: batch lathe recipes
     [Serializable]
-    public sealed partial class LatheRecipeBatch
+    public sealed partial class LatheRecipeBatch(ProtoId<LatheRecipePrototype> recipe, int itemsPrinted, int itemsRequested)
     {
         private static int NextIndex = 0; // Mono
-        public int Index; // Mono - for de-queuing recipes to work properly
-        public LatheRecipePrototype Recipe;
-        public int ItemsPrinted;
-        public int ItemsRequested;
-
-        public LatheRecipeBatch(LatheRecipePrototype recipe, int itemsPrinted, int itemsRequested)
-        {
-            Recipe = recipe;
-            ItemsPrinted = itemsPrinted;
-            ItemsRequested = itemsRequested;
-            Index = NextIndex++; // Mono
-        }
+        public int Index = NextIndex++; // Mono - for de-queuing recipes to work properly
+        public ProtoId<LatheRecipePrototype> Recipe = recipe;
+        public int ItemsPrinted = itemsPrinted;
+        public int ItemsRequested = itemsRequested;
     }
     // End Frontier
 

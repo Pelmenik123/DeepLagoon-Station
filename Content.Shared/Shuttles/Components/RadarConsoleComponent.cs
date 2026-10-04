@@ -20,10 +20,12 @@ public sealed partial class RadarConsoleComponent : Component
     public float RangeVV
     {
         get => MaxRange;
+#pragma warning disable CS0618 // Matches upstream SS14: VV-only setter has no EntityUid parameter.
         set => IoCManager
             .Resolve<IEntitySystemManager>()
             .GetEntitySystem<SharedRadarConsoleSystem>()
             .SetRange(Owner, value, this);
+#pragma warning restore CS0618
     }
 
     [DataField, AutoNetworkedField]

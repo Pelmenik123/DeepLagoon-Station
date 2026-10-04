@@ -1,4 +1,4 @@
-﻿using Content.Server.Administration;
+using Content.Server.Administration;
 using Content.Shared.Administration;
 using Robust.Server.Player;
 using Robust.Shared.Console;
@@ -6,9 +6,9 @@ using Robust.Shared.Console;
 namespace Content.Server.Afk
 {
     [AdminCommand(AdminFlags.Admin)]
-    public sealed class IsAfkCommand : IConsoleCommand
+    public sealed partial class IsAfkCommand : IConsoleCommand
     {
-        [Dependency] private readonly IPlayerManager _players = default!;
+        [Dependency] private IPlayerManager _players = default!;
 
         public string Command => "isafk";
         public string Description => "Checks if a specified player is AFK";

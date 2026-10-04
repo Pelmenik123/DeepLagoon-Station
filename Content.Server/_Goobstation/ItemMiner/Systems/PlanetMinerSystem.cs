@@ -10,10 +10,10 @@ using Robust.Shared.Map.Components;
 
 namespace Content.Server._Goobstation.ItemMiner;
 
-public sealed class PlanetMinerSystem : EntitySystem
+public sealed partial class PlanetMinerSystem : EntitySystem
 {
-    [Dependency] private readonly SharedMapSystem _map = default!;
-    [Dependency] private readonly ITileDefinitionManager _tileDef = default!;
+    [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private ITileDefinitionManager _tileDef = default!;
 
     private EntityQuery<MapComponent> _mapQuery;
     private EntityQuery<MapGridComponent> _gridQuery;

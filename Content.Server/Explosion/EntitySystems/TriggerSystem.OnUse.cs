@@ -10,7 +10,7 @@ namespace Content.Server.Explosion.EntitySystems;
 
 public sealed partial class TriggerSystem
 {
-    [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
+    [Dependency] SharedPopupSystem _popupSystem = default!;
 
     private void InitializeOnUse()
     {
@@ -82,7 +82,7 @@ public sealed partial class TriggerSystem
                     Category = TimerOptions,
                     Text = Loc.GetString("verb-trigger-timer-set-current", ("time", option)),
                     Disabled = true,
-                    Priority = (int) (-100 * option)
+                    Priority = (int)(-100 * option)
                 });
                 continue;
             }
@@ -91,7 +91,7 @@ public sealed partial class TriggerSystem
             {
                 Category = TimerOptions,
                 Text = Loc.GetString("verb-trigger-timer-set", ("time", option)),
-                Priority = (int) (-100 * option),
+                Priority = (int)(-100 * option),
 
                 Act = () =>
                 {

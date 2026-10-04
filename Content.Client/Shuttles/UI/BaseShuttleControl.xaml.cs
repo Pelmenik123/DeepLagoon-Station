@@ -30,7 +30,7 @@ namespace Content.Client.Shuttles.UI;
 [Virtual]
 public partial class BaseShuttleControl : MapGridControl
 {
-    [Dependency] private readonly IParallelManager _parallel = default!;
+    [Dependency] private IParallelManager _parallel = default!;
     protected readonly SharedMapSystem Maps;
 
     protected readonly Font Font;
@@ -68,7 +68,7 @@ public partial class BaseShuttleControl : MapGridControl
 
         for (var i = 0; i < 4; i++)
         {
-            var dir = (DirectionFlag) Math.Pow(2, i);
+            var dir = (DirectionFlag)Math.Pow(2, i);
             var dirVec = dir.AsDir().ToIntVec();
             _neighborDirections[i] = (dir, dirVec);
         }
@@ -137,7 +137,7 @@ public partial class BaseShuttleControl : MapGridControl
 
     protected void DrawGrid(DrawingHandleScreen handle, Matrix3x2 gridToView, Entity<MapGridComponent> grid, Color color, float alpha = 0.01f)
     {
-        var rator = Maps.GetAllTilesEnumerator(grid.Owner, grid.Comp);
+        var rator = Maps.GetAllTiles(grid.Owner, grid.Comp);
         var minimapScale = MinimapScale;
         var midpoint = new Vector2(MidPoint, MidPoint);
         var tileSize = grid.Comp.TileSize;
@@ -294,8 +294,8 @@ public partial class BaseShuttleControl : MapGridControl
 
         for (var i = 0; i < Math.Ceiling(triCount / BatchSize); i++)
         {
-            var start = (int) (i * BatchSize);
-            var end = (int) Math.Min(triCount, start + BatchSize);
+            var start = (int)(i * BatchSize);
+            var end = (int)Math.Min(triCount, start + BatchSize);
             var count = end - start;
             handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, new Span<Vector2>(_allVertices, start, count), color.WithAlpha(alpha));
         }

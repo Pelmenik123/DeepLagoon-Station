@@ -3,7 +3,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Salvage.Expeditions;
 
-[Prototype("salvageFaction")]
+[Prototype]
 public sealed partial class SalvageFactionPrototype : IPrototype, ISalvageMod
 {
     [IdDataField] public string ID { get; private set; } = default!;

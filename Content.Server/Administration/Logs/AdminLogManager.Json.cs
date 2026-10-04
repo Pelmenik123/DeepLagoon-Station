@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Content.Server.Administration.Logs.Converters;
@@ -56,8 +56,10 @@ public sealed partial class AdminLogManager
             {
                 EntityUid id => id,
                 EntityStringRepresentation rep => rep.Uid,
-                ICommonSession {AttachedEntity: {Valid: true}} session => session.AttachedEntity,
+                ICommonSession { AttachedEntity.Valid: true } session => session.AttachedEntity,
+#pragma warning disable CS0618 // Admin log serialization only has the component instance; there is no public component->owner API.
                 IComponent component => component.Owner,
+#pragma warning restore CS0618
                 _ => null
             };
 

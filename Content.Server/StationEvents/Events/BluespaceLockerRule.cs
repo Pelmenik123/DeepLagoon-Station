@@ -4,14 +4,14 @@ using Content.Server.Storage.Components;
 using Content.Server.Storage.EntitySystems;
 using Content.Shared.Access.Components;
 using Content.Shared.Station.Components;
-﻿using Content.Shared.GameTicking.Components;
+using Content.Shared.GameTicking.Components;
 using Content.Shared.Coordinates;
 
 namespace Content.Server.StationEvents.Events;
 
-public sealed class BluespaceLockerRule : StationEventSystem<BluespaceLockerRuleComponent>
+public sealed partial class BluespaceLockerRule : StationEventSystem<BluespaceLockerRuleComponent>
 {
-    [Dependency] private readonly BluespaceLockerSystem _bluespaceLocker = default!;
+    [Dependency] private BluespaceLockerSystem _bluespaceLocker = default!;
 
     protected override void Started(EntityUid uid, BluespaceLockerRuleComponent component, GameRuleComponent gameRule, GameRuleStartedEvent args)
     {
@@ -30,7 +30,7 @@ public sealed class BluespaceLockerRule : StationEventSystem<BluespaceLockerRule
         {
             if (HasComp<AccessReaderComponent>(potentialLink) ||
                 HasComp<BluespaceLockerComponent>(potentialLink) ||
-                !HasComp<StationMemberComponent>(potentialLink.ToCoordinates().GetGridUid(EntityManager)))
+                !HasComp<StationMemberComponent>(EntityManager.System<SharedTransformSystem>().GetGrid(potentialLink.ToCoordinates())))
                 continue;
 
             var comp = AddComp<BluespaceLockerComponent>(potentialLink);

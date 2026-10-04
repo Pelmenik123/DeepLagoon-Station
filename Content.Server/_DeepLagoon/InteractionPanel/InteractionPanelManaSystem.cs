@@ -15,16 +15,16 @@ using Robust.Shared.Utility;
 
 namespace Content.Server._DeepLagoon.InteractionPanel;
 
-public sealed class InteractionPanelManaSystem : EntitySystem
+public sealed partial class InteractionPanelManaSystem : EntitySystem
 {
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
-    [Dependency] private readonly MobThresholdSystem _thresholds = default!;
-    [Dependency] private readonly AudioSystem _audio = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly IChatManager _chat = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private MobThresholdSystem _thresholds = default!;
+    [Dependency] private AudioSystem _audio = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private IChatManager _chat = default!;
+    [Dependency] private IGameTiming _timing = default!;
     private TimeSpan _nextRefresh;
-    private InteractionPanelManaPrototype Settings => _prototypes.Index<InteractionPanelManaPrototype>("InteractionPanelMana");
+    private InteractionPanelManaPrototype Settings => _prototypes.Index<InteractionPanelManaPrototype>(new ProtoId<InteractionPanelManaPrototype>("InteractionPanelMana"));
 
     public void InitializeMob(EntityUid uid)
     {
@@ -35,7 +35,7 @@ public sealed class InteractionPanelManaSystem : EntitySystem
     public float Maximum(EntityUid uid)
     {
         var settings = Settings;
-        var health = _thresholds.TryGetDeadThreshold(uid, out var threshold) ? (float) threshold.Value : settings.FallbackHealth;
+        var health = _thresholds.TryGetDeadThreshold(uid, out var threshold) ? (float)threshold.Value : settings.FallbackHealth;
         return InteractionPanelManaRules.Capacity(health, settings.HealthMultiplier, settings.FallbackHealth);
     }
 

@@ -32,7 +32,7 @@ public sealed partial class SurveillanceCameraComponent : Component
     // the most terrible thing possible.
     [ViewVariables(VVAccess.ReadWrite)]
     [DataField("id")]
-    public string CameraId { get; set;  } = "camera";
+    public string CameraId { get; set; } = "camera";
 
     [ViewVariables(VVAccess.ReadWrite)]
     [DataField("nameSet")]

@@ -12,10 +12,10 @@ namespace Content.Server.Stack
     ///     This is a good example for learning how to code in an ECS manner.
     /// </summary>
     [UsedImplicitly]
-    public sealed class StackSystem : SharedStackSystem
+    public sealed partial class StackSystem : SharedStackSystem
     {
-        [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-        [Dependency] private readonly SharedUserInterfaceSystem _ui = default!; // Cherry-picked from space-station-14#32938 courtesy of Ilya246
+        [Dependency] private IPrototypeManager _prototypeManager = default!;
+        [Dependency] private SharedUserInterfaceSystem _ui = default!; // Cherry-picked from space-station-14#32938 courtesy of Ilya246
 
         public static readonly int[] DefaultSplitAmounts = { 1, 5, 10, 20, 50, 100, 500, 1000, 5000, 10000 };
 
@@ -153,7 +153,7 @@ namespace Content.Server.Stack
         private List<int> CalculateSpawns(string entityPrototype, int amount)
         {
             var proto = _prototypeManager.Index<EntityPrototype>(entityPrototype);
-            proto.TryGetComponent<StackComponent>(out var stack, EntityManager.ComponentFactory);
+            proto.TryComp<StackComponent>(out var stack, EntityManager.ComponentFactory);
             var maxCountPerStack = GetMaxCount(stack);
             var amounts = new List<int>();
             while (amount > 0)
@@ -248,7 +248,7 @@ namespace Content.Server.Stack
                 return;
             }
 
-            if (Split(uid, amount, userTransform.Coordinates, stack) is not {} split)
+            if (Split(uid, amount, userTransform.Coordinates, stack) is not { } split)
                 return;
 
             Hands.PickupOrDrop(userUid, split);

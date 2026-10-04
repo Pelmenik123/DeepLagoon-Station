@@ -82,7 +82,7 @@ public partial class ListingData : IEquatable<ListingData>
         RaiseProductEventOnUser = raiseProductEventOnUser;
         PurchaseAmount = purchaseAmount;
         ID = id;
-        Categories = categories.ToHashSet();
+        Categories = [.. categories];
         OriginalCost = originalCost;
         RestockTime = restockTime;
         DiscountDownTo = new Dictionary<ProtoId<CurrencyPrototype>, FixedPoint2>(dataDiscountDownTo);
@@ -115,7 +115,7 @@ public partial class ListingData : IEquatable<ListingData>
     /// The categories that this listing applies to. Used for filtering a listing for a store.
     /// </summary>
     [DataField]
-    public HashSet<ProtoId<StoreCategoryPrototype>> Categories = new();
+    public HashSet<ProtoId<StoreCategoryPrototype>> Categories = [];
 
     /// <summary>
     /// The original cost of the listing. FixedPoint2 represents the amount of that currency.
@@ -195,7 +195,7 @@ public partial class ListingData : IEquatable<ListingData>
     /// Options for discount - from max amount down to how much item costs can be cut by discount, absolute value.
     /// </summary>
     [DataField]
-    public Dictionary<ProtoId<CurrencyPrototype>, FixedPoint2> DiscountDownTo = new();
+    public Dictionary<ProtoId<CurrencyPrototype>, FixedPoint2> DiscountDownTo = [];
 
     /// <summary>
     /// Whether or not to disable refunding for the store when the listing is purchased from it.
@@ -229,7 +229,7 @@ public partial class ListingData : IEquatable<ListingData>
         if (!OriginalCost.OrderBy(x => x).SequenceEqual(listing.OriginalCost.OrderBy(x => x)))
             return false;
 
-        if ((Conditions != null && listing.Conditions != null) &&
+        if (Conditions != null && listing.Conditions != null &&
             !Conditions.OrderBy(x => x).SequenceEqual(listing.Conditions.OrderBy(x => x)))
             return false;
 
@@ -242,7 +242,6 @@ public partial class ListingData : IEquatable<ListingData>
 ///     Defines a set item listing that is available in a store
 /// </summary>
 [Prototype]
-[Serializable, NetSerializable]
 [DataDefinition]
 public sealed partial class ListingPrototype : ListingData, IPrototype
 {
@@ -274,7 +273,7 @@ public sealed partial class ListingDataWithCostModifiers : ListingData
     /// when possible.
     /// </summary>
     [DataField]
-    public Dictionary<string, Dictionary<ProtoId<CurrencyPrototype>, FixedPoint2>> CostModifiersBySourceId = new();
+    public Dictionary<string, Dictionary<ProtoId<CurrencyPrototype>, FixedPoint2>> CostModifiersBySourceId = [];
 
     /// <inheritdoc />
     public ListingDataWithCostModifiers(ListingData listingData)
@@ -306,15 +305,9 @@ public sealed partial class ListingDataWithCostModifiers : ListingData
     public bool IsCostModified => CostModifiersBySourceId.Count > 0;
 
     /// <summary> Cost of listing item after applying all available modifiers. </summary>
-    public IReadOnlyDictionary<ProtoId<CurrencyPrototype>, FixedPoint2> Cost
-    {
-        get
-        {
-            return _costModified ??= CostModifiersBySourceId.Count == 0
+    public IReadOnlyDictionary<ProtoId<CurrencyPrototype>, FixedPoint2> Cost => _costModified ??= CostModifiersBySourceId.Count == 0
                 ? new Dictionary<ProtoId<CurrencyPrototype>, FixedPoint2>(OriginalCost)
                 : ApplyAllModifiers();
-        }
-    }
 
     /// <summary> Add map with currencies and value by which cost should be modified when final value is calculated. </summary>
     /// <param name="modifierSourceId">Id of modifier source. Can be used for removing modifier later.</param>
@@ -423,7 +416,7 @@ public sealed partial class ListingDataWithCostModifiers : ListingData
 ///     how <see cref="StoreDiscountComponent"/> will be filled by respective system.
 /// </summary>
 [Prototype]
-[DataDefinition, Serializable, NetSerializable]
+[DataDefinition]
 public sealed partial class DiscountCategoryPrototype : IPrototype
 {
     [ViewVariables]

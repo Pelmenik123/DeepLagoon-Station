@@ -4,14 +4,15 @@ using Robust.Client.GameObjects;
 
 namespace Content.Client.ParticleAccelerator;
 
-public sealed class ParticleAcceleratorPartVisualizerSystem : VisualizerSystem<ParticleAcceleratorPartVisualsComponent>
+public sealed partial class ParticleAcceleratorPartVisualizerSystem : VisualizerSystem<ParticleAcceleratorPartVisualsComponent>
 {
+    [Dependency] private SpriteSystem _sprite = default!;
     protected override void OnAppearanceChange(EntityUid uid, ParticleAcceleratorPartVisualsComponent comp, ref AppearanceChangeEvent args)
     {
         if (args.Sprite == null)
             return;
 
-        if (!args.Sprite.LayerMapTryGet(ParticleAcceleratorVisualLayers.Unlit, out var index))
+        if (!_sprite.LayerMapTryGet(args.Sprite.AsEntity(), ParticleAcceleratorVisualLayers.Unlit, out var index, false))
             return;
 
         if (!AppearanceSystem.TryGetData<ParticleAcceleratorVisualState>(uid, ParticleAcceleratorVisuals.VisualState, out var state, args.Component))
@@ -21,12 +22,12 @@ public sealed class ParticleAcceleratorPartVisualizerSystem : VisualizerSystem<P
 
         if (state != ParticleAcceleratorVisualState.Unpowered)
         {
-            args.Sprite.LayerSetVisible(index, true);
-            args.Sprite.LayerSetState(index, comp.StateBase + comp.StatesSuffixes[state]);
+            _sprite.LayerSetVisible(args.Sprite.AsEntity(), index, true);
+            _sprite.LayerSetRsiState(args.Sprite.AsEntity(), index, comp.StateBase + comp.StatesSuffixes[state]);
         }
         else
         {
-            args.Sprite.LayerSetVisible(index, false);
+            _sprite.LayerSetVisible(args.Sprite.AsEntity(), index, false);
         }
     }
 }

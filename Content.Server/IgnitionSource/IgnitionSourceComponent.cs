@@ -1,4 +1,4 @@
-﻿namespace Content.Server.IgnitionSource;
+namespace Content.Server.IgnitionSource;
 
 /// <summary>
 /// This is used for creating atmosphere hotspots while ignited to start reactions such as fire.

@@ -12,12 +12,12 @@ using Robust.Server.Containers;
 
 namespace Content.Server.Body.Systems;
 
-public sealed class LungSystem : EntitySystem
+public sealed partial class LungSystem : EntitySystem
 {
-    [Dependency] private readonly AtmosphereSystem _atmos = default!;
-    [Dependency] private readonly InventorySystem _inventory = default!; // Goobstaiton
-    [Dependency] private readonly InternalsSystem _internals = default!;
-    [Dependency] private readonly SharedSolutionContainerSystem _solutionContainerSystem = default!;
+    [Dependency] private AtmosphereSystem _atmos = default!;
+    [Dependency] private InventorySystem _inventory = default!; // Goobstaiton
+    [Dependency] private InternalsSystem _internals = default!;
+    [Dependency] private SharedSolutionContainerSystem _solutionContainerSystem = default!;
 
     public static string LungSolutionName = "Lung";
 
@@ -113,7 +113,7 @@ public sealed class LungSystem : EntitySystem
     {
         foreach (var gasId in Enum.GetValues<Gas>())
         {
-            var i = (int) gasId;
+            var i = (int)gasId;
             var moles = gas[i];
             if (moles <= 0)
                 continue;

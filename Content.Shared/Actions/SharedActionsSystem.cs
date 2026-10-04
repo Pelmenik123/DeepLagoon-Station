@@ -19,18 +19,18 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared.Actions;
 
-public abstract class SharedActionsSystem : EntitySystem
+public abstract partial class SharedActionsSystem : EntitySystem
 {
-    [Dependency] protected readonly IGameTiming GameTiming = default!;
-    [Dependency] private readonly INetManager _net = default!; // Goobstation
-    [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
-    [Dependency] private readonly SharedInteractionSystem _interactionSystem = default!;
-    [Dependency] private readonly ActionBlockerSystem _actionBlockerSystem = default!;
-    [Dependency] private readonly RotateToFaceSystem _rotateToFaceSystem = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
-    [Dependency] private readonly ActionContainerSystem _actionContainer = default!;
-    [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
+    [Dependency] protected IGameTiming GameTiming = default!;
+    [Dependency] private INetManager _net = default!; // Goobstation
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
+    [Dependency] private SharedInteractionSystem _interactionSystem = default!;
+    [Dependency] private ActionBlockerSystem _actionBlockerSystem = default!;
+    [Dependency] private RotateToFaceSystem _rotateToFaceSystem = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedTransformSystem _transformSystem = default!;
+    [Dependency] private ActionContainerSystem _actionContainer = default!;
+    [Dependency] private EntityWhitelistSystem _whitelistSystem = default!;
 
     public override void Initialize()
     {
@@ -265,7 +265,7 @@ public abstract class SharedActionsSystem : EntitySystem
             return;
 
         if (action.UseDelay != null && lowerDelay != null)
-            action.UseDelay = action.UseDelay - lowerDelay;
+            action.UseDelay -= lowerDelay;
 
         if (action.UseDelay < TimeSpan.Zero)
             action.UseDelay = null;
@@ -492,33 +492,33 @@ public abstract class SharedActionsSystem : EntitySystem
 
                 break;
             case EntityWorldTargetActionComponent entityWorldAction:
-            {
-                var actionEntity = GetEntity(ev.EntityTarget);
-                var actionCoords = GetCoordinates(ev.EntityCoordinatesTarget);
-
-                if (actionEntity is null && actionCoords is null)
                 {
-                    Log.Error($"Attempted to perform an entity-world-targeted action without an entity or world coordinates! Action: {name}");
-                    return;
+                    var actionEntity = GetEntity(ev.EntityTarget);
+                    var actionCoords = GetCoordinates(ev.EntityCoordinatesTarget);
+
+                    if (actionEntity is null && actionCoords is null)
+                    {
+                        Log.Error($"Attempted to perform an entity-world-targeted action without an entity or world coordinates! Action: {name}");
+                        return;
+                    }
+
+                    var entWorldAction = new Entity<EntityWorldTargetActionComponent>(actionEnt, entityWorldAction);
+
+                    if (!ValidateEntityWorldTarget(user, actionEntity, actionCoords, entWorldAction))
+                        return;
+
+                    _adminLogger.Add(LogType.Action,
+                        $"{ToPrettyString(user):user} is performing the {name:action} action (provided by {ToPrettyString(action.Container ?? user):provider}) targeted at {ToPrettyString(actionEntity):target} {actionCoords:target}.");
+
+                    if (entityWorldAction.Event != null)
+                    {
+                        entityWorldAction.Event.Entity = actionEntity;
+                        entityWorldAction.Event.Coords = actionCoords;
+                        Dirty(actionEnt, entityWorldAction);
+                        performEvent = entityWorldAction.Event;
+                    }
+                    break;
                 }
-
-                var entWorldAction = new Entity<EntityWorldTargetActionComponent>(actionEnt, entityWorldAction);
-
-                if (!ValidateEntityWorldTarget(user, actionEntity, actionCoords, entWorldAction))
-                    return;
-
-                _adminLogger.Add(LogType.Action,
-                    $"{ToPrettyString(user):user} is performing the {name:action} action (provided by {ToPrettyString(action.Container ?? user):provider}) targeted at {ToPrettyString(actionEntity):target} {actionCoords:target}.");
-
-                if (entityWorldAction.Event != null)
-                {
-                    entityWorldAction.Event.Entity = actionEntity;
-                    entityWorldAction.Event.Coords = actionCoords;
-                    Dirty(actionEnt, entityWorldAction);
-                    performEvent = entityWorldAction.Event;
-                }
-                break;
-            }
             case InstantActionComponent instantAction:
                 if (action.CheckCanInteract && !_actionBlockerSystem.CanInteract(user, null))
                     return;
@@ -623,13 +623,13 @@ public abstract class SharedActionsSystem : EntitySystem
             // even if we don't check for obstructions, we may still need to check the range.
             var xform = Transform(user);
 
-            if (xform.MapID != coords.GetMapId(EntityManager))
+            if (xform.MapID != _transformSystem.GetMapId(coords))
                 return false;
 
             if (range <= 0)
                 return true;
 
-            return coords.InRange(EntityManager, _transformSystem, Transform(user).Coordinates, range);
+            return _transformSystem.InRange(coords, Transform(user).Coordinates, range);
         }
 
         return _interactionSystem.InRangeUnobstructed(user, coords, range: range);
@@ -687,10 +687,12 @@ public abstract class SharedActionsSystem : EntitySystem
             if (!action.RaiseOnUser && action.Container != null && !HasComp<MindComponent>(action.Container))
                 target = action.Container.Value;
 
+#pragma warning disable CS0618 // Upstream SS14 master keeps the same obsolete RaiseOnAction datafield active; still used by recall/repulse spells.
             if (action.RaiseOnAction)
                 target = actionId;
+#pragma warning restore CS0618
 
-            RaiseLocalEvent(target, (object) actionEvent, broadcast: true);
+            RaiseLocalEvent(target, (object)actionEvent, broadcast: true);
             handled = actionEvent.Handled;
         }
 
@@ -818,8 +820,8 @@ public abstract class SharedActionsSystem : EntitySystem
             return false;
 
         DebugTools.Assert(_net.IsClient || action.Container == null ||
-                          (TryComp(action.Container, out ActionsContainerComponent? containerComp)
-                           && containerComp.Container.Contains(actionId)));
+                          TryComp(action.Container, out ActionsContainerComponent? containerComp)
+                           && containerComp.Container.Contains(actionId));
 
         if (action.AttachedEntity != null)
             RemoveAction(action.AttachedEntity.Value, actionId, action: action);

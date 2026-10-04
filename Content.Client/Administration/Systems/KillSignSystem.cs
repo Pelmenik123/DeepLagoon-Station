@@ -1,12 +1,13 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Content.Client.Administration.Components;
 using Robust.Client.GameObjects;
 using Robust.Shared.Utility;
 
 namespace Content.Client.Administration.Systems;
 
-public sealed class KillSignSystem : EntitySystem
+public sealed partial class KillSignSystem : EntitySystem
 {
+    [Dependency] private SpriteSystem _sprite = default!;
     public override void Initialize()
     {
         SubscribeLocalEvent<KillSignComponent, ComponentStartup>(KillSignAdded);
@@ -18,10 +19,10 @@ public sealed class KillSignSystem : EntitySystem
         if (!TryComp<SpriteComponent>(uid, out var sprite))
             return;
 
-        if (!sprite.LayerMapTryGet(KillSignKey.Key, out var layer))
+        if (!_sprite.LayerMapTryGet(sprite.AsEntity(), KillSignKey.Key, out var layer, false))
             return;
 
-        sprite.RemoveLayer(layer);
+        _sprite.RemoveLayer(sprite.AsEntity(), layer);
     }
 
     private void KillSignAdded(EntityUid uid, KillSignComponent component, ComponentStartup args)
@@ -29,15 +30,15 @@ public sealed class KillSignSystem : EntitySystem
         if (!TryComp<SpriteComponent>(uid, out var sprite))
             return;
 
-        if (sprite.LayerMapTryGet(KillSignKey.Key, out var _))
+        if (_sprite.LayerMapTryGet(sprite.AsEntity(), KillSignKey.Key, out var _, false))
             return;
 
-        var adj = sprite.Bounds.Height / 2 + ((1.0f/32) * 6.0f);
+        var adj = _sprite.GetLocalBounds(sprite.AsEntityComp()).Height / 2 + ((1.0f / 32) * 6.0f);
 
-        var layer = sprite.AddLayer(new SpriteSpecifier.Rsi(new ResPath("Objects/Misc/killsign.rsi"), "sign"));
-        sprite.LayerMapSet(KillSignKey.Key, layer);
+        var layer = _sprite.AddLayer(sprite.AsEntity(), new SpriteSpecifier.Rsi(new ResPath("Objects/Misc/killsign.rsi"), "sign"));
+        _sprite.LayerMapSet(sprite.AsEntity(), KillSignKey.Key, layer);
 
-        sprite.LayerSetOffset(layer, new Vector2(0.0f, adj));
+        _sprite.LayerSetOffset(sprite.AsEntity(), layer, new Vector2(0.0f, adj));
         sprite.LayerSetShader(layer, "unshaded");
     }
 

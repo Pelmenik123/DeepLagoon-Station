@@ -23,25 +23,16 @@ using Robust.Shared.Serialization;
 namespace Content.Shared.Lathe;
 
 [Serializable, NetSerializable]
-public sealed class LatheUpdateState : BoundUserInterfaceState
+public sealed class LatheUpdateState(List<ProtoId<LatheRecipePrototype>> recipes, List<LatheRecipeBatch> queue, ProtoId<LatheRecipePrototype>? currentlyProducing = null, bool looping = false, bool skipping = false) : BoundUserInterfaceState
 {
-    public List<ProtoId<LatheRecipePrototype>> Recipes;
+    public List<ProtoId<LatheRecipePrototype>> Recipes = recipes;
 
-    public List<LatheRecipeBatch> Queue; // Frontier: LatheRecipePrototype<LatheRecipeBatch
+    public List<LatheRecipeBatch> Queue = queue; // Frontier: LatheRecipePrototype<LatheRecipeBatch
 
-    public LatheRecipePrototype? CurrentlyProducing;
+    public ProtoId<LatheRecipePrototype>? CurrentlyProducing = currentlyProducing;
 
-    public bool Looping = false; // Mono
-    public bool Skipping = false; // Mono
-
-    public LatheUpdateState(List<ProtoId<LatheRecipePrototype>> recipes, List<LatheRecipeBatch> queue, LatheRecipePrototype? currentlyProducing = null, bool looping = false, bool skipping = false) // Frontier: change queue type // Mono
-    {
-        Recipes = recipes;
-        Queue = queue;
-        CurrentlyProducing = currentlyProducing;
-        Looping = looping; // Mono
-        Skipping = skipping; // Mono
-    }
+    public bool Looping = looping; // Mono
+    public bool Skipping = skipping; // Mono
 }
 
 /// <summary>
@@ -57,15 +48,10 @@ public sealed class LatheSyncRequestMessage : BoundUserInterfaceMessage
 ///     Sent to the server when a client queues a new recipe.
 /// </summary>
 [Serializable, NetSerializable]
-public sealed class LatheQueueRecipeMessage : BoundUserInterfaceMessage
+public sealed class LatheQueueRecipeMessage(string id, int quantity) : BoundUserInterfaceMessage
 {
-    public readonly string ID;
-    public readonly int Quantity;
-    public LatheQueueRecipeMessage(string id, int quantity)
-    {
-        ID = id;
-        Quantity = quantity;
-    }
+    public readonly string ID = id;
+    public readonly int Quantity = quantity;
 }
 
 // Mono
@@ -73,13 +59,9 @@ public sealed class LatheQueueRecipeMessage : BoundUserInterfaceMessage
 ///     Sent to the server when a client wants to change whether the lathe should loop.
 /// </summary>
 [Serializable, NetSerializable]
-public sealed class LatheSetLoopingMessage : BoundUserInterfaceMessage
+public sealed class LatheSetLoopingMessage(bool shouldLoop) : BoundUserInterfaceMessage
 {
-    public readonly bool ShouldLoop;
-    public LatheSetLoopingMessage(bool shouldLoop)
-    {
-        ShouldLoop = shouldLoop;
-    }
+    public readonly bool ShouldLoop = shouldLoop;
 }
 
 // Mono
@@ -87,13 +69,9 @@ public sealed class LatheSetLoopingMessage : BoundUserInterfaceMessage
 ///     Sent to the server when a client wants to change whether the lathe should skip over unavailable recipes.
 /// </summary>
 [Serializable, NetSerializable]
-public sealed class LatheSetSkipMessage : BoundUserInterfaceMessage
+public sealed class LatheSetSkipMessage(bool shouldSkip) : BoundUserInterfaceMessage
 {
-    public readonly bool ShouldSkip;
-    public LatheSetSkipMessage(bool shouldSkip)
-    {
-        ShouldSkip = shouldSkip;
-    }
+    public readonly bool ShouldSkip = shouldSkip;
 }
 
 // Mono
@@ -101,13 +79,9 @@ public sealed class LatheSetSkipMessage : BoundUserInterfaceMessage
 ///     Sent to the server when a client wants to de-queue a recipe from the lathe.
 /// </summary>
 [Serializable, NetSerializable]
-public sealed class LatheRecipeCancelMessage : BoundUserInterfaceMessage
+public sealed class LatheRecipeCancelMessage(int index) : BoundUserInterfaceMessage
 {
-    public readonly int Index;
-    public LatheRecipeCancelMessage(int index)
-    {
-        Index = index;
-    }
+    public readonly int Index = index;
 }
 
 [NetSerializable, Serializable]

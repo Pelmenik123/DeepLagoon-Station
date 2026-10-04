@@ -10,12 +10,13 @@ using Robust.Shared.Network;
 
 
 namespace Content.Shared._Shitmed.BodyEffects;
-public partial class OrganEffectSystem : EntitySystem
+
+public sealed partial class OrganEffectSystem : EntitySystem
 {
-    [Dependency] private readonly IComponentFactory _compFactory = default!;
-    [Dependency] private readonly ISerializationManager _serManager = default!;
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
-    [Dependency] private readonly INetManager _net = default!;
+    [Dependency] private IComponentFactory _compFactory = default!;
+    [Dependency] private ISerializationManager _serManager = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
+    [Dependency] private INetManager _net = default!;
     public override void Initialize()
     {
         base.Initialize();
@@ -81,9 +82,8 @@ public partial class OrganEffectSystem : EntitySystem
             if (HasComp(body, compType))
                 continue;
 
-            var newComp = (Component) _serManager.CreateCopy(comp.Component, notNullableOverride: true);
-            newComp.Owner = body;
-            EntityManager.AddComponent(body, newComp, true);
+            var newComp = (Component)_serManager.CreateCopy(comp.Component, notNullableOverride: true);
+            AddComp(body, newComp, true);
             effectComp.Active[key] = comp;
             if (newComp.NetSyncEnabled)
             {

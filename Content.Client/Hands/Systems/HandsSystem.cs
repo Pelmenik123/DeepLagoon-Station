@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Robust.Shared.Utility;
 using System.Linq;
 using Content.Shared._Shitmed.Body.Events; // Shitmed Change
 using Content.Client.DisplacementMap;
@@ -23,15 +24,16 @@ using Robust.Shared.Timing;
 namespace Content.Client.Hands.Systems
 {
     [UsedImplicitly]
-    public sealed class HandsSystem : SharedHandsSystem
+    public sealed partial class HandsSystem : SharedHandsSystem
     {
-        [Dependency] private readonly IPlayerManager _playerManager = default!;
-        [Dependency] private readonly IUserInterfaceManager _ui = default!;
+        [Dependency] private SpriteSystem _sprite = default!;
+        [Dependency] private IPlayerManager _playerManager = default!;
+        [Dependency] private IUserInterfaceManager _ui = default!;
 
-        [Dependency] private readonly SharedContainerSystem _containerSystem = default!;
-        [Dependency] private readonly StrippableSystem _stripSys = default!;
-        [Dependency] private readonly ExamineSystem _examine = default!;
-        [Dependency] private readonly DisplacementMapSystem _displacement = default!;
+        [Dependency] private SharedContainerSystem _containerSystem = default!;
+        [Dependency] private StrippableSystem _stripSys = default!;
+        [Dependency] private ExamineSystem _examine = default!;
+        [Dependency] private DisplacementMapSystem _displacement = default!;
 
         public event Action<string, HandLocation>? OnPlayerAddHand;
         public event Action<string>? OnPlayerRemoveHand;
@@ -175,28 +177,28 @@ namespace Content.Client.Hands.Systems
             {
                 // use item in hand
                 // it will always be attack_self() in my heart.
-                EntityManager.RaisePredictiveEvent(new RequestUseInHandEvent());
+                RaisePredictiveEvent(new RequestUseInHandEvent());
                 return;
             }
 
             if (pressedHand != hands.ActiveHand && pressedEntity == null)
             {
                 // change active hand
-                EntityManager.RaisePredictiveEvent(new RequestSetHandEvent(handName));
+                RaisePredictiveEvent(new RequestSetHandEvent(handName));
                 return;
             }
 
             if (pressedHand != hands.ActiveHand && pressedEntity != null && activeEntity != null)
             {
                 // use active item on held item
-                EntityManager.RaisePredictiveEvent(new RequestHandInteractUsingEvent(pressedHand.Name));
+                RaisePredictiveEvent(new RequestHandInteractUsingEvent(pressedHand.Name));
                 return;
             }
 
             if (pressedHand != hands.ActiveHand && pressedEntity != null && activeEntity == null)
             {
                 // move the item to the active hand
-                EntityManager.RaisePredictiveEvent(new RequestMoveHandItemEvent(pressedHand.Name));
+                RaisePredictiveEvent(new RequestMoveHandItemEvent(pressedHand.Name));
             }
         }
 
@@ -206,7 +208,7 @@ namespace Content.Client.Hands.Systems
         /// </summary>
         public void UIHandActivate(string handName)
         {
-            EntityManager.RaisePredictiveEvent(new RequestActivateInHandEvent(handName));
+            RaisePredictiveEvent(new RequestActivateInHandEvent(handName));
         }
 
         public void UIInventoryExamine(string handName)
@@ -261,7 +263,7 @@ namespace Content.Client.Hands.Systems
             if (component.RevealedLayers.TryGetValue(location, out var revealedLayers))
             {
                 foreach (var key in revealedLayers)
-                    sprite.RemoveLayer(key);
+                    _sprite.RemoveLayer(sprite.AsEntity(), key);
 
                 revealedLayers.Clear();
             }
@@ -330,7 +332,7 @@ namespace Content.Client.Hands.Systems
             {
                 foreach (var key in revealedLayers)
                 {
-                    sprite.RemoveLayer(key);
+                    _sprite.RemoveLayer(sprite.AsEntity(), key);
                 }
 
                 revealedLayers.Clear();
@@ -366,7 +368,7 @@ namespace Content.Client.Hands.Systems
                     continue;
                 }
 
-                var index = sprite.LayerMapReserveBlank(key);
+                var index = _sprite.LayerMapReserve(sprite.AsEntity(), key);
 
                 // In case no RSI is given, use the item's base RSI as a default. This cuts down on a lot of unnecessary yaml entries.
                 if (layerData.RsiPath == null
@@ -374,12 +376,12 @@ namespace Content.Client.Hands.Systems
                     && sprite[index].Rsi == null)
                 {
                     if (TryComp<ItemComponent>(held, out var itemComponent) && itemComponent.RsiPath != null)
-                        sprite.LayerSetRSI(index, itemComponent.RsiPath);
+                        _sprite.LayerSetRsi(sprite.AsEntity(), index, new ResPath(itemComponent.RsiPath));
                     else if (TryComp(held, out SpriteComponent? clothingSprite))
-                        sprite.LayerSetRSI(index, clothingSprite.BaseRSI);
+                        _sprite.LayerSetRsi(sprite.AsEntity(), index, clothingSprite.BaseRSI);
                 }
 
-                sprite.LayerSetData(index, layerData);
+                _sprite.LayerSetData(sprite.AsEntity(), index, layerData);
 
                 //Add displacement maps
                 if (handComp.HandDisplacement is not null)

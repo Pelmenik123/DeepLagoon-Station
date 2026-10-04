@@ -11,9 +11,9 @@ namespace Content.Shared.Ghost
     /// System for the <see cref="GhostComponent"/>.
     /// Prevents ghosts from interacting when <see cref="GhostComponent.CanGhostInteract"/> is false.
     /// </summary>
-    public abstract class SharedGhostSystem : EntitySystem
+    public abstract partial class SharedGhostSystem : EntitySystem
     {
-        [Dependency] protected readonly SharedPopupSystem Popup = default!;
+        [Dependency] protected SharedPopupSystem Popup = default!;
 
         public override void Initialize()
         {
@@ -50,12 +50,11 @@ namespace Content.Shared.Ghost
             if (!Resolve(uid, ref component))
                 return;
 
-            component.CanReturnToBody = value;
-        }
+            if (component.CanReturnToBody == value)
+                return;
 
-        public void SetCanReturnToBody(GhostComponent component, bool value)
-        {
             component.CanReturnToBody = value;
+            Dirty(uid, component);
         }
     }
 
@@ -73,30 +72,24 @@ namespace Content.Shared.Ghost
     /// This is used as part of <see cref="GhostWarpsResponseEvent"/>
     /// </summary>
     [Serializable, NetSerializable]
-    public struct GhostWarp
+    public readonly struct GhostWarp(NetEntity entity, string displayName, bool isWarpPoint)
     {
-        public GhostWarp(NetEntity entity, string displayName, bool isWarpPoint)
-        {
-            Entity = entity;
-            DisplayName = displayName;
-            IsWarpPoint = isWarpPoint;
-        }
 
         /// <summary>
         /// The entity representing the warp point.
         /// This is passed back to the server in <see cref="GhostWarpToTargetRequestEvent"/>
         /// </summary>
-        public NetEntity Entity { get; }
+        public NetEntity Entity { get; } = entity;
 
         /// <summary>
         /// The display name to be surfaced in the ghost warps menu
         /// </summary>
-        public string DisplayName { get; }
+        public string DisplayName { get; } = displayName;
 
         /// <summary>
         /// Whether this warp represents a warp point or a player
         /// </summary>
-        public bool IsWarpPoint { get;  }
+        public bool IsWarpPoint { get; } = isWarpPoint;
 
         // Frontier: warp point hiding
         /// <summary>
@@ -111,31 +104,22 @@ namespace Content.Shared.Ghost
     /// Contains players, and locations a ghost can warp to
     /// </summary>
     [Serializable, NetSerializable]
-    public sealed class GhostWarpsResponseEvent : EntityEventArgs
+    public sealed class GhostWarpsResponseEvent(List<GhostWarp> warps) : EntityEventArgs
     {
-        public GhostWarpsResponseEvent(List<GhostWarp> warps)
-        {
-            Warps = warps;
-        }
 
         /// <summary>
         /// A list of warp points.
         /// </summary>
-        public List<GhostWarp> Warps { get; }
+        public List<GhostWarp> Warps { get; } = warps;
     }
 
     /// <summary>
     ///  A client to server request for their ghost to be warped to an entity
     /// </summary>
     [Serializable, NetSerializable]
-    public sealed class GhostWarpToTargetRequestEvent : EntityEventArgs
+    public sealed class GhostWarpToTargetRequestEvent(NetEntity target) : EntityEventArgs
     {
-        public NetEntity Target { get; }
-
-        public GhostWarpToTargetRequestEvent(NetEntity target)
-        {
-            Target = target;
-        }
+        public NetEntity Target { get; } = target;
     }
 
     /// <summary>
@@ -156,13 +140,8 @@ namespace Content.Shared.Ghost
     /// A server to client update with the available ghost role count
     /// </summary>
     [Serializable, NetSerializable]
-    public sealed class GhostUpdateGhostRoleCountEvent : EntityEventArgs
+    public sealed class GhostUpdateGhostRoleCountEvent(int availableGhostRoleCount) : EntityEventArgs
     {
-        public int AvailableGhostRoles { get; }
-
-        public GhostUpdateGhostRoleCountEvent(int availableGhostRoleCount)
-        {
-            AvailableGhostRoles = availableGhostRoleCount;
-        }
+        public int AvailableGhostRoles { get; } = availableGhostRoleCount;
     }
 }

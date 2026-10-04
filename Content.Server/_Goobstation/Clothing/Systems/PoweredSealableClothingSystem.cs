@@ -13,9 +13,9 @@ namespace Content.Server._Goobstation.Clothing.Systems;
 
 public sealed partial class PoweredSealableClothingSystem : SharedPoweredSealableClothingSystem
 {
-    [Dependency] private readonly AlertsSystem _alertsSystem = default!;
-    [Dependency] private readonly PowerCellSystem _powerCellSystem = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movementSpeed = default!;
+    [Dependency] private AlertsSystem _alertsSystem = default!;
+    [Dependency] private PowerCellSystem _powerCellSystem = default!;
+    [Dependency] private MovementSpeedModifierSystem _movementSpeed = default!;
 
     public override void Initialize()
     {
@@ -102,7 +102,7 @@ public sealed partial class PoweredSealableClothingSystem : SharedPoweredSealabl
         }
 
         var severity = ContentHelpers.RoundToLevels(MathF.Max(0f, battery.CurrentCharge), battery.MaxCharge, 6);
-        _alertsSystem.ShowAlert(controlComp.WearerEntity.Value, comp.SuitPowerAlert, (short) severity);
+        _alertsSystem.ShowAlert(controlComp.WearerEntity.Value, comp.SuitPowerAlert, (short)severity);
     }
 
     /// <summary>

@@ -14,13 +14,13 @@ namespace Content.Server._Mono.ArmorPlate;
 /// <summary>
 /// Handles armor plate absorption and deletion.
 /// </summary>
-public sealed class ArmorPlateSystem : SharedArmorPlateSystem
+public sealed partial class ArmorPlateSystem : SharedArmorPlateSystem
 {
-    [Dependency] private readonly StaminaSystem _stamina = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly InventorySystem _inventory = default!;
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly SharedContainerSystem _container = default!;
+    [Dependency] private StaminaSystem _stamina = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private InventorySystem _inventory = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
 
     public override void Initialize()
     {

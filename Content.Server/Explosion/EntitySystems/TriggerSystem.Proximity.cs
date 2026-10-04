@@ -10,10 +10,10 @@ namespace Content.Server.Explosion.EntitySystems;
 
 public sealed partial class TriggerSystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] SharedAppearanceSystem _appearance = default!;
 
-    [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!; // Frontier
+    [Dependency] EntityWhitelistSystem _whitelistSystem = default!;
 
     private void InitializeProximity()
     {
@@ -88,7 +88,7 @@ public sealed partial class TriggerSystem
 
     private void SetProximityAppearance(EntityUid uid, TriggerOnProximityComponent component)
     {
-        if (EntityManager.TryGetComponent(uid, out AppearanceComponent? appearance))
+        if (TryComp(uid, out AppearanceComponent? appearance))
         {
             _appearance.SetData(uid, ProximityTriggerVisualState.State, component.Enabled ? ProximityTriggerVisuals.Inactive : ProximityTriggerVisuals.Off, appearance);
         }
@@ -113,7 +113,7 @@ public sealed partial class TriggerSystem
         // Queue a visual update for when the animation is complete.
         component.NextVisualUpdate = curTime + component.AnimationDuration;
 
-        if (EntityManager.TryGetComponent(uid, out AppearanceComponent? appearance))
+        if (TryComp(uid, out AppearanceComponent? appearance))
         {
             _appearance.SetData(uid, ProximityTriggerVisualState.State, ProximityTriggerVisuals.Active, appearance);
         }

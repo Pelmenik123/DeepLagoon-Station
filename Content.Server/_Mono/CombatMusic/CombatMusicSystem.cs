@@ -14,10 +14,10 @@ namespace Content.Server._Mono.CombatMusic;
 /// <summary>
 /// System that manages combat music playback when gunnery control fires.
 /// </summary>
-public sealed class CombatMusicSystem : EntitySystem
+public sealed partial class CombatMusicSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IRobustRandom _robustRandom = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IRobustRandom _robustRandom = default!;
 
     public override void Update(float frameTime)
     {
@@ -70,7 +70,7 @@ public sealed class CombatMusicSystem : EntitySystem
     {
         if (comp.CombatMusicSounds.Count == 0)
         {
-            Logger.Warning($"CombatMusicComponent on {gridUid} has no sounds configured!");
+            Log.Warning($"CombatMusicComponent on {gridUid} has no sounds configured!");
             return;
         }
 
@@ -78,7 +78,7 @@ public sealed class CombatMusicSystem : EntitySystem
 
         var filter = Filter.Empty().AddInGrid(gridUid, EntityManager);
 
-        var path = ((SoundPathSpecifier) selectedSound).Path.ToString();
+        var path = ((SoundPathSpecifier)selectedSound).Path.ToString();
         RaiseNetworkEvent(new CombatMusicStartEvent(path, comp.Volume, true), filter);
 
         comp.MusicPlaying = true;

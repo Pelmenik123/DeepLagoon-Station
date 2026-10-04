@@ -31,11 +31,11 @@ namespace Content.Server._NF.Contraband.Systems;
 /// </summary>
 public sealed partial class ContrabandTurnInSystem : SharedContrabandTurnInSystem
 {
-    [Dependency] private readonly IPrototypeManager _protoMan = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly StackSystem _stack = default!;
-    [Dependency] private readonly StationSystem _station = default!;
-    [Dependency] private readonly UserInterfaceSystem _uiSystem = default!;
+    [Dependency] private IPrototypeManager _protoMan = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private StackSystem _stack = default!;
+    [Dependency] private StationSystem _station = default!;
+    [Dependency] private UserInterfaceSystem _uiSystem = default!;
 
     private EntityQuery<MobStateComponent> _mobQuery;
     private EntityQuery<TransformComponent> _xformQuery;
@@ -67,15 +67,12 @@ public sealed partial class ContrabandTurnInSystem : SharedContrabandTurnInSyste
         GetPalletGoods(gridUid, comp, out var toSell, out var amount);
 
         _uiSystem.SetUiState(uid, ContrabandPalletConsoleUiKey.Contraband,
-            new ContrabandPalletConsoleInterfaceState((int) amount, toSell.Count, true));
+            new ContrabandPalletConsoleInterfaceState((int)amount, toSell.Count, true));
     }
 
     private void OnPalletUIOpen(EntityUid uid, ContrabandPalletConsoleComponent component, BoundUIOpenedEvent args)
     {
         var player = args.Actor;
-
-        if (player == null)
-            return;
 
         UpdatePalletConsoleInterface(uid, component);
     }
@@ -91,9 +88,6 @@ public sealed partial class ContrabandTurnInSystem : SharedContrabandTurnInSyste
     private void OnPalletAppraise(EntityUid uid, ContrabandPalletConsoleComponent component, ContrabandPalletAppraiseMessage args)
     {
         var player = args.Actor;
-
-        if (player == null)
-            return;
 
         UpdatePalletConsoleInterface(uid, component);
     }
@@ -208,9 +202,6 @@ public sealed partial class ContrabandTurnInSystem : SharedContrabandTurnInSyste
     private void OnPalletSale(EntityUid uid, ContrabandPalletConsoleComponent component, ContrabandPalletSellMessage args)
     {
         var player = args.Actor;
-
-        if (player == null)
-            return;
 
         if (Transform(uid).GridUid is not EntityUid gridUid)
         {

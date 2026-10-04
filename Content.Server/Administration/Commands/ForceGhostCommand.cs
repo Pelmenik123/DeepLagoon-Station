@@ -14,13 +14,13 @@ using Robust.Shared.Console;
 namespace Content.Server.Administration.Commands;
 
 [AdminCommand(AdminFlags.Admin)]
-public sealed class ForceGhostCommand : LocalizedEntityCommands
+public sealed partial class ForceGhostCommand : LocalizedEntityCommands
 {
-    [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly GameTicker _gameTicker = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly GhostSystem _ghost = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private GameTicker _gameTicker = default!;
+    SharedMindSystem _mind => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMindSystem>();
+    GhostSystem _ghost => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<GhostSystem>();
 
     public override string Command => "forceghost";
 

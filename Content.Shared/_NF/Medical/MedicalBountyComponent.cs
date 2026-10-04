@@ -1,4 +1,5 @@
 using Content.Shared._NF.Medical.Prototypes;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._NF.Medical.Components;
 
@@ -11,7 +12,7 @@ public sealed partial class MedicalBountyComponent : Component
     /// If null, a medical bounty type will be selected at random.
     /// </summary>
     [DataField(serverOnly: true)]
-    public MedicalBountyPrototype? Bounty = null;
+    public ProtoId<MedicalBountyPrototype>? Bounty = null;
 
     /// <summary>
     /// Maximum bounty value for this entity in spesos.
