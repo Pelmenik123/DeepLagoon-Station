@@ -77,14 +77,12 @@ public sealed class DiscordLinkStore : IDisposable
         var username = "Lagoon_" + discordId; // Compatibility with older OAuth backends.
         if (!string.IsNullOrWhiteSpace(discordUsername))
         {
-            // '@' cannot occur in an official SS14 username. Authenticated names
-            // are supplied by our auth server, independently of guest-name validation.
-            var nickname = new string(discordUsername.Where(c => c is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9' or '_' or '.').Take(16).ToArray());
+            var nickname = new string(discordUsername.Where(c => c is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9' or '_' or '.').Take(30).ToArray());
             if (nickname.Length == 0) nickname = "player";
             for (var attempt = 0; ; attempt++)
             {
-                var suffix = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(discordId + ":" + attempt)))[..8].ToLowerInvariant();
-                username = "Lagoon@" + nickname + "_" + suffix;
+                var suffix = attempt == 0 ? "" : "_" + (attempt + 1);
+                username = "L_" + nickname[..Math.Min(nickname.Length, 30 - suffix.Length)] + suffix;
                 using var check = Command("SELECT 1 FROM discord_links WHERE username=$name COLLATE NOCASE", ("$name", username));
                 check.Transaction = transaction;
                 if (check.ExecuteScalar() == null) break;

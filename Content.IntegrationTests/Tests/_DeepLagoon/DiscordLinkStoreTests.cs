@@ -53,16 +53,15 @@ public sealed class DiscordLinkStoreTests
     }
 
     [Test]
-    public void LauncherNamesUseDiscordNicknameInSeparateNamespaceAndNeverRenameExistingUid()
+    public void LauncherNamesUseShortDiscordNicknameAndNeverRenameExistingUid()
     {
         using var store = new DiscordLinkStore(_path, () => _now);
         var first = store.EnrollLauncher("1554565156657299597", "discord.nickname");
         var second = store.EnrollLauncher("1554565156657299598", "discord.nickname");
-        Assert.That(first.Username, Does.StartWith("Lagoon@discord.nickname_"));
+        Assert.That(first.Username, Is.EqualTo("L_discord.nickname"));
         Assert.That(first.Username.Length, Is.LessThanOrEqualTo(32));
         Assert.That(second.Username, Is.Not.EqualTo(first.Username));
-        Assert.That(Robust.Shared.AuthLib.UsernameHelpers.IsNameValid(first.Username, out _), Is.False,
-            "Official SS14 accounts must not be able to register this reserved name");
+        Assert.That(second.Username, Is.EqualTo("L_discord.nickname_2"));
         Assert.That(store.EnrollLauncher("1554565156657299597", "renamed_discord"), Is.EqualTo(first));
         var official = Guid.NewGuid();
         store.Consume("1554565156657299599", store.Issue(official, "OfficialName"));
