@@ -117,6 +117,28 @@ public sealed class DiscordLinkStoreTests
         Assert.That(reopened.Consume("1554565156657299598", otherCode).Uid, Is.EqualTo(otherUid));
     }
     [Test]
+    public void AdminReassignmentPreservesUidAndHistory()
+    {
+        using var store = new DiscordLinkStore(_path, () => _now);
+        const string old = "1554565156657299597";
+        const string next = "1554565156657299598";
+        var uid = store.EnrollLauncher(old).Uid;
+        Assert.That(() => store.ReassignDiscord(old, next, Guid.NewGuid(), _now), Throws.TypeOf<DiscordLinkStore.LinkException>());
+        Assert.That(store.ReassignDiscord(old, next, uid, _now).Uid, Is.EqualTo(uid));
+        Assert.That(store.FindDiscord(old), Is.Null);
+        Assert.That(() => store.EnrollLauncher(old), Throws.TypeOf<DiscordLinkStore.LinkException>());
+        Assert.That(() => store.AssertCurrent(next, uid, _now), Throws.TypeOf<DiscordLinkStore.LinkException>());
+        store.Unlink(next, uid);
+        Assert.That(() => store.EnrollLauncher(next), Throws.TypeOf<DiscordLinkStore.LinkException>());
+        Assert.That(() => store.RestoreDiscord(next, Guid.NewGuid(), "Player"), Throws.TypeOf<DiscordLinkStore.LinkException>());
+        Assert.That(store.RestoreDiscord(next, uid, "Player").Uid, Is.EqualTo(uid));
+        var another = store.EnrollLauncher("1554565156657299599");
+        store.Unlink("1554565156657299599", another.Uid);
+        Assert.That(() => store.ReassignDiscord(next, "1554565156657299599", uid, _now), Throws.TypeOf<DiscordLinkStore.LinkException>());
+        Assert.That(store.FindDiscord(next)!.Uid, Is.EqualTo(uid));
+    }
+
+    [Test]
     public void UnlinkRequiresMatchingIdentityAndAllowsFreshLink()
     {
         var uid = Guid.NewGuid();

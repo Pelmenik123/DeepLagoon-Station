@@ -182,7 +182,7 @@ public sealed class DiscordLinkSystem : EntitySystem
             return false;
         context.ResponseHeaders["Cache-Control"] = "no-store";
         if (context.RequestMethod != HttpMethod.Post ||
-            path is not ("/deeplagoon/discord/enroll_launcher" or "/deeplagoon/discord/link" or "/deeplagoon/discord/lookup" or "/deeplagoon/discord/whitelist" or "/deeplagoon/discord/remove_whitelist" or "/deeplagoon/discord/unlink_discord"))
+            path is not ("/deeplagoon/discord/restore_discord" or "/deeplagoon/discord/reassign_discord" or "/deeplagoon/discord/enroll_launcher" or "/deeplagoon/discord/link" or "/deeplagoon/discord/lookup" or "/deeplagoon/discord/whitelist" or "/deeplagoon/discord/remove_whitelist" or "/deeplagoon/discord/unlink_discord"))
         {
             await context.RespondErrorAsync(HttpStatusCode.NotFound);
             return true;
@@ -236,6 +236,25 @@ public sealed class DiscordLinkSystem : EntitySystem
                     DiscordLinkStore.Link? link;
                     if (path.EndsWith("/enroll_launcher", StringComparison.Ordinal))
                         link = _store.EnrollLauncher(request.DiscordId);
+                    else if (path.EndsWith("/restore_discord", StringComparison.Ordinal))
+                    {
+                        if (!request.HostAuthorized || !Guid.TryParse(request.ExpectedUid, out var restoreUid) ||
+                            string.IsNullOrWhiteSpace(request.Username) || request.Username.Length > 64)
+                            return new ApiResult(HttpStatusCode.BadRequest, new { error = "invalid_request" });
+                        link = _store.RestoreDiscord(request.DiscordId, restoreUid, request.Username);
+                    }
+                    else if (path.EndsWith("/reassign_discord", StringComparison.Ordinal))
+                    {
+                        var target = request.TargetDiscordId;
+                        if (!request.HostAuthorized || target == null || target.Length is < 15 or > 20 ||
+                            target.Any(c => !char.IsAsciiDigit(c)) || !ulong.TryParse(target, out var targetId) || targetId == 0 ||
+                            !Guid.TryParse(request.ExpectedUid, out var expectedUid) || request.ExpectedLinkedAt == null)
+                            return new ApiResult(HttpStatusCode.BadRequest, new { error = "invalid_request" });
+                        link = _store.ReassignDiscord(request.DiscordId, target, expectedUid, request.ExpectedLinkedAt.Value);
+                        if (request.DiscordId != target)
+                            foreach (var session in _players.Sessions.Where(s => s.UserId.UserId == link.Uid).ToArray())
+                                session.Channel.Disconnect("Discord link changed by administrator. Sign in again.");
+                    }
                     else if (path.EndsWith("/link", StringComparison.Ordinal))
                     {
                         var code = request.Code?.Trim().ToUpperInvariant() ?? "";
@@ -271,6 +290,12 @@ public sealed class DiscordLinkSystem : EntitySystem
                     }
                     if (path.EndsWith("/unlink_discord", StringComparison.Ordinal))
                     {
+                        if (request.ExpectedUid != null || request.ExpectedLinkedAt != null)
+                        {
+                            if (!Guid.TryParse(request.ExpectedUid, out var expectedUid) || request.ExpectedLinkedAt == null)
+                                return new ApiResult(HttpStatusCode.BadRequest, new { error = "invalid_request" });
+                            _store.AssertCurrent(request.DiscordId, expectedUid, request.ExpectedLinkedAt.Value);
+                        }
                         if (!request.HostAuthorized && await _database.GetAdminDataForAsync(new NetUserId(link.Uid)) != null)
                             return new ApiResult(HttpStatusCode.Forbidden, new { error = "admin_protected" });
                         _store.Unlink(request.DiscordId, link.Uid);
@@ -314,6 +339,10 @@ public sealed class DiscordLinkSystem : EntitySystem
     private sealed record ApiRequest(
         [property: System.Text.Json.Serialization.JsonPropertyName("discord_id")] string DiscordId,
         [property: System.Text.Json.Serialization.JsonPropertyName("code")] string? Code,
-        [property: System.Text.Json.Serialization.JsonPropertyName("host_authorized")] bool HostAuthorized = false);
+        [property: System.Text.Json.Serialization.JsonPropertyName("host_authorized")] bool HostAuthorized = false,
+        [property: System.Text.Json.Serialization.JsonPropertyName("target_discord_id")] string? TargetDiscordId = null,
+        [property: System.Text.Json.Serialization.JsonPropertyName("expected_uid")] string? ExpectedUid = null,
+        [property: System.Text.Json.Serialization.JsonPropertyName("expected_linked_at")] long? ExpectedLinkedAt = null,
+        [property: System.Text.Json.Serialization.JsonPropertyName("username")] string? Username = null);
     private sealed record ApiResult(HttpStatusCode Status, object Body);
 }
