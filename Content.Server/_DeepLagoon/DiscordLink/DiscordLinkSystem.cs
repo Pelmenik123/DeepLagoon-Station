@@ -235,7 +235,7 @@ public sealed class DiscordLinkSystem : EntitySystem
                 {
                     DiscordLinkStore.Link? link;
                     if (path.EndsWith("/enroll_launcher", StringComparison.Ordinal))
-                        link = _store.EnrollLauncher(request.DiscordId);
+                        link = _store.EnrollLauncher(request.DiscordId, request.DiscordUsername);
                     else if (path.EndsWith("/restore_discord", StringComparison.Ordinal))
                     {
                         if (!request.HostAuthorized || !Guid.TryParse(request.ExpectedUid, out var restoreUid) ||
@@ -344,6 +344,7 @@ public sealed class DiscordLinkSystem : EntitySystem
         [property: System.Text.Json.Serialization.JsonPropertyName("expected_uid")] string? ExpectedUid = null,
         [property: System.Text.Json.Serialization.JsonPropertyName("expected_linked_at")] long? ExpectedLinkedAt = null,
         [property: System.Text.Json.Serialization.JsonPropertyName("username")] string? Username = null,
-        [property: System.Text.Json.Serialization.JsonPropertyName("expected_revision")] long? ExpectedRevision = null);
+        [property: System.Text.Json.Serialization.JsonPropertyName("expected_revision")] long? ExpectedRevision = null,
+        [property: System.Text.Json.Serialization.JsonPropertyName("discord_username")] string? DiscordUsername = null);
     private sealed record ApiResult(HttpStatusCode Status, object Body);
 }
