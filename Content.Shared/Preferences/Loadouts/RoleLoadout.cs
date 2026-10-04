@@ -157,6 +157,8 @@ public sealed partial class RoleLoadout : IEquatable<RoleLoadout>
                     // continue; // Frontier: commented out old implementation
                 }
 
+                loadout.Customization = collection.Resolve<IEntityManager>().System<Content.Shared._DeepLagoon.Loadouts.PersonalLoadoutSystem>().Sanitize(loadoutProto, loadout.Customization);
+
                 // Validate the loadout can be applied (e.g. points).
                 if (!IsValid(profile, session, loadout.Prototype, collection, out _))
                 {

@@ -74,9 +74,9 @@ public sealed partial class SingleMarkingPicker : BoxContainer
             _slot = value;
             _ignoreItemSelected = true;
 
-            foreach (var item in MarkingList)
+            foreach (var (id, button) in _tiles)
             {
-                item.Selected = (string) item.Metadata! == _markings[_slot].MarkingId;
+                button.Pressed = id == _markings[_slot].MarkingId;
             }
 
             _ignoreItemSelected = false;
@@ -88,6 +88,8 @@ public sealed partial class SingleMarkingPicker : BoxContainer
     private int _totalPoints;
 
     private bool _ignoreItemSelected;
+    private readonly Dictionary<string, Button> _tiles = new();
+    private readonly List<TextureRect> _previews = new();
 
     private MarkingCategories _category;
     public MarkingCategories Category
@@ -134,7 +136,6 @@ public sealed partial class SingleMarkingPicker : BoxContainer
         RobustXamlLoader.Load(this);
         IoCManager.InjectDependencies(this);
 
-        MarkingList.OnItemSelected += SelectMarking;
         AddButton.OnPressed += _ =>
         {
             OnSlotAdd!();
@@ -190,7 +191,9 @@ public sealed partial class SingleMarkingPicker : BoxContainer
             return;
         }
 
-        MarkingList.Clear();
+        MarkingList.DisposeAllChildren();
+        _tiles.Clear();
+        _previews.Clear();
 
         var sortedMarkings = _markingPrototypeCache.Where(m =>
             m.Key.ToLower().Contains(filter.ToLower()) ||
@@ -199,15 +202,30 @@ public sealed partial class SingleMarkingPicker : BoxContainer
 
         foreach (var (id, marking) in sortedMarkings)
         {
-            var item = MarkingList.AddItem(Loc.GetString($"marking-{id}"), marking.Sprites[0].Frame0());
-            item.Metadata = marking.ID;
-
-            if (_markings[Slot].MarkingId == id)
+            var name = Loc.GetString($"marking-{id}");
+            var button = new Button { ToggleMode = true, SetWidth = 128, MinHeight = 112, ToolTip = name };
+            var body = new BoxContainer { Orientation = LayoutOrientation.Vertical, HorizontalExpand = true };
+            if (marking.Sprites.Count > 0)
             {
-                _ignoreItemSelected = true;
-                item.Selected = true;
-                _ignoreItemSelected = false;
+                var preview = new TextureRect
+                {
+                    Texture = marking.Sprites[0].Frame0(),
+                    SetSize = new System.Numerics.Vector2(48, 48),
+                    Stretch = TextureRect.StretchMode.KeepAspectCentered,
+                    HorizontalAlignment = HAlignment.Center,
+                    Modulate = _markings[Slot].MarkingColors.Count > 0 ? _markings[Slot].MarkingColors[0] : Color.White,
+                };
+                _previews.Add(preview);
+                body.AddChild(preview);
             }
+            var label = new RichTextLabel { HorizontalExpand = true, MaxWidth = 112 };
+            label.SetMessage(name);
+            body.AddChild(label);
+            button.AddChild(body);
+            button.Pressed = _markings[Slot].MarkingId == id;
+            button.OnPressed += _ => SelectMarking(id);
+            _tiles.Add(id, button);
+            MarkingList.AddChild(button);
         }
     }
 
@@ -243,6 +261,11 @@ public sealed partial class SingleMarkingPicker : BoxContainer
             selector.OnColorChanged += color =>
             {
                 marking.SetColor(colorIndex, color);
+                if (colorIndex == 0)
+                {
+                    foreach (var preview in _previews)
+                        preview.Modulate = color;
+                }
                 OnColorChanged!((_slot, marking));
             };
 
@@ -250,14 +273,13 @@ public sealed partial class SingleMarkingPicker : BoxContainer
         }
     }
 
-    private void SelectMarking(ItemList.ItemListSelectedEventArgs args)
+    private void SelectMarking(string id)
     {
         if (_ignoreItemSelected)
         {
             return;
         }
 
-        var id = (string) MarkingList[args.ItemIndex].Metadata!;
         if (!_markingManager.Markings.TryGetValue(id, out var proto))
         {
             throw new ArgumentException("Attempted to select non-existent marking.");
@@ -271,6 +293,7 @@ public sealed partial class SingleMarkingPicker : BoxContainer
             _markings[Slot].SetColor(i, oldMarking.MarkingColors[i]);
         }
 
+        PopulateList(Search.Text);
         PopulateColors();
 
         OnMarkingSelect!((_slot, id));

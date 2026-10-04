@@ -125,7 +125,7 @@ namespace Content.Client.Lobby.UI
         private TextEdit? _flavorTextEdit;
 
         // One at a time.
-        private LoadoutWindow? _loadoutWindow;
+        private readonly PersonalLoadoutEditor _personalLoadoutEditor = new();
 
         private bool _exporting;
         private bool _imaging;
@@ -246,6 +246,30 @@ namespace Content.Client.Lobby.UI
             #region Appearance
 
             TabContainer.SetTabTitle(0, Loc.GetString("humanoid-profile-editor-appearance-tab"));
+            TabContainer.AddChild(_personalLoadoutEditor);
+            TabContainer.SetTabTitle(TabContainer.ChildCount - 1, Loc.GetString("dl-loadout-tab"));
+            var personalLoadoutTab = TabContainer.ChildCount - 1;
+            _personalLoadoutEditor.SlotOpened += () => TabContainer.CurrentTab = personalLoadoutTab;
+            TabContainer.OnTabChanged += tab =>
+            {
+                if (tab == personalLoadoutTab)
+                    RefreshPersonalLoadouts();
+            };
+            _personalLoadoutEditor.JobChanged += job =>
+            {
+                JobOverride = job == null ? null : _prototypeManager.Index<JobPrototype>(job);
+                ReloadPreview();
+            };
+            _personalLoadoutEditor.RoleNameChanged += role =>
+            {
+                Profile = Profile?.WithLoadout(role);
+                SetDirty();
+            };
+            _personalLoadoutEditor.SelectionChanged += role =>
+            {
+                Profile = Profile?.WithLoadout(role);
+                ReloadPreview();
+            };
 
             #region Sex
 
@@ -1206,19 +1230,42 @@ namespace Content.Client.Lobby.UI
         /// <summary>
         /// Refresh all loadouts.
         /// </summary>
-        public void RefreshLoadouts()
+        private void RefreshPersonalLoadouts()
         {
-            _loadoutWindow?.Dispose();
+            _personalLoadoutEditor.Refresh(Profile, Profile == null ? string.Empty : (JobOverride ?? _controller.GetPreferredJob(Profile)).ID, _playerManager.LocalSession);
         }
 
-        /// <summary>
-        /// Reloads the entire dummy entity for preview.
-        /// </summary>
-        /// <remarks>
-        /// This is expensive so not recommended to run if you have a slider.
-        /// </remarks>
+        public void RefreshLoadouts()
+        {
+            RefreshPersonalLoadouts();
+        }
+
+        private HumanoidCharacterProfile? _previewEquipmentProfile;
+        private string? _previewJob;
+        private bool _previewClothes;
+
+        /// <summary>Update the existing doll, rebuilding equipment only when its inputs change.</summary>
         private void ReloadPreview()
         {
+            if (Profile == null)
+            {
+                _entManager.DeleteEntity(PreviewDummy);
+                PreviewDummy = EntityUid.Invalid;
+                _previewEquipmentProfile = null;
+                SpriteView.SetEntity(null);
+                return;
+            }
+            var job = (JobOverride ?? _controller.GetPreferredJob(Profile)).ID;
+            if (_entManager.EntityExists(PreviewDummy) && _previewEquipmentProfile is { } previous
+                && previous.Species == Profile.Species && _previewJob == job && _previewClothes == ShowClothes.Pressed
+                && previous.Loadouts.Count == Profile.Loadouts.Count
+                && previous.Loadouts.All(x => Profile.Loadouts.TryGetValue(x.Key, out var current) && x.Value.SelectedLoadouts.Count == current.SelectedLoadouts.Count && x.Value.SelectedLoadouts.All(g => current.SelectedLoadouts.TryGetValue(g.Key, out var items) && g.Value.SequenceEqual(items))))
+            {
+                ReloadProfilePreview();
+                _entManager.System<MetaDataSystem>().SetEntityName(PreviewDummy, Profile.Name);
+                return;
+            }
+            RefreshPersonalLoadouts();
             _entManager.DeleteEntity(PreviewDummy);
             PreviewDummy = EntityUid.Invalid;
 
@@ -1226,7 +1273,13 @@ namespace Content.Client.Lobby.UI
                 return;
 
             PreviewDummy = _controller.LoadProfileEntity(Profile, JobOverride, ShowClothes.Pressed);
+            _previewEquipmentProfile = Profile.Clone();
+            foreach (var loadout in Profile.Loadouts.Values)
+                _previewEquipmentProfile.SetLoadout(loadout.Clone());
+            _previewJob = job;
+            _previewClothes = ShowClothes.Pressed;
             SpriteView.SetEntity(PreviewDummy);
+            _personalLoadoutEditor.UpdatePreviewSlots(PreviewDummy, PreviewSlotsLeft, PreviewSlotsRight);
             _entManager.System<MetaDataSystem>().SetEntityName(PreviewDummy, Profile.Name);
 
             // Check and set the dirty flag to enable the save/reset buttons as appropriate.
@@ -1295,6 +1348,11 @@ namespace Content.Client.Lobby.UI
                 return;
 
             _entManager.System<HumanoidAppearanceSystem>().LoadProfile(PreviewDummy, Profile);
+            // Loading defaults does not reset an existing scale component, so restore it explicitly.
+            if (_entManager.HasComponent<Robust.Shared.GameObjects.ScaleVisualsComponent>(PreviewDummy))
+                _entManager.System<Robust.Client.GameObjects.AppearanceSystem>().SetData(PreviewDummy,
+                    Robust.Shared.GameObjects.ScaleVisuals.Scale,
+                    new Vector2(Profile.Appearance.Width, Profile.Appearance.Height));
 
             // Check and set the dirty flag to enable the save/reset buttons as appropriate.
             SetDirty();
@@ -1461,108 +1519,11 @@ namespace Content.Client.Lobby.UI
                         SetDirty();
                     };
 
-                    var loadoutWindowBtn = new Button()
-                    {
-                        Text = Loc.GetString("loadout-window"),
-                        HorizontalAlignment = HAlignment.Right,
-                        VerticalAlignment = VAlignment.Center,
-                        Margin = new Thickness(3f, 3f, 0f, 0f),
-                    };
-
-                    var collection = IoCManager.Instance!;
-                    var protoManager = collection.Resolve<IPrototypeManager>();
-
-                    // If no loadout found then disabled button
-                    if (!protoManager.TryIndex<RoleLoadoutPrototype>(LoadoutSystem.GetJobPrototype(job.ID), out var roleLoadoutProto))
-                    {
-                        loadoutWindowBtn.Disabled = true;
-                    }
-                    // else
-                    else
-                    {
-                        loadoutWindowBtn.OnPressed += args =>
-                        {
-                            RoleLoadout? loadout = null;
-
-                            // Clone so we don't modify the underlying loadout.
-                            Profile?.Loadouts.TryGetValue(LoadoutSystem.GetJobPrototype(job.ID), out loadout);
-                            loadout = loadout?.Clone();
-
-                            if (loadout == null)
-                            {
-                                loadout = new RoleLoadout(roleLoadoutProto.ID);
-                                loadout.SetDefault(Profile, _playerManager.LocalSession, _prototypeManager);
-                            }
-
-                            OpenLoadout(job, loadout, roleLoadoutProto);
-                        };
-                    }
-
                     _jobPriorities.Add((job.ID, selector));
                     jobContainer.AddChild(selector);
-                    jobContainer.AddChild(loadoutWindowBtn);
                     category.AddChild(jobContainer);
                 }
             }
-
-            UpdateJobPriorities();
-        }
-
-        private void OpenLoadout(JobPrototype? jobProto, RoleLoadout roleLoadout, RoleLoadoutPrototype roleLoadoutProto)
-        {
-            _loadoutWindow?.Dispose();
-            _loadoutWindow = null;
-            var collection = IoCManager.Instance;
-
-            if (collection == null || _playerManager.LocalSession == null || Profile == null)
-                return;
-
-            JobOverride = jobProto;
-            var session = _playerManager.LocalSession;
-
-            _loadoutWindow = new LoadoutWindow(Profile, roleLoadout, roleLoadoutProto, _playerManager.LocalSession, collection)
-            {
-                Title = jobProto?.ID + "-loadout",
-            };
-
-            // Refresh the buttons etc.
-            _loadoutWindow.RefreshLoadouts(roleLoadout, session, collection);
-            _loadoutWindow.OpenCenteredLeft();
-
-            _loadoutWindow.OnNameChanged += name =>
-            {
-                roleLoadout.EntityName = name;
-                Profile = Profile.WithLoadout(roleLoadout);
-                SetDirty();
-            };
-
-            _loadoutWindow.OnLoadoutPressed += (loadoutGroup, loadoutProto) =>
-            {
-                roleLoadout.AddLoadout(loadoutGroup, loadoutProto, _prototypeManager);
-                _loadoutWindow.RefreshLoadouts(roleLoadout, session, collection);
-                Profile = Profile?.WithLoadout(roleLoadout);
-                ReloadPreview();
-            };
-
-            _loadoutWindow.OnLoadoutUnpressed += (loadoutGroup, loadoutProto) =>
-            {
-                roleLoadout.RemoveLoadout(loadoutGroup, loadoutProto, _prototypeManager);
-                _loadoutWindow.RefreshLoadouts(roleLoadout, session, collection);
-                Profile = Profile?.WithLoadout(roleLoadout);
-                ReloadPreview();
-            };
-
-            JobOverride = jobProto;
-            ReloadPreview();
-
-            _loadoutWindow.OnClose += () =>
-            {
-                JobOverride = null;
-                ReloadPreview();
-            };
-
-            if (Profile is null)
-                return;
 
             UpdateJobPriorities();
         }
@@ -1674,8 +1635,6 @@ namespace Content.Client.Lobby.UI
             if (!disposing)
                 return;
 
-            _loadoutWindow?.Dispose();
-            _loadoutWindow = null;
         }
 
         protected override void EnteredTree()
