@@ -24,15 +24,16 @@ namespace Content.Server._DeepLagoon.DiscordLink;
 
 public sealed partial class DiscordLinkSystem : EntitySystem
 {
-    [Dependency] private IPlayerManager _players = default!;
-    [Dependency] private EuiManager _euis = default!;
-    [Dependency] private IConfigurationManager _config = default!;
-    [Dependency] private IResourceManager _resources = default!;
-    [Dependency] private IStatusHost _status = default!;
-    [Dependency] private ITaskManager _tasks = default!;
-    [Dependency] private IServerDbManager _database = default!;
-    [Dependency] private JobWhitelistManager _whitelist = default!;
-    [Dependency] private IConnectionManager _connections = default!;
+    [Dependency] private readonly IPlayerManager _players = default!;
+    [Dependency] private readonly EuiManager _euis = default!;
+    [Dependency] private readonly IConfigurationManager _config = default!;
+    [Dependency] private readonly IResourceManager _resources = default!;
+    [Dependency] private readonly IStatusHost _status = default!;
+    [Dependency] private readonly ITaskManager _tasks = default!;
+    [Dependency] private readonly IServerDbManager _database = default!;
+    [Dependency] private readonly JobWhitelistManager _whitelist = default!;
+    [Dependency] private readonly IConnectionManager _connections = default!;
+    [Dependency] private readonly Content.Server.Players.PlayTimeTracking.PlayTimeTrackingManager _playTime = default!;
     private readonly HashSet<ICommonSession> _admitted = new();
     private DiscordLinkStore? _store;
     private string _token = "";
@@ -234,6 +235,7 @@ public sealed partial class DiscordLinkSystem : EntitySystem
                 try
                 {
                     DiscordLinkStore.Link? link;
+                    var merged = false;
                     if (path.EndsWith("/enroll_launcher", StringComparison.Ordinal))
                         link = _store.EnrollLauncher(request.DiscordId, request.DiscordUsername);
                     else if (path.EndsWith("/restore_discord", StringComparison.Ordinal))
@@ -260,7 +262,10 @@ public sealed partial class DiscordLinkSystem : EntitySystem
                         var code = request.Code?.Trim().ToUpperInvariant() ?? "";
                         if (code.Length != 24 || code.Any(c => !char.IsAsciiHexDigit(c)))
                             return new ApiResult(HttpStatusCode.BadRequest, new { error = "invalid_code" });
-                        link = _store.Consume(request.DiscordId, code);
+                        merged = _store.IsMergeCode(code);
+                        link = merged
+                            ? await MergeAccounts(request.DiscordId, code)
+                            : _store.Consume(request.DiscordId, code);
                     }
                     else
                         link = _store.FindDiscord(request.DiscordId);
@@ -302,7 +307,7 @@ public sealed partial class DiscordLinkSystem : EntitySystem
                         existing = true;
                     }
                     await RefreshUid(link.Uid);
-                    return new ApiResult(HttpStatusCode.OK, new { uid = link.Uid, username = link.Username, existing });
+                    return new ApiResult(HttpStatusCode.OK, new { uid = link.Uid, username = link.Username, existing, merged });
                 }
                 catch (DiscordLinkStore.LinkException e)
                 {
@@ -334,6 +339,74 @@ public sealed partial class DiscordLinkSystem : EntitySystem
             catch (Exception e) { completion.TrySetException(e); }
         });
         return completion.Task;
+    }
+
+    private async Task<DiscordLinkStore.Link> MergeAccounts(string discordId, string code)
+    {
+        if (_store == null) throw new DiscordLinkStore.LinkException("unavailable");
+        var worker = _config.GetCVar(CCVars.DiscordAccountMergeWorker);
+        var python = _config.GetCVar(CCVars.DiscordAccountMergePython);
+        if (!File.Exists(worker) || !File.Exists(python))
+            throw new DiscordLinkStore.LinkException("merge_unavailable");
+        var check = new System.Diagnostics.ProcessStartInfo(python)
+        {
+            UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true,
+        };
+        check.ArgumentList.Add(worker);
+        check.ArgumentList.Add("--check");
+        using (var preflight = System.Diagnostics.Process.Start(check))
+        {
+            if (preflight == null) throw new DiscordLinkStore.LinkException("merge_unavailable");
+            var checkOut = preflight.StandardOutput.ReadToEndAsync();
+            var checkError = preflight.StandardError.ReadToEndAsync();
+            await preflight.WaitForExitAsync();
+            await checkOut;
+            await checkError;
+            if (preflight.ExitCode != 0) throw new DiscordLinkStore.LinkException("merge_unavailable");
+        }
+        var plan = _store.PrepareMerge(discordId, code);
+        if (_store.MergeCompleted(discordId, plan))
+            return new DiscordLinkStore.Link(plan.CanonicalUid, plan.Username);
+        foreach (var session in _players.Sessions.Where(s => s.UserId.UserId == plan.OfficialUid || s.UserId.UserId == plan.CanonicalUid).ToArray())
+            session.Channel.Disconnect("Аккаунты объединяются. Переподключитесь после подтверждения в Discord.");
+        // The identity gateway blocks both subjects while the durable plan is
+        // pending. Wait for disconnect callbacks and their database writes.
+        var deadline = DateTime.UtcNow.AddSeconds(30);
+        while (_players.Sessions.Any(s => s.UserId.UserId == plan.OfficialUid || s.UserId.UserId == plan.CanonicalUid) || ServerDbManager.DbActiveOps.Value > 0)
+        {
+            if (DateTime.UtcNow > deadline) throw new DiscordLinkStore.LinkException("merge_pending");
+            await Task.Delay(100);
+        }
+        await _playTime.WaitPendingSavesAsync();
+        var start = new System.Diagnostics.ProcessStartInfo(python)
+        {
+            UseShellExecute = false,
+            RedirectStandardInput = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+        start.ArgumentList.Add(worker);
+        using var process = System.Diagnostics.Process.Start(start) ?? throw new DiscordLinkStore.LinkException("merge_unavailable");
+        var outputTask = process.StandardOutput.ReadToEndAsync();
+        var errorTask = process.StandardError.ReadToEndAsync();
+        await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { source_uid = plan.OfficialUid, target_uid = plan.CanonicalUid }));
+        process.StandardInput.Close();
+        // Do not kill a worker after an HTTP timeout: it may already have
+        // committed. The PostgreSQL journal makes a subsequent retry safe.
+        await process.WaitForExitAsync();
+        var output = await outputTask;
+        await errorTask; // drain, never log credentials or database rows
+        if (process.ExitCode != 0) throw new DiscordLinkStore.LinkException("merge_pending");
+        using var reply = JsonDocument.Parse(output);
+        if (!reply.RootElement.GetProperty("ok").GetBoolean() ||
+            reply.RootElement.GetProperty("source_uid").GetString() != plan.OfficialUid.ToString() ||
+            reply.RootElement.GetProperty("target_uid").GetString() != plan.CanonicalUid.ToString())
+            throw new DiscordLinkStore.LinkException("merge_pending");
+        var link = _store.CompleteMerge(discordId, code, plan);
+        var library = EntityManager.System<Content.Server._DeepLagoon.InteractionPanel.InteractionPanelSystem>();
+        library.InvalidateAccountLibrary(new NetUserId(plan.OfficialUid));
+        library.InvalidateAccountLibrary(new NetUserId(plan.CanonicalUid));
+        return link;
     }
 
     private sealed record ApiRequest(

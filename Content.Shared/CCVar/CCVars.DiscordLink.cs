@@ -25,4 +25,10 @@ public sealed partial class CCVars
 
     public static readonly CVarDef<string> DiscordLinkToken =
         CVarDef.Create("discord_link.api_token", "", CVar.SERVERONLY | CVar.CONFIDENTIAL);
+
+    public static readonly CVarDef<string> DiscordAccountMergePython =
+        CVarDef.Create("discord_link.merge_python", "/home/ss14/ss14/control-agent-venv/bin/python", CVar.SERVERONLY);
+
+    public static readonly CVarDef<string> DiscordAccountMergeWorker =
+        CVarDef.Create("discord_link.merge_worker", "/opt/lagoon-launcher/identity/merge_game_accounts.py", CVar.SERVERONLY);
 }
