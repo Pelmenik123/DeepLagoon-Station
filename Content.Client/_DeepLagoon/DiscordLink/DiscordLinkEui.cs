@@ -26,6 +26,7 @@ public sealed class DiscordLinkEui : BaseEui
     private readonly Label _message = new();
     private readonly LineEdit _code = new() { Editable = false };
     private readonly Button _generate = new() { Text = "Создать код" };
+    private readonly Button _existing = new() { Text = "У меня уже есть аккаунт" };
     [Dependency] private readonly IClipboardManager _clipboard = default!;
     [Dependency] private readonly IBaseClient _client = default!;
     private readonly Button _copy = new() { Text = "Копировать код", Disabled = true };
@@ -39,7 +40,7 @@ public sealed class DiscordLinkEui : BaseEui
         _window.Contents.AddChild(new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Vertical,
-            Children = { _message, _code, _copy, _generate, check, disconnect },
+            Children = { _message, _code, _copy, _generate, _existing, check, disconnect },
         });
         _copy.OnPressed += _ =>
         {
@@ -47,6 +48,7 @@ public sealed class DiscordLinkEui : BaseEui
             _copy.Text = "Код скопирован";
         };
         _generate.OnPressed += _ => SendMessage(new GenerateDiscordLinkCode());
+        _existing.OnPressed += _ => SendMessage(new GenerateDiscordAccountMergeCode());
         check.OnPressed += _ => SendMessage(new CheckDiscordLink());
         _window.OnClose += () =>
         {
@@ -74,5 +76,6 @@ public sealed class DiscordLinkEui : BaseEui
         _code.Text = s.Code;
         _copy.Disabled = string.IsNullOrEmpty(s.Code);
         _generate.Disabled = s.Linked;
+        _existing.Disabled = s.Linked;
     }
 }

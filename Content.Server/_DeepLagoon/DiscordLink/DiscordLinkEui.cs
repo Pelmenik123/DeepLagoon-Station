@@ -27,7 +27,7 @@ public sealed class DiscordLinkEui(DiscordLinkStore store, Func<bool> admitted) 
             return;
         }
         base.HandleMessage(msg);
-        if (IsShutDown || msg is not (GenerateDiscordLinkCode or CheckDiscordLink))
+        if (IsShutDown || msg is not (GenerateDiscordLinkCode or GenerateDiscordAccountMergeCode or CheckDiscordLink))
             return;
         _linked = store.IsLinked(Player.UserId.UserId);
         if (_linked)
@@ -35,13 +35,17 @@ public sealed class DiscordLinkEui(DiscordLinkStore store, Func<bool> admitted) 
             _code = "";
             _message = "Discord успешно привязан. Теперь создайте WL-заявку в Discord. После одобрения регистраторами откроется доступ к лобби и игре. До этого проверка обязательна.";
         }
-        else if (msg is GenerateDiscordLinkCode)
+        else if (msg is GenerateDiscordLinkCode or GenerateDiscordAccountMergeCode)
         {
             try
             {
                 // The UID comes exclusively from the authenticated EUI session.
-                _code = store.Issue(Player.UserId.UserId, Player.Name);
-                _message = "Введите этот код в своём тикете Discord командой /link_discord.\nКод действует 10 минут. Создание нового кода отменяет предыдущий.";
+                _code = msg is GenerateDiscordAccountMergeCode
+                    ? store.IssueMerge(Player.UserId.UserId, Player.Name)
+                    : store.Issue(Player.UserId.UserId, Player.Name);
+                _message = msg is GenerateDiscordAccountMergeCode
+                    ? "Этот код объединяет текущий аккаунт с аккаунтом вашего Discord.\nСохраняются персонажи, время игры и ограничения обоих аккаунтов. Старые сессии будут отключены.\nДля подтверждения введите код в своём тикете Discord: /link_discord code:КОД. Не передавайте код другим людям."
+                    : "Введите этот код в своём тикете Discord командой /link_discord.\nКод действует 10 минут. Создание нового кода отменяет предыдущий.";
             }
             catch (DiscordLinkStore.LinkException)
             {

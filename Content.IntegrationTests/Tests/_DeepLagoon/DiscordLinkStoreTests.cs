@@ -53,6 +53,28 @@ public sealed class DiscordLinkStoreTests
     }
 
     [Test]
+    public void ExplicitMergeCodePreservesCanonicalUidAndIsBoundToDiscord()
+    {
+        using var store = new DiscordLinkStore(_path, () => _now);
+        const string discord = "1554565156657299597";
+        var canonical = store.EnrollLauncher(discord);
+        var official = Guid.NewGuid();
+        var normal = store.Issue(official, "OfficialPlayer");
+        Assert.That(store.IsMergeCode(normal), Is.False);
+        _now += 31;
+        var code = store.IssueMerge(official, "OfficialPlayer");
+        Assert.That(store.IsMergeCode(code), Is.True);
+        var plan = store.PrepareMerge(discord, code);
+        Assert.That(plan.CanonicalUid, Is.EqualTo(canonical.Uid));
+        Assert.That(plan.OfficialUid, Is.EqualTo(official));
+        Assert.That(() => store.PrepareMerge("1554565156657299598", code), Throws.TypeOf<DiscordLinkStore.LinkException>());
+        var merged = store.CompleteMerge(discord, code, plan);
+        Assert.That(merged.Uid, Is.EqualTo(canonical.Uid));
+        Assert.That(store.EnrollLauncher(discord).Username, Is.EqualTo("OfficialPlayer"));
+        Assert.That(store.PrepareMerge(discord, code), Is.EqualTo(plan));
+    }
+
+    [Test]
     public void LauncherNamesUseShortDiscordNicknameAndNeverRenameExistingUid()
     {
         using var store = new DiscordLinkStore(_path, () => _now);

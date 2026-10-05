@@ -38,6 +38,11 @@ namespace Content.Server.Preferences.Managers
 
         private int MaxCharacterSlots => _cfg.GetCVar(CCVars.GameMaxCharacterSlots);
 
+        private int CharacterSlotLimit(NetUserId userId)
+            => _cachedPlayerPrefs.TryGetValue(userId, out var data) && data.Prefs != null
+                ? Math.Max(MaxCharacterSlots, data.Prefs.Characters.Keys.DefaultIfEmpty(-1).Max() + 1)
+                : MaxCharacterSlots;
+
         public void Init()
         {
             _netManager.RegisterNetMessage<MsgPreferencesAndSettings>();
@@ -58,7 +63,7 @@ namespace Content.Server.Preferences.Managers
                 return;
             }
 
-            if (index < 0 || index >= MaxCharacterSlots)
+            if (index < 0 || index >= CharacterSlotLimit(userId))
             {
                 return;
             }
@@ -98,7 +103,7 @@ namespace Content.Server.Preferences.Managers
                 return;
             }
 
-            if (slot < 0 || slot >= MaxCharacterSlots)
+            if (slot < 0 || slot >= CharacterSlotLimit(userId))
                 return;
 
             var curPrefs = prefsData.Prefs!;
@@ -129,7 +134,7 @@ namespace Content.Server.Preferences.Managers
                 return;
             }
 
-            if (slot < 0 || slot >= MaxCharacterSlots)
+            if (slot < 0 || slot >= CharacterSlotLimit(userId))
             {
                 return;
             }
@@ -217,7 +222,7 @@ namespace Content.Server.Preferences.Managers
             msg.Preferences = prefsData.Prefs;
             msg.Settings = new GameSettings
             {
-                MaxCharacterSlots = MaxCharacterSlots
+                MaxCharacterSlots = CharacterSlotLimit(session.UserId)
             };
             _netManager.ServerSendMessage(msg, session.Channel);
 
@@ -319,7 +324,7 @@ namespace Content.Server.Preferences.Managers
                         Preferences = prefs,
                         Settings = new GameSettings
                         {
-                            MaxCharacterSlots = MaxCharacterSlots
+                            MaxCharacterSlots = CharacterSlotLimit(session.UserId)
                         }
                     };
 

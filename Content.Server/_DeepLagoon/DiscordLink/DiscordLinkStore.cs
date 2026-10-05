@@ -30,6 +30,14 @@ public sealed class DiscordLinkStore : IDisposable
                 discord_id TEXT PRIMARY KEY, ss14_uid TEXT NOT NULL UNIQUE,
                 username TEXT NOT NULL, linked_at INTEGER NOT NULL);
             CREATE TABLE IF NOT EXISTS discord_launcher_enrollments (discord_id TEXT PRIMARY KEY, ss14_uid TEXT NOT NULL UNIQUE);
+            CREATE TABLE IF NOT EXISTS discord_account_aliases (
+                official_uid TEXT PRIMARY KEY, canonical_uid TEXT NOT NULL, discord_id TEXT NOT NULL,
+                username TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS discord_account_merge_codes (
+                code_hash TEXT PRIMARY KEY, ss14_uid TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS discord_account_merge_pending (
+                code_hash TEXT PRIMARY KEY, discord_id TEXT NOT NULL, official_uid TEXT NOT NULL,
+                canonical_uid TEXT NOT NULL, username TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS discord_link_history (discord_id TEXT PRIMARY KEY, ss14_uid TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS discord_link_revisions (ss14_uid TEXT PRIMARY KEY, revision INTEGER NOT NULL);
             CREATE TABLE IF NOT EXISTS discord_link_codes (
@@ -283,6 +291,75 @@ public sealed class DiscordLinkStore : IDisposable
     private void BumpRevision(Guid uid) => Execute("INSERT INTO discord_link_revisions VALUES($uid,1) ON CONFLICT(ss14_uid) DO UPDATE SET revision=revision+1", ("$uid", uid.ToString()));
 
     private static string Hash(string code) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(code)));
+
+    public string IssueMerge(Guid uid, string username)
+    {
+        var code = Issue(uid, username);
+        Execute("DELETE FROM discord_account_merge_codes WHERE ss14_uid=$uid", ("$uid", uid.ToString()));
+        Execute("INSERT INTO discord_account_merge_codes VALUES($hash,$uid)", ("$hash", Hash(code)), ("$uid", uid.ToString()));
+        return code;
+    }
+
+    public bool IsMergeCode(string code)
+    {
+        using var query = Command("SELECT 1 FROM discord_account_merge_codes WHERE code_hash=$hash UNION ALL SELECT 1 FROM discord_account_merge_pending WHERE code_hash=$hash", ("$hash", Hash(code)));
+        return query.ExecuteScalar() != null;
+    }
+
+    public sealed record MergePlan(Guid OfficialUid, Guid CanonicalUid, string Username);
+
+    public MergePlan PrepareMerge(string discordId, string code)
+    {
+        var canonical = FindDiscord(discordId) ?? throw new LinkException("no_existing_account");
+        var hash = Hash(code);
+        using (var pending = Command("SELECT official_uid,canonical_uid,username,discord_id FROM discord_account_merge_pending WHERE code_hash=$hash", ("$hash", hash)))
+        {
+            using var reader = pending.ExecuteReader();
+            if (reader.Read())
+            {
+                if (reader.GetString(3) != discordId || Guid.Parse(reader.GetString(1)) != canonical.Uid)
+                    throw new LinkException("identity_conflict");
+                return new MergePlan(Guid.Parse(reader.GetString(0)), canonical.Uid, reader.GetString(2));
+            }
+        }
+        using var query = Command("SELECT c.ss14_uid,c.username FROM discord_link_codes c JOIN discord_account_merge_codes m ON m.code_hash=c.code_hash WHERE c.code_hash=$hash AND c.expires_at>$now", ("$hash", hash), ("$now", _now()));
+        Guid official;
+        string username;
+        using (var reader = query.ExecuteReader())
+        {
+            if (!reader.Read()) throw new LinkException("invalid_code");
+            official = Guid.Parse(reader.GetString(0));
+            username = reader.GetString(1);
+        }
+        if (official == canonical.Uid || IsLinked(official)) throw new LinkException("already_linked");
+        using (var owner = Command("SELECT 1 FROM discord_link_history WHERE ss14_uid=$uid AND discord_id<>$discord UNION ALL SELECT 1 FROM discord_launcher_enrollments WHERE ss14_uid=$uid AND discord_id<>$discord", ("$uid", official.ToString()), ("$discord", discordId)))
+            if (owner.ExecuteScalar() != null) throw new LinkException("identity_conflict");
+        using (var other = Command("SELECT 1 FROM discord_account_merge_pending WHERE official_uid IN ($a,$b) OR canonical_uid IN ($a,$b) UNION ALL SELECT 1 FROM discord_account_aliases WHERE official_uid=$a", ("$a", official.ToString()), ("$b", canonical.Uid.ToString())))
+            if (other.ExecuteScalar() != null) throw new LinkException("merge_pending");
+        Execute("INSERT INTO discord_account_merge_pending VALUES($hash,$discord,$official,$canonical,$name)", ("$hash", hash), ("$discord", discordId), ("$official", official.ToString()), ("$canonical", canonical.Uid.ToString()), ("$name", username));
+        return new MergePlan(official, canonical.Uid, username);
+    }
+
+    public Link CompleteMerge(string discordId, string code, MergePlan plan)
+    {
+        if (PrepareMerge(discordId, code) != plan) throw new LinkException("identity_conflict");
+        using var transaction = _db.BeginTransaction();
+        Execute("INSERT INTO discord_account_aliases VALUES($official,$canonical,$discord,$name) ON CONFLICT(official_uid) DO UPDATE SET username=excluded.username", ("$official", plan.OfficialUid.ToString()), ("$canonical", plan.CanonicalUid.ToString()), ("$discord", discordId), ("$name", plan.Username));
+        Execute("UPDATE discord_links SET username=$name WHERE discord_id=$discord", ("$name", plan.Username), ("$discord", discordId));
+        Execute("DELETE FROM discord_link_codes WHERE ss14_uid=$uid", ("$uid", plan.OfficialUid.ToString()));
+        // Keep the pending proof as a durable replay receipt. It is no longer a
+        // login barrier once the alias exists; only the same Discord can retry.
+        BumpRevision(plan.CanonicalUid);
+        BumpRevision(plan.OfficialUid);
+        transaction.Commit();
+        return new Link(plan.CanonicalUid, plan.Username);
+    }
+
+    public bool MergeCompleted(string discordId, MergePlan plan)
+    {
+        using var query = Command("SELECT 1 FROM discord_account_aliases WHERE official_uid=$official AND canonical_uid=$canonical AND discord_id=$discord", ("$official", plan.OfficialUid.ToString()), ("$canonical", plan.CanonicalUid.ToString()), ("$discord", discordId));
+        return query.ExecuteScalar() != null;
+    }
     public void Dispose() => _db.Dispose();
     public sealed record Link(Guid Uid, string Username);
     public sealed class LinkException(string code) : Exception(code);

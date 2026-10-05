@@ -19,6 +19,12 @@ public sealed partial class InteractionPanelSystem
     private readonly HashSet<NetUserId> _libraryBusy = new();
     private readonly Dictionary<NetUserId, TimeSpan> _nextLibraryWrite = new();
 
+    public void InvalidateAccountLibrary(NetUserId owner)
+    {
+        _libraries.Remove(owner);
+        _nextLibraryWrite.Remove(owner);
+    }
+
     private InteractionPanelActionDefinition? FindAction(EntityUid user, string id)
     {
         var standard = InteractionPanelActionCatalog.Load(_prototypes).FirstOrDefault(a => a.Id == id);

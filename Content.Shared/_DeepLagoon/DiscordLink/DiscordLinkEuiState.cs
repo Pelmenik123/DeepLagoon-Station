@@ -15,6 +15,9 @@ public sealed class DiscordLinkEuiState(string message, string code, bool linked
 public sealed class GenerateDiscordLinkCode : EuiMessageBase;
 
 [Serializable, NetSerializable]
+public sealed class GenerateDiscordAccountMergeCode : EuiMessageBase;
+
+[Serializable, NetSerializable]
 public sealed class CheckDiscordLink : EuiMessageBase;
 
 [Serializable, NetSerializable]
