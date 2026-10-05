@@ -98,7 +98,7 @@ public sealed class PersonalLoadoutSystem : EntitySystem
         {
             Name = prototype.PersonalCustomName ? Limit(data.Name, HumanoidCharacterProfile.MaxNameLength) : null,
             Description = prototype.PersonalCustomDescription ? Limit(data.Description, HumanoidCharacterProfile.MaxDescLength) : null,
-            Color = prototype.PersonalCustomColor && data.Color != null && Robust.Shared.Maths.Color.TryFromHex(data.Color) is { } color ? color.ToHex() : null,
+            Color = prototype.PersonalCustomColor && data.Color != null && Robust.Shared.Maths.Color.TryFromHex(data.Color, out var color) ? color.ToHex() : null,
             Heirloom = prototype.PersonalHeirloom && data.Heirloom,
         };
     }

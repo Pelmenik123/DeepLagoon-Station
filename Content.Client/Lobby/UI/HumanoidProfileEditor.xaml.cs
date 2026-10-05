@@ -1348,9 +1348,9 @@ namespace Content.Client.Lobby.UI
 
             _entManager.System<HumanoidAppearanceSystem>().LoadProfile(PreviewDummy, Profile);
             // Loading defaults does not reset an existing scale component, so restore it explicitly.
-            if (_entManager.HasComponent<Robust.Shared.GameObjects.ScaleVisualsComponent>(PreviewDummy))
+            if (_entManager.HasComponent<Content.Shared.Sprite.ScaleVisualsComponent>(PreviewDummy))
                 _entManager.System<Robust.Client.GameObjects.AppearanceSystem>().SetData(PreviewDummy,
-                    Robust.Shared.GameObjects.ScaleVisuals.Scale,
+                    Content.Shared.Sprite.ScaleVisuals.Scale,
                     new Vector2(Profile.Appearance.Width, Profile.Appearance.Height));
 
             // Check and set the dirty flag to enable the save/reset buttons as appropriate.

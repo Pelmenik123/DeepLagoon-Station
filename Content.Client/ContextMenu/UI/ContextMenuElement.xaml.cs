@@ -59,7 +59,7 @@ namespace Content.Client.ContextMenu.UI
         protected override void ExitedTree()
         {
             base.ExitedTree();
-            _subMenu?.DisposeControl();
+            _subMenu?.Orphan();
             _subMenu = null;
             ParentMenu = null;
         }

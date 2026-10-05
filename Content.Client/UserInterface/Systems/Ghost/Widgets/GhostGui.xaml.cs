@@ -92,12 +92,13 @@ public sealed partial class GhostGui : UIWidget
         }
     }
 
-    protected override void ExitedTree()
+    protected override void Dispose(bool disposing)
     {
-        base.ExitedTree();
+        base.Dispose(disposing);
 
+        if (!disposing)
+            return;
 
         TargetWindow?.DisposeControl();
-
     }
 }
