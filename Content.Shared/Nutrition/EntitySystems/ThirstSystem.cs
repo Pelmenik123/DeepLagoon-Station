@@ -14,22 +14,19 @@ using System.Diagnostics.CodeAnalysis;
 namespace Content.Shared.Nutrition.EntitySystems;
 
 [UsedImplicitly]
-public sealed class ThirstSystem : EntitySystem
+public sealed partial class ThirstSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IPrototypeManager _prototype = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly AlertsSystem _alerts = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
-    [Dependency] private readonly SharedJetpackSystem _jetpack = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IPrototypeManager _prototype = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private AlertsSystem _alerts = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private SharedJetpackSystem _jetpack = default!;
 
-    [ValidatePrototypeId<SatiationIconPrototype>]
     private const string ThirstIconOverhydratedId = "ThirstIconOverhydrated";
 
-    [ValidatePrototypeId<SatiationIconPrototype>]
     private const string ThirstIconThirstyId = "ThirstIconThirsty";
 
-    [ValidatePrototypeId<SatiationIconPrototype>]
     private const string ThirstIconParchedId = "ThirstIconParched";
 
     public override void Initialize()
@@ -47,8 +44,8 @@ public sealed class ThirstSystem : EntitySystem
         if (component.CurrentThirst < 0)
         {
             component.CurrentThirst = _random.Next(
-                (int) component.ThirstThresholds[ThirstThreshold.Thirsty] + 10,
-                (int) component.ThirstThresholds[ThirstThreshold.Okay] - 1);
+                (int)component.ThirstThresholds[ThirstThreshold.Thirsty] + 10,
+                (int)component.ThirstThresholds[ThirstThreshold.Okay] - 1);
         }
         component.NextUpdateTime = _timing.CurTime;
         component.CurrentThirstThreshold = GetThirstThreshold(component, component.CurrentThirst);
@@ -57,7 +54,7 @@ public sealed class ThirstSystem : EntitySystem
         UpdateEffects(uid, component);
 
         TryComp(uid, out MovementSpeedModifierComponent? moveMod);
-            _movement.RefreshMovementSpeedModifiers(uid, moveMod);
+        _movement.RefreshMovementSpeedModifiers(uid, moveMod);
     }
 
     private void OnRefreshMovespeed(EntityUid uid, ThirstComponent component, RefreshMovementSpeedModifiersEvent args)
@@ -103,7 +100,7 @@ public sealed class ThirstSystem : EntitySystem
             component.ThirstThresholds[ThirstThreshold.OverHydrated]
         );
 
-        EntityManager.DirtyField(uid, component, nameof(ThirstComponent.CurrentThirst));
+        DirtyField(uid, component, nameof(ThirstComponent.CurrentThirst));
     }
 
     private bool IsMovementThreshold(ThirstThreshold threshold)

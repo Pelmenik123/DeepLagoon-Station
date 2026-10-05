@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Server.Storage.EntitySystems;
 using Content.Shared._NF.CrateMachine;
@@ -15,10 +15,10 @@ namespace Content.Server._NF.CrateMachine;
 /// </summary>
 public sealed partial class CrateMachineSystem : SharedCrateMachineSystem
 {
-    [Dependency] private readonly IMapManager _mapManager = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly EntityStorageSystem _storage = default!;
-    [Dependency] private readonly TransformSystem _transform = default!;
+    [Dependency] private SharedMapSystem _mapManager = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private EntityStorageSystem _storage = default!;
+    [Dependency] private TransformSystem _transform = default!;
 
     /// <summary>
     /// Checks if there is a crate on the crate machine.

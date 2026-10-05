@@ -12,11 +12,11 @@ namespace Content.Server.Speech.EntitySystems
     /// <summary>
     /// Replaces text in messages, either with full replacements or word replacements.
     /// </summary>
-    public sealed class ReplacementAccentSystem : EntitySystem
+    public sealed partial class ReplacementAccentSystem : EntitySystem
     {
-        [Dependency] private readonly IPrototypeManager _proto = default!;
-        [Dependency] private readonly IRobustRandom _random = default!;
-        [Dependency] private readonly ILocalizationManager _loc = default!;
+        [Dependency] private IPrototypeManager _proto = default!;
+        [Dependency] private IRobustRandom _random = default!;
+        [Dependency] private ILocalizationManager _loc = default!;
 
         public override void Initialize()
         {
@@ -63,10 +63,11 @@ namespace Content.Server.Speech.EntitySystems
                 // this is kind of slow but its not that bad
                 // essentially: go over all matches, try to match capitalization where possible, then replace
                 // rather than using regex.replace
-                for (int i = Regex.Count(maskMessage, $@"(?<!\w){f}(?!\w)", RegexOptions.IgnoreCase); i > 0; i--)
+                var wordRegex = new Regex($@"(?<!\w){f}(?!\w)", RegexOptions.IgnoreCase);
+                for (int i = wordRegex.Count(maskMessage); i > 0; i--)
                 {
                     // fetch the match again as the character indices may have changed
-                    Match match = Regex.Match(maskMessage, $@"(?<!\w){f}(?!\w)", RegexOptions.IgnoreCase);
+                    Match match = wordRegex.Match(maskMessage);
                     var replacement = r;
 
                     // Intelligently replace capitalization

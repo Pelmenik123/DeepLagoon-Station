@@ -22,7 +22,7 @@ using Robust.Shared.Player;
 
 namespace Content.Server._DeepLagoon.DiscordLink;
 
-public sealed class DiscordLinkSystem : EntitySystem
+public sealed partial class DiscordLinkSystem : EntitySystem
 {
     [Dependency] private readonly IPlayerManager _players = default!;
     [Dependency] private readonly EuiManager _euis = default!;

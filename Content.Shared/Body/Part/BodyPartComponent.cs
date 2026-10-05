@@ -208,7 +208,9 @@ public sealed partial class BodyPartComponent : Component, ISurgeryToolComponent
 
             foreach (var slotId in Children.Keys)
             {
-                temp.Add((ContainerSlot) containerSystem.GetContainer(Owner, SharedBodySystem.PartSlotContainerIdPrefix+slotId));
+#pragma warning disable CS0618 // Component.Owner: VV-only getter has no EntityUid parameter.
+                temp.Add((ContainerSlot)containerSystem.GetContainer(Owner, SharedBodySystem.PartSlotContainerIdPrefix + slotId));
+#pragma warning restore CS0618
             }
 
             return temp;
@@ -225,7 +227,9 @@ public sealed partial class BodyPartComponent : Component, ISurgeryToolComponent
 
             foreach (var slotId in Organs.Keys)
             {
-                temp.Add((ContainerSlot) containerSystem.GetContainer(Owner, SharedBodySystem.OrganSlotContainerIdPrefix+slotId));
+#pragma warning disable CS0618 // Component.Owner: VV-only getter has no EntityUid parameter.
+                temp.Add((ContainerSlot)containerSystem.GetContainer(Owner, SharedBodySystem.OrganSlotContainerIdPrefix + slotId));
+#pragma warning restore CS0618
             }
 
             return temp;

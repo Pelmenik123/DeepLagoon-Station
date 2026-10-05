@@ -5,6 +5,7 @@ using Content.Shared.Damage;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Audio;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
 using Content.Shared.Mobs.Components;
@@ -14,14 +15,14 @@ namespace Content.Server._EinsteinEngines.Silicon.EmitBuzzOnCrit;
 /// <summary>
 /// This handles the buzzing popup and sound of a silicon based race when it is pretty damaged.
 /// </summary>
-public sealed class EmitBuzzWhileDamagedSystem : EntitySystem
+public sealed partial class EmitBuzzWhileDamagedSystem : EntitySystem
 {
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly MobThresholdSystem _mobThreshold = default!;
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
-    [Dependency] private readonly PopupSystem _popupSystem = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly IRobustRandom _robustRandom = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private MobThresholdSystem _mobThreshold = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
+    [Dependency] private PopupSystem _popupSystem = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private IRobustRandom _robustRandom = default!;
 
     public override void Update(float frameTime)
     {
@@ -51,7 +52,7 @@ public sealed class EmitBuzzWhileDamagedSystem : EntitySystem
             emitBuzzOnCritComponent.LastBuzzPopupTime = _gameTiming.CurTime;
             _popupSystem.PopupEntity(Loc.GetString("silicon-behavior-buzz"), uid);
             Spawn("EffectSparks", Transform(uid).Coordinates);
-            _audio.PlayPvs(emitBuzzOnCritComponent.Sound, uid, AudioHelpers.WithVariation(0.05f, _robustRandom));
+            _audio.PlayPvs(emitBuzzOnCritComponent.Sound, uid, AudioParams.Default.WithVariation(0.05f));
         }
     }
 

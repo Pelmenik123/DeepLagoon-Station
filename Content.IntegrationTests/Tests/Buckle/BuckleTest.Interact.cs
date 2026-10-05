@@ -1,4 +1,4 @@
-﻿using Content.Shared.Buckle;
+using Content.Shared.Buckle;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Interaction;
 using Robust.Server.GameObjects;
@@ -33,7 +33,7 @@ public sealed partial class BuckleTest
             Assert.That(entMan.TryGetComponent(victim, out buckle));
             Assert.That(entMan.TryGetComponent(chair, out strap));
 
-#pragma warning disable RA0002
+#pragma warning disable RA0002 // Matches upstream SS14: BuckleComponent.Delay is [Access]-restricted and tests intentionally set it directly.
             buckle.Delay = TimeSpan.Zero;
 #pragma warning restore RA0002
 
@@ -80,7 +80,7 @@ public sealed partial class BuckleTest
             Assert.That(entMan.TryGetComponent(user, out buckle));
             Assert.That(entMan.TryGetComponent(chair, out strap));
 
-#pragma warning disable RA0002
+#pragma warning disable RA0002 // Matches upstream SS14: BuckleComponent.Delay is [Access]-restricted and tests intentionally set it directly.
             buckle.Delay = TimeSpan.Zero;
 #pragma warning restore RA0002
 

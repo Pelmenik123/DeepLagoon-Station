@@ -29,8 +29,8 @@ namespace Content.Shared.Salvage;
 
 public abstract partial class SharedSalvageSystem : EntitySystem
 {
-    [Dependency] private readonly ILocalizationManager _loc = default!;
-    [Dependency] private readonly IPrototypeManager _proto = default!;
+    [Dependency] private ILocalizationManager _loc = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
 
     #region Descriptions
 
@@ -57,7 +57,7 @@ public abstract partial class SharedSalvageSystem : EntitySystem
 
     public float GetMiningTax(DifficultyRating baseRating)
     {
-        return 0.6f + (int) baseRating * 0.05f;
+        return 0.6f + (int)baseRating * 0.05f;
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ public abstract partial class SharedSalvageSystem : EntitySystem
     /// </summary>
     public int GetStructureCount(DifficultyRating baseRating)
     {
-        return 1 + (int) baseRating * 2;
+        return 1 + (int)baseRating * 2;
     }
 
     #endregion
@@ -100,13 +100,13 @@ public abstract partial class SharedSalvageSystem : EntitySystem
     public string GetFTLName(LocalizedDatasetPrototype dataset, int seed)
     {
         var random = new System.Random(seed);
-        return $"{Loc.GetString(dataset.Values[random.Next(dataset.Values.Count)])}-{random.Next(10, 100)}-{(char) (65 + random.Next(26))}";
+        return $"{Loc.GetString(dataset.Values[random.Next(dataset.Values.Count)])}-{random.Next(10, 100)}-{(char)(65 + random.Next(26))}";
     }
 
     public SalvageMission GetMission(SalvageMissionType config, DifficultyRating difficulty, int seed)
     {
         // This is on shared to ensure the client display for missions and what the server generates are consistent
-        var rating = (float) GetDifficulty(difficulty);
+        var rating = (float)GetDifficulty(difficulty);
         // Don't want easy missions to have any negative modifiers but also want
         // easy to be a 1 for difficulty.
         rating -= 1f;
@@ -150,7 +150,7 @@ public abstract partial class SharedSalvageSystem : EntitySystem
 
         var time = GetMod<SalvageTimeMod>(rand, ref rating);
         // Round the duration to nearest 15 seconds.
-        var exactDuration = MathHelper.Lerp(time.MinDuration, time.MaxDuration, rand.NextFloat());
+        var exactDuration = MathHelper.Lerp(time.MinDuration, time.MaxDuration, (float)rand.NextDouble());
         exactDuration = MathF.Round(exactDuration / 15f) * 15f;
         var duration = TimeSpan.FromSeconds(exactDuration);
 
@@ -167,7 +167,7 @@ public abstract partial class SharedSalvageSystem : EntitySystem
     {
         var mods = _proto.EnumeratePrototypes<T>().ToList();
         mods.Sort((x, y) => string.Compare(x.ID, y.ID, StringComparison.Ordinal));
-        rand.Shuffle(mods);
+        ShuffleList(rand, mods);
 
         foreach (var mod in mods)
         {
@@ -186,7 +186,7 @@ public abstract partial class SharedSalvageSystem : EntitySystem
     {
         var mods = _proto.EnumeratePrototypes<T>().ToList();
         mods.Sort((x, y) => string.Compare(x.ID, y.ID, StringComparison.Ordinal));
-        rand.Shuffle(mods);
+        ShuffleList(rand, mods);
 
         foreach (var mod in mods)
         {
@@ -241,6 +241,17 @@ public abstract partial class SharedSalvageSystem : EntitySystem
                 return new string[] { t5 }; // Frontier - Update tiers
             default:
                 throw new NotImplementedException();
+        }
+    }
+
+    private static void ShuffleList<T>(System.Random random, IList<T> list)
+    {
+        var n = list.Count;
+        while (n > 1)
+        {
+            n -= 1;
+            var k = random.Next(n + 1);
+            (list[k], list[n]) = (list[n], list[k]);
         }
     }
 }

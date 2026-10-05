@@ -10,12 +10,12 @@ using Robust.Shared.Physics.Components;
 
 namespace Content.Shared.Anomaly.Effects;
 
-public abstract class SharedGravityAnomalySystem : EntitySystem
+public abstract partial class SharedGravityAnomalySystem : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly ThrowingSystem _throwing = default!;
-    [Dependency] private readonly SharedTransformSystem _xform = default!;
-    [Dependency] private readonly SharedMapSystem _mapSystem = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private ThrowingSystem _throwing = default!;
+    [Dependency] private SharedTransformSystem _xform = default!;
+    [Dependency] private SharedMapSystem _mapSystem = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -37,7 +37,7 @@ public abstract class SharedGravityAnomalySystem : EntitySystem
         foreach (var ent in lookup)
         {
             if (physQuery.TryGetComponent(ent, out var phys)
-                && (phys.CollisionMask & (int) CollisionGroup.GhostImpassable) != 0)
+                && (phys.CollisionMask & (int)CollisionGroup.GhostImpassable) != 0)
                 continue;
 
             var foo = _xform.GetWorldPosition(ent, xformQuery) - worldPos;
@@ -70,7 +70,7 @@ public abstract class SharedGravityAnomalySystem : EntitySystem
         foreach (var ent in lookup)
         {
             if (physQuery.TryGetComponent(ent, out var phys)
-                && (phys.CollisionMask & (int) CollisionGroup.GhostImpassable) != 0)
+                && (phys.CollisionMask & (int)CollisionGroup.GhostImpassable) != 0)
                 continue;
 
             var foo = _xform.GetWorldPosition(ent, xformQuery) - worldPos;

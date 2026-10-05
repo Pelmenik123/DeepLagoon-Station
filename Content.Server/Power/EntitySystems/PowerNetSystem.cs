@@ -39,17 +39,17 @@ namespace Content.Server.Power.EntitySystems
     ///     Manages power networks, power state, and all power components.
     /// </summary>
     [UsedImplicitly]
-    public sealed class PowerNetSystem : SharedPowerNetSystem
+    public sealed partial class PowerNetSystem : SharedPowerNetSystem
     {
-        [Dependency] private readonly AppearanceSystem _appearance = default!;
-        [Dependency] private readonly PowerNetConnectorSystem _powerNetConnector = default!;
-        [Dependency] private readonly IConfigurationManager _cfg = default!;
-        [Dependency] private readonly IParallelManager _parMan = default!;
-        [Dependency] private readonly BatterySystem _battery = default!;
+        [Dependency] private AppearanceSystem _appearance = default!;
+        [Dependency] private PowerNetConnectorSystem _powerNetConnector = default!;
+        [Dependency] private IConfigurationManager _cfg = default!;
+        [Dependency] private IParallelManager _parMan = default!;
+        [Dependency] private BatterySystem _battery = default!;
 
         private readonly PowerState _powerState = new();
-        private readonly HashSet<PowerNet> _powerNetReconnectQueue = new();
-        private readonly HashSet<ApcNet> _apcNetReconnectQueue = new();
+        private readonly HashSet<PowerNet> _powerNetReconnectQueue = [];
+        private readonly HashSet<ApcNet> _apcNetReconnectQueue = [];
 
         private EntityQuery<ApcPowerReceiverBatteryComponent> _apcBatteryQuery;
         private EntityQuery<AppearanceComponent> _appearanceQuery;
@@ -58,7 +58,7 @@ namespace Content.Server.Power.EntitySystems
         private BatteryRampPegSolver _solver = new();
 
         // Mono
-        private TimeSpan _updateInterval = TimeSpan.FromSeconds(0.5);
+        private readonly TimeSpan _updateInterval = TimeSpan.FromSeconds(0.5);
         private TimeSpan _updateAccumulator = TimeSpan.FromSeconds(0);
 
         public override void Initialize()
@@ -155,7 +155,7 @@ namespace Content.Server.Power.EntitySystems
 
         private void PowerConsumerInit(EntityUid uid, PowerConsumerComponent component, ComponentInit args)
         {
-            _powerNetConnector.BaseNetConnectorInit(component);
+            _powerNetConnector.BaseNetConnectorInit(uid, component);
             AllocLoad(component.NetworkLoad);
         }
 
@@ -176,7 +176,7 @@ namespace Content.Server.Power.EntitySystems
 
         private void PowerSupplierInit(EntityUid uid, PowerSupplierComponent component, ComponentInit args)
         {
-            _powerNetConnector.BaseNetConnectorInit(component);
+            _powerNetConnector.BaseNetConnectorInit(uid, component);
             AllocSupply(component.NetworkSupply);
         }
 
@@ -252,20 +252,20 @@ namespace Content.Server.Power.EntitySystems
             //  because there's all sorts of weirdness with them.
             // A full battery will still have the same max draw rate,
             //  but will likely have deliberately limited current draw rate.
-            float consumptionW = network.Loads.Sum(s => _powerState.Loads[s].DesiredPower);
+            var consumptionW = network.Loads.Sum(s => _powerState.Loads[s].DesiredPower);
             consumptionW += network.BatteryLoads.Sum(s => _powerState.Batteries[s].CurrentReceiving);
 
             // This is interesting because LastMaxSupplySum seems to match LastAvailableSupplySum for some reason.
             // I suspect it's accounting for current supply rather than theoretical supply.
-            float maxSupplyW = network.Supplies.Sum(s => _powerState.Supplies[s].MaxSupply);
+            var maxSupplyW = network.Supplies.Sum(s => _powerState.Supplies[s].MaxSupply);
 
             // Battery stuff is more complex.
             // Without stealing PowerState, the most efficient way
             //  to grab the necessary discharge data is from
             //  PowerNetworkBatteryComponent (has Pow3r reference).
-            float supplyBatteriesW = 0.0f;
-            float storageCurrentJ = 0.0f;
-            float storageMaxJ = 0.0f;
+            var supplyBatteriesW = 0.0f;
+            var storageCurrentJ = 0.0f;
+            var storageMaxJ = 0.0f;
             foreach (var discharger in network.BatterySupplies)
             {
                 var nb = _powerState.Batteries[discharger];
@@ -275,8 +275,8 @@ namespace Content.Server.Power.EntitySystems
                 maxSupplyW += nb.MaxSupply;
             }
             // And charging
-            float outStorageCurrentJ = 0.0f;
-            float outStorageMaxJ = 0.0f;
+            var outStorageCurrentJ = 0.0f;
+            var outStorageMaxJ = 0.0f;
             foreach (var charger in network.BatteryLoads)
             {
                 var nb = _powerState.Batteries[charger];
@@ -489,7 +489,7 @@ namespace Content.Server.Power.EntitySystems
 
             foreach (var provider in net.Providers)
             {
-                foreach (var receiver in provider.LinkedReceivers)
+                foreach (var receiver in provider.Comp.LinkedReceivers)
                 {
                     netNode.Loads.Add(receiver.NetworkLoad.Id);
                     receiver.NetworkLoad.LinkedNetwork = netNode.Id;
@@ -541,14 +541,14 @@ namespace Content.Server.Power.EntitySystems
         {
             foreach (var consumer in net.Consumers)
             {
-                netNode.Loads.Add(consumer.NetworkLoad.Id);
-                consumer.NetworkLoad.LinkedNetwork = netNode.Id;
+                netNode.Loads.Add(consumer.Comp.NetworkLoad.Id);
+                consumer.Comp.NetworkLoad.LinkedNetwork = netNode.Id;
             }
 
             foreach (var supplier in net.Suppliers)
             {
-                netNode.Supplies.Add(supplier.NetworkSupply.Id);
-                supplier.NetworkSupply.LinkedNetwork = netNode.Id;
+                netNode.Supplies.Add(supplier.Comp.NetworkSupply.Id);
+                supplier.Comp.NetworkSupply.LinkedNetwork = netNode.Id;
             }
         }
     }

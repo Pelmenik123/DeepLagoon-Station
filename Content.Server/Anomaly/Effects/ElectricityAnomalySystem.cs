@@ -9,15 +9,15 @@ using Robust.Shared.Timing;
 
 namespace Content.Server.Anomaly.Effects;
 
-public sealed class ElectricityAnomalySystem : EntitySystem
+public sealed partial class ElectricityAnomalySystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly LightningSystem _lightning = default!;
-    [Dependency] private readonly ElectrocutionSystem _electrocution = default!;
-    [Dependency] private readonly EmpSystem _emp = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private LightningSystem _lightning = default!;
+    [Dependency] private ElectrocutionSystem _electrocution = default!;
+    [Dependency] private EmpSystem _emp = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -58,7 +58,7 @@ public sealed class ElectricityAnomalySystem : EntitySystem
                 continue;
 
             var range = elec.MaxElectrocuteRange * anom.Stability;
-            var damage = (int) (elec.MaxElectrocuteDamage * anom.Severity);
+            var damage = (int)(elec.MaxElectrocuteDamage * anom.Severity);
             var duration = elec.MaxElectrocuteDuration * anom.Severity;
 
             foreach (var (ent, comp) in _lookup.GetEntitiesInRange<StatusEffectsComponent>(_transform.GetMapCoordinates(uid, xform), range))

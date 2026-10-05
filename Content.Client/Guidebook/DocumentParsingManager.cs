@@ -18,10 +18,10 @@ namespace Content.Client.Guidebook;
 /// </summary>
 public sealed partial class DocumentParsingManager
 {
-    [Dependency] private readonly IPrototypeManager _prototype = default!;
-    [Dependency] private readonly IReflectionManager _reflectionManager = default!;
-    [Dependency] private readonly IResourceManager _resourceManager = default!;
-    [Dependency] private readonly ISandboxHelper _sandboxHelper = default!;
+    [Dependency] private IPrototypeManager _prototype = default!;
+    [Dependency] private IReflectionManager _reflectionManager = default!;
+    [Dependency] private IResourceManager _resourceManager = default!;
+    [Dependency] private ISandboxHelper _sandboxHelper = default!;
 
     private readonly Dictionary<string, Parser<char, Control>> _tagControlParsers = new();
     private Parser<char, Control> _controlParser = default!;
@@ -79,7 +79,8 @@ public sealed partial class DocumentParsingManager
         }
         catch (Exception e)
         {
-            _sawmill.Error($"Encountered error while generating markup controls: {e}");
+            if (log)
+                _sawmill.Error($"Encountered error while generating markup controls: {e}");
 
             control.AddChild(new GuidebookError(text, e.ToStringBetter()));
 
@@ -96,7 +97,7 @@ public sealed partial class DocumentParsingManager
                 {
                     try
                     {
-                        var tag = (IDocumentTag) sandbox.CreateInstance(tagType);
+                        var tag = (IDocumentTag)sandbox.CreateInstance(tagType);
                         if (!tag.TryParseTag(args, out var control))
                         {
                             _sawmill.Error($"Failed to parse {tagId} args");

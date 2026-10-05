@@ -1,3 +1,4 @@
+using System.Numerics;
 // SPDX-FileCopyrightText: 2021 Swept
 // SPDX-FileCopyrightText: 2022 Paul Ritter
 // SPDX-FileCopyrightText: 2022 mirrorcult
@@ -44,7 +45,7 @@ namespace Content.Client.Power.APC.UI
 
         public void UpdateState(BoundUserInterfaceState state)
         {
-            var castState = (ApcBoundInterfaceState) state;
+            var castState = (ApcBoundInterfaceState)state;
 
             if (!BreakerButton.Disabled)
             {
@@ -83,13 +84,13 @@ namespace Content.Client.Power.APC.UI
                 ChargeBar.Value = castState.Charge;
                 UpdateChargeBarColor(castState.Charge);
                 var chargePercentage = (castState.Charge / ChargeBar.MaxValue);
-                ChargePercentage.Text = Loc.GetString("apc-menu-charge-label",("percent",  chargePercentage.ToString("P0")));
+                ChargePercentage.Text = Loc.GetString("apc-menu-charge-label", ("percent", chargePercentage.ToString("P0")));
             }
         }
 
         public void SetAccessEnabled(bool hasAccess)
         {
-            if(hasAccess)
+            if (hasAccess)
             {
                 BreakerButton.Disabled = false;
                 BreakerButton.ToolTip = null;
@@ -136,7 +137,7 @@ namespace Content.Client.Power.APC.UI
             // Check if null first to avoid repeatedly creating this.
             ChargeBar.ForegroundStyleBoxOverride ??= new StyleBoxFlat();
 
-            var foregroundStyleBoxOverride = (StyleBoxFlat) ChargeBar.ForegroundStyleBoxOverride;
+            var foregroundStyleBoxOverride = (StyleBoxFlat)ChargeBar.ForegroundStyleBoxOverride;
             foregroundStyleBoxOverride.BackgroundColor =
                 Color.FromHsv(new Vector4(finalHue, saturation, value, alpha));
         }

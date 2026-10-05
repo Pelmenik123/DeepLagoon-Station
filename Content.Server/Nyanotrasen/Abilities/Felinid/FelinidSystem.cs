@@ -29,15 +29,15 @@ namespace Content.Server.Abilities.Felinid;
 public sealed partial class FelinidSystem : EntitySystem
 {
 
-    [Dependency] private readonly SharedActionsSystem _actionsSystem = default!;
-    [Dependency] private readonly HungerSystem _hungerSystem = default!;
-    [Dependency] private readonly VomitSystem _vomitSystem = default!;
-    [Dependency] private readonly SolutionContainerSystem _solutionSystem = default!;
-    [Dependency] private readonly IRobustRandom _robustRandom = default!;
-    [Dependency] private readonly PopupSystem _popupSystem = default!;
-    [Dependency] private readonly InventorySystem _inventorySystem = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] private SharedActionsSystem _actionsSystem = default!;
+    [Dependency] private HungerSystem _hungerSystem = default!;
+    [Dependency] private VomitSystem _vomitSystem = default!;
+    [Dependency] private SharedSolutionContainerSystem _solutionSystem = default!;
+    [Dependency] private IRobustRandom _robustRandom = default!;
+    [Dependency] private PopupSystem _popupSystem = default!;
+    [Dependency] private InventorySystem _inventorySystem = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
 
     public override void Initialize()
     {
@@ -63,15 +63,16 @@ public sealed partial class FelinidSystem : EntitySystem
         }
         RemQueue.Clear();
 
-        foreach (var (hairballComp, catComp) in EntityQuery<CoughingUpHairballComponent, FelinidComponent>())
+        var query = EntityQueryEnumerator<CoughingUpHairballComponent, FelinidComponent>();
+        while (query.MoveNext(out var hairballUid, out var hairballComp, out var catComp))
         {
             hairballComp.Accumulator += frameTime;
             if (hairballComp.Accumulator < hairballComp.CoughUpTime.TotalSeconds)
                 continue;
 
             hairballComp.Accumulator = 0;
-            SpawnHairball(hairballComp.Owner, catComp);
-            RemQueue.Enqueue(hairballComp.Owner);
+            SpawnHairball(hairballUid, catComp);
+            RemQueue.Enqueue(hairballUid);
         }
     }
 
@@ -108,7 +109,7 @@ public sealed partial class FelinidSystem : EntitySystem
     private void OnHairball(EntityUid uid, FelinidComponent component, HairballActionEvent args)
     {
         if (_inventorySystem.TryGetSlotEntity(uid, "mask", out var maskUid) &&
-        EntityManager.TryGetComponent<IngestionBlockerComponent>(maskUid, out var blocker) &&
+        TryComp<IngestionBlockerComponent>(maskUid, out var blocker) &&
         blocker.Enabled)
         {
             _popupSystem.PopupEntity(Loc.GetString("hairball-mask", ("mask", maskUid)), uid, uid);
@@ -116,7 +117,7 @@ public sealed partial class FelinidSystem : EntitySystem
         }
 
         _popupSystem.PopupEntity(Loc.GetString("hairball-cough", ("name", Identity.Entity(uid, EntityManager))), uid);
-        _audio.PlayPvs("/Audio/Nyanotrasen/Effects/Species/hairball.ogg", uid, AudioHelpers.WithVariation(0.15f));
+        _audio.PlayPvs(new SoundPathSpecifier("/Audio/Nyanotrasen/Effects/Species/hairball.ogg"), uid, AudioParams.Default.WithVariation(0.15f));
 
         EnsureComp<CoughingUpHairballComponent>(uid);
         args.Handled = true;
@@ -137,7 +138,7 @@ public sealed partial class FelinidSystem : EntitySystem
         }
 
         if (_inventorySystem.TryGetSlotEntity(uid, "mask", out var maskUid) &&
-        EntityManager.TryGetComponent<IngestionBlockerComponent>(maskUid, out var blocker) &&
+        TryComp<IngestionBlockerComponent>(maskUid, out var blocker) &&
         blocker.Enabled)
         {
             _popupSystem.PopupEntity(Loc.GetString("hairball-mask", ("mask", maskUid)), uid, uid, Shared.Popups.PopupType.SmallCaution);
@@ -152,7 +153,7 @@ public sealed partial class FelinidSystem : EntitySystem
         Del(component.EatActionTarget.Value);
         component.EatActionTarget = null;
 
-        _audio.PlayPvs("/Audio/_DV/Items/eatfood.ogg", uid, AudioHelpers.WithVariation(0.15f));
+        _audio.PlayPvs(new SoundPathSpecifier("/Audio/_DV/Items/eatfood.ogg"), uid, AudioParams.Default.WithVariation(0.15f));
 
         _hungerSystem.ModifyHunger(uid, 50f, hunger);
 
@@ -162,7 +163,7 @@ public sealed partial class FelinidSystem : EntitySystem
 
     private void SpawnHairball(EntityUid uid, FelinidComponent component)
     {
-        var hairball = EntityManager.SpawnEntity(component.HairballPrototype, Transform(uid).Coordinates);
+        var hairball = Spawn(component.HairballPrototype, Transform(uid).Coordinates);
         var hairballComp = Comp<HairballComponent>(hairball);
 
         if (TryComp<BloodstreamComponent>(uid, out var bloodstream) && bloodstream.ChemicalSolution.HasValue)

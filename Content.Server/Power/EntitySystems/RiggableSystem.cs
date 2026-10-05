@@ -11,10 +11,10 @@ namespace Content.Server.Power.EntitySystems;
 /// <summary>
 ///  Handles sabotaged/rigged objects
 /// </summary>
-public sealed class RiggableSystem : EntitySystem
+public sealed partial class RiggableSystem : EntitySystem
 {
-    [Dependency] private readonly ExplosionSystem _explosionSystem = default!;
-    [Dependency] private readonly IAdminLogManager _adminLogger = default!;
+    [Dependency] private ExplosionSystem _explosionSystem = default!;
+    [Dependency] private IAdminLogManager _adminLogger = default!;
 
     public override void Initialize()
     {
@@ -70,7 +70,7 @@ public sealed class RiggableSystem : EntitySystem
 
         var radius = MathF.Min(5, MathF.Sqrt(battery.CurrentCharge) / 9);
 
-        _explosionSystem.TriggerExplosive(uid, radius: radius, user:cause);
+        _explosionSystem.TriggerExplosive(uid, radius: radius, user: cause);
         QueueDel(uid);
     }
 }

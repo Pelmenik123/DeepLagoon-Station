@@ -19,14 +19,14 @@ using Robust.Shared.Player;
 namespace Content.Server.Nutrition.EntitySystems
 {
     [UsedImplicitly]
-    public sealed class CreamPieSystem : SharedCreamPieSystem
+    public sealed partial class CreamPieSystem : SharedCreamPieSystem
     {
-        [Dependency] private readonly SharedSolutionContainerSystem _solutions = default!;
-        [Dependency] private readonly PuddleSystem _puddle = default!;
-        [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
-        [Dependency] private readonly TriggerSystem _trigger = default!;
-        [Dependency] private readonly SharedAudioSystem _audio = default!;
-        [Dependency] private readonly PopupSystem _popup = default!;
+        [Dependency] private SharedSolutionContainerSystem _solutions = default!;
+        [Dependency] private PuddleSystem _puddle = default!;
+        [Dependency] private ItemSlotsSystem _itemSlots = default!;
+        [Dependency] private TriggerSystem _trigger = default!;
+        [Dependency] private SharedAudioSystem _audio = default!;
+        [Dependency] private PopupSystem _popup = default!;
 
         public override void Initialize()
         {
@@ -45,7 +45,7 @@ namespace Content.Server.Nutrition.EntitySystems
             var coordinates = Transform(uid).Coordinates;
             _audio.PlayPvs(_audio.ResolveSound(creamPie.Sound), coordinates, AudioParams.Default.WithVariation(0.125f));
 
-            if (EntityManager.TryGetComponent(uid, out FoodComponent? foodComp))
+            if (TryComp(uid, out FoodComponent? foodComp))
             {
                 if (_solutions.TryGetSolution(uid, foodComp.Solution, out _, out var solution))
                 {
@@ -53,12 +53,12 @@ namespace Content.Server.Nutrition.EntitySystems
                 }
                 foreach (var trash in foodComp.Trash)
                 {
-                    EntityManager.SpawnEntity(trash, Transform(uid).Coordinates);
+                    Spawn(trash, Transform(uid).Coordinates);
                 }
             }
             ActivatePayload(uid);
 
-            EntityManager.QueueDeleteEntity(uid);
+            QueueDel(uid);
         }
 
         private void OnConsume(Entity<CreamPieComponent> entity, ref ConsumeDoAfterEvent args)

@@ -63,7 +63,7 @@ namespace Content.IntegrationTests.Tests
             var testMap = await pair.CreateTestMap();
 
             var entityMan = server.EntMan;
-            var mapMan = server.MapMan;
+            var mapMan = server.System<SharedMapSystem>();
             var mapSys = entityMan.System<SharedMapSystem>();
 
             EntityUid generator = default;
@@ -101,8 +101,8 @@ namespace Content.IntegrationTests.Tests
                 Assert.Multiple(() =>
                 {
                     Assert.That(generatorComponent.GravityActive, Is.True);
-                    Assert.That(!entityMan.GetComponent<GravityComponent>(grid1).EnabledVV);
-                    Assert.That(entityMan.GetComponent<GravityComponent>(grid2).EnabledVV);
+                    Assert.That(!entityMan.GetComponent<GravityComponent>(grid1).Enabled);
+                    Assert.That(entityMan.GetComponent<GravityComponent>(grid2).Enabled);
                 });
 
                 // Re-enable needs power so it turns off again.
@@ -119,7 +119,7 @@ namespace Content.IntegrationTests.Tests
                 Assert.Multiple(() =>
                 {
                     Assert.That(generatorComponent.GravityActive, Is.False);
-                    Assert.That(entityMan.GetComponent<GravityComponent>(grid2).EnabledVV, Is.False);
+                    Assert.That(entityMan.GetComponent<GravityComponent>(grid2).Enabled, Is.False);
                 });
             });
 

@@ -5,11 +5,12 @@ using Robust.Shared.Containers;
 
 namespace Content.Client.VendingMachines;
 
-public sealed class VendingMachineSystem : SharedVendingMachineSystem
+public sealed partial class VendingMachineSystem : SharedVendingMachineSystem
 {
-    [Dependency] private readonly AnimationPlayerSystem _animationPlayer = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearanceSystem = default!;
-    [Dependency] private readonly SharedUserInterfaceSystem _uiSystem = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private AnimationPlayerSystem _animationPlayer = default!;
+    [Dependency] private SharedAppearanceSystem _appearanceSystem = default!;
+    [Dependency] private SharedUserInterfaceSystem _uiSystem = default!;
 
     public override void Initialize()
     {
@@ -112,14 +113,14 @@ public sealed class VendingMachineSystem : SharedVendingMachineSystem
         }
     }
 
-    private static void SetLayerState(VendingMachineVisualLayers layer, string? state, SpriteComponent sprite)
+    private void SetLayerState(VendingMachineVisualLayers layer, string? state, SpriteComponent sprite)
     {
         if (string.IsNullOrEmpty(state))
             return;
 
-        sprite.LayerSetVisible(layer, true);
-        sprite.LayerSetAutoAnimated(layer, true);
-        sprite.LayerSetState(layer, state);
+        _sprite.LayerSetVisible(sprite.AsEntity(), layer, true);
+        _sprite.LayerSetAutoAnimated(sprite.AsEntity(), layer, true);
+        _sprite.LayerSetRsiState(sprite.AsEntity(), layer, state);
     }
 
     private void PlayAnimation(EntityUid uid, VendingMachineVisualLayers layer, string? state, float animationTime, SpriteComponent sprite)
@@ -130,7 +131,7 @@ public sealed class VendingMachineSystem : SharedVendingMachineSystem
         if (!_animationPlayer.HasRunningAnimation(uid, state))
         {
             var animation = GetAnimation(layer, state, animationTime);
-            sprite.LayerSetVisible(layer, true);
+            _sprite.LayerSetVisible(sprite.AsEntity(), layer, true);
             _animationPlayer.Play(uid, animation, state);
         }
     }
@@ -154,17 +155,17 @@ public sealed class VendingMachineSystem : SharedVendingMachineSystem
         };
     }
 
-    private static void HideLayers(SpriteComponent sprite)
+    private void HideLayers(SpriteComponent sprite)
     {
         HideLayer(VendingMachineVisualLayers.BaseUnshaded, sprite);
         HideLayer(VendingMachineVisualLayers.Screen, sprite);
     }
 
-    private static void HideLayer(VendingMachineVisualLayers layer, SpriteComponent sprite)
+    private void HideLayer(VendingMachineVisualLayers layer, SpriteComponent sprite)
     {
-        if (!sprite.LayerMapTryGet(layer, out var actualLayer))
+        if (!_sprite.LayerMapTryGet(sprite.AsEntity(), layer, out var actualLayer, false))
             return;
 
-        sprite.LayerSetVisible(actualLayer, false);
+        _sprite.LayerSetVisible(sprite.AsEntity(), actualLayer, false);
     }
 }

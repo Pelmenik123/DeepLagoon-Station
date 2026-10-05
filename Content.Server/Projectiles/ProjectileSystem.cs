@@ -48,7 +48,6 @@ using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Dynamics; // Mono
 using Robust.Shared.Physics.Events;
-using Robust.Shared.Physics.Events;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Player;
 using Robust.Shared.Random; // Frontier
@@ -58,23 +57,23 @@ using System.Numerics;
 
 namespace Content.Server.Projectiles;
 
-public sealed class ProjectileSystem : SharedProjectileSystem
+public sealed partial class ProjectileSystem : SharedProjectileSystem
 {
-    [Dependency] private readonly IAdminLogManager _adminLogger = default!;
-    [Dependency] private readonly ColorFlashEffectSystem _color = default!;
-    [Dependency] private readonly DamageableSystem _damageableSystem = default!;
-    [Dependency] private readonly DestructibleSystem _destructibleSystem = default!;
-    [Dependency] private readonly GunSystem _guns = default!;
-    [Dependency] private readonly SharedCameraRecoilSystem _sharedCameraRecoil = default!;
+    [Dependency] private IAdminLogManager _adminLogger = default!;
+    [Dependency] private ColorFlashEffectSystem _color = default!;
+    [Dependency] private DamageableSystem _damageableSystem = default!;
+    [Dependency] private DestructibleSystem _destructibleSystem = default!;
+    [Dependency] private GunSystem _guns = default!;
+    [Dependency] private SharedCameraRecoilSystem _sharedCameraRecoil = default!;
 
-    [Dependency] private readonly StatusEffectsSystem _statusEffectsSystem = default!; // Frontier
-    [Dependency] private readonly BlindableSystem _blindingSystem = default!; // Frontier
-    [Dependency] private readonly IRobustRandom _random = default!; // Frontier
-    [Dependency] private readonly ChatSystem _chat = default!; // Frontier
+    [Dependency] private StatusEffectsSystem _statusEffectsSystem = default!; // Frontier
+    [Dependency] private BlindableSystem _blindingSystem = default!; // Frontier
+    [Dependency] private IRobustRandom _random = default!; // Frontier
+    [Dependency] private ChatSystem _chat = default!; // Frontier
 
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedTransformSystem _transformSystem = default!;
 
     // <Mono>
     private EntityQuery<PhysicsComponent> _physQuery;
@@ -132,7 +131,7 @@ public sealed class ProjectileSystem : SharedProjectileSystem
         var modifiedDamage = _damageableSystem.TryChangeDamage(target, ev.Damage, component.IgnoreResistances, damageable: damageableComponent, origin: component.Shooter, armorPenetration: component.ArmorPenetration); // Goob edit
         var deleted = Deleted(target);
 
-        if (modifiedDamage is not null && EntityManager.EntityExists(component.Shooter))
+        if (modifiedDamage is not null && Exists(component.Shooter))
         {
             if (modifiedDamage.AnyPositive() && !deleted)
             {
@@ -232,7 +231,8 @@ public sealed class ProjectileSystem : SharedProjectileSystem
                 false) // IncludeNonHard = false
                 .ToList();
 
-            hits.RemoveAll(hit => {
+            hits.RemoveAll(hit =>
+            {
                 var hitEnt = hit.HitEntity;
 
                 if (!_physQuery.TryComp(hitEnt, out var otherBody) || !_fixQuery.TryComp(hitEnt, out var otherFix))

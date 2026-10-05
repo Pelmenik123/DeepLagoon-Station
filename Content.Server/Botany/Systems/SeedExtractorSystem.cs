@@ -9,11 +9,11 @@ using Robust.Shared.Random;
 
 namespace Content.Server.Botany.Systems;
 
-public sealed class SeedExtractorSystem : EntitySystem
+public sealed partial class SeedExtractorSystem : EntitySystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly PopupSystem _popupSystem = default!;
-    [Dependency] private readonly BotanySystem _botanySystem = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private PopupSystem _popupSystem = default!;
+    [Dependency] private BotanySystem _botanySystem = default!;
 
     public override void Initialize()
     {
@@ -43,7 +43,7 @@ public sealed class SeedExtractorSystem : EntitySystem
         QueueDel(args.Used);
         args.Handled = true;
 
-        var amount = (int) _random.NextFloat(seedExtractor.BaseMinSeeds, seedExtractor.BaseMaxSeeds + 1) * seedExtractor.SeedAmountMultiplier;
+        var amount = (int)_random.NextFloat(seedExtractor.BaseMinSeeds, seedExtractor.BaseMaxSeeds + 1) * seedExtractor.SeedAmountMultiplier;
         var coords = Transform(uid).Coordinates;
 
         var packetSeed = seed;

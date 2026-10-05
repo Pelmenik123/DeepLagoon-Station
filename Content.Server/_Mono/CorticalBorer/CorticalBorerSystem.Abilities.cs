@@ -19,7 +19,7 @@ namespace Content.Server._Mono.CorticalBorer;
 
 public sealed partial class CorticalBorerSystem
 {
-    [Dependency] private readonly VomitSystem _vomit = default!;
+    [Dependency] VomitSystem _vomit = default!;
 
     private void SubscribeAbilities()
     {
@@ -39,7 +39,7 @@ public sealed partial class CorticalBorerSystem
 
     private void OnChemcialMenu(Entity<CorticalBorerComponent> ent, ref CorticalChemMenuActionEvent args)
     {
-        if(!TryComp<UserInterfaceComponent>(ent, out var uic))
+        if (!TryComp<UserInterfaceComponent>(ent, out var uic))
             return;
 
         if (ent.Comp.Host is null)

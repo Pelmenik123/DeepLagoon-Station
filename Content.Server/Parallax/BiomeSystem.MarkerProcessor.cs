@@ -66,7 +66,8 @@ public sealed partial class BiomeSystem
                 // inadvertantly spawn too many near the edges.
                 var layerProto = ProtoManager.Index<BiomeMarkerLayerPrototype>(layer);
                 var markerSeed = seed + chunk.X * ChunkSize + chunk.Y + localIdx;
-                var rand = new Random(markerSeed);
+                var rand = new RobustRandom();
+                rand.SetSeed(markerSeed);
                 var buffer = (int)(layerProto.Radius / 2f);
                 var bounds = new Box2i(chunk + buffer, chunk + layerProto.Size - buffer);
                 var count = (int)(bounds.Area / (layerProto.Radius * layerProto.Radius));
@@ -94,13 +95,13 @@ public sealed partial class BiomeSystem
 
                     if (!pending.TryGetValue(chunkOrigin, out var pendingMarkers))
                     {
-                        pendingMarkers = new Dictionary<string, List<Vector2i>>();
+                        pendingMarkers = [];
                         pending[chunkOrigin] = pendingMarkers;
                     }
 
                     if (!pendingMarkers.TryGetValue(layer, out var layerMarkers))
                     {
-                        layerMarkers = new List<Vector2i>();
+                        layerMarkers = [];
                         pendingMarkers[layer] = layerMarkers;
                     }
 
@@ -111,7 +112,7 @@ public sealed partial class BiomeSystem
                 {
                     if (!loadedMarkers.TryGetValue(layer, out var lockMobChunks))
                     {
-                        lockMobChunks = new HashSet<Vector2i>();
+                        lockMobChunks = [];
                         loadedMarkers[layer] = lockMobChunks;
                     }
 
@@ -121,7 +122,7 @@ public sealed partial class BiomeSystem
                     {
                         if (!component.PendingMarkers.TryGetValue(chunkOrigin, out var lockMarkers))
                         {
-                            lockMarkers = new Dictionary<string, List<Vector2i>>();
+                            lockMarkers = [];
                             component.PendingMarkers[chunkOrigin] = lockMarkers;
                         }
 
@@ -149,7 +150,7 @@ public sealed partial class BiomeSystem
         bool forced,
         Box2i bounds,
         int count,
-        Random rand,
+        IRobustRandom rand,
         out Dictionary<Vector2i, string?> spawnSet,
         out HashSet<EntityUid> existingEnts,
         bool emptyTiles = true)
@@ -174,7 +175,7 @@ public sealed partial class BiomeSystem
                     continue;
 
                 // Check if it's a valid spawn, if so then use it.
-                var enumerator = _mapSystem.GetAnchoredEntitiesEnumerator(gridUid, grid, node);
+                var enumerator = _mapSystem.GetAnchoredEntities(gridUid, grid, node);
                 enumerator.MoveNext(out var existing);
 
                 if (!forced && existing != null)
@@ -209,8 +210,8 @@ public sealed partial class BiomeSystem
         // Get the total amount of groups to spawn across the entire chunk.
         // We treat a null entity mask as requiring nothing else on the tile
 
-        spawnSet = new Dictionary<Vector2i, string?>();
-        existingEnts = new HashSet<EntityUid>();
+        spawnSet = [];
+        existingEnts = [];
 
         // Iterate the group counts and pathfind out each group.
         for (var i = 0; i < count; i++)
@@ -220,7 +221,8 @@ public sealed partial class BiomeSystem
             // While we have remaining tiles keep iterating
             while (groupSize > 0 && remainingTiles.Count > 0)
             {
-                var startNode = rand.PickAndTake(remainingTiles);
+                var startNode = rand.Pick(remainingTiles);
+                remainingTiles.Remove(startNode);
                 frontier.Clear();
                 frontier.Add(startNode);
 

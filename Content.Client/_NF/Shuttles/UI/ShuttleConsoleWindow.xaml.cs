@@ -22,7 +22,7 @@ namespace Content.Client.Shuttles.UI
             {
                 OnMaxShuttleSpeedChanged?.Invoke(entityUid, maxSpeed);
             };
-            
+
             NavContainer.OnNetworkPortButtonPressed += (sourcePort, targetPort) =>
             {
                 OnNetworkPortButtonPressed?.Invoke(sourcePort, targetPort);

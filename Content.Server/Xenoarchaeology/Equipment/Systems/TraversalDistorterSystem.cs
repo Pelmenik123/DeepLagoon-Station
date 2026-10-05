@@ -1,4 +1,4 @@
-﻿using Content.Server.Construction;
+using Content.Server.Construction;
 using Content.Server.Popups;
 using Content.Server.Power.EntitySystems;
 using Content.Server.Xenoarchaeology.Equipment.Components;
@@ -11,9 +11,9 @@ using Robust.Shared.Timing;
 
 namespace Content.Server.Xenoarchaeology.Equipment.Systems;
 
-public sealed class TraversalDistorterSystem : EntitySystem
+public sealed partial class TraversalDistorterSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -65,7 +65,7 @@ public sealed class TraversalDistorterSystem : EntitySystem
                 examine = Loc.GetString("traversal-distorter-desc-down");
                 break;
         }
-        
+
         args.PushMarkup(examine);
     }
 

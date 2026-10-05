@@ -11,6 +11,7 @@ namespace Content.Client.Weapons.Melee;
 
 public sealed partial class MeleeWeaponSystem
 {
+    [Dependency] SpriteSystem _sprite = default!;
     private const string FadeAnimationKey = "melee-fade";
     private const string SlashAnimationKey = "melee-slash";
     private const string ThrustAnimationKey = "melee-thrust";
@@ -49,14 +50,14 @@ public sealed partial class MeleeWeaponSystem
         {
             if (user != weapon
                 && TryComp(weapon, out SpriteComponent? weaponSpriteComponent))
-                sprite.CopyFrom(weaponSpriteComponent);
+                _sprite.CopySprite(weaponSpriteComponent.AsEntity(), sprite.AsEntity());
 
             spriteRotation = meleeWeaponComponent.WideAnimationRotation;
 
             if (meleeWeaponComponent.SwingLeft)
                 angle *= -1;
         }
-        sprite.Rotation = localPos.ToWorldAngle();
+        _sprite.SetRotation(sprite.AsEntity(), localPos.ToWorldAngle());
         var distance = Math.Clamp(localPos.Length() / 2f, 0.2f, 1f);
 
         var xform = _xformQuery.GetComponent(animationUid);
@@ -138,7 +139,7 @@ public sealed partial class MeleeWeaponSystem
         const float length = 0.15f;
         var startOffset = sprite.Rotation.RotateVec(new Vector2(0f, -distance / 5f));
         var endOffset = sprite.Rotation.RotateVec(new Vector2(0f, -distance));
-        sprite.Rotation += spriteRotation;
+        _sprite.SetRotation(sprite.AsEntity(), sprite.Rotation + (spriteRotation));
 
         return new Animation()
         {

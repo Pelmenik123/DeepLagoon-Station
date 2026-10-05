@@ -124,9 +124,9 @@ public sealed partial class ShuttleSystem
     private const float CoordRollover = 40000f;
     // End Frontier: coordinate rollover
 
-    private readonly HashSet<EntityUid> _lookupEnts = new();
-    private readonly HashSet<EntityUid> _immuneEnts = new();
-    private readonly HashSet<Entity<NoFTLComponent>> _noFtls = new();
+    private readonly HashSet<EntityUid> _lookupEnts = [];
+    private readonly HashSet<EntityUid> _immuneEnts = [];
+    private readonly HashSet<Entity<NoFTLComponent>> _noFtls = [];
 
     private EntityQuery<BodyComponent> _bodyQuery;
     private EntityQuery<FTLSmashImmuneComponent> _immuneQuery;
@@ -199,18 +199,12 @@ public sealed partial class ShuttleSystem
     {
         var state = component.State;
 
-        switch (state)
+        return state switch
         {
-            case FTLState.Starting:
-            case FTLState.Travelling:
-            case FTLState.Arriving:
-            case FTLState.Cooldown:
-                return component.StateTime;
-            case FTLState.Available:
-                return default;
-            default:
-                throw new NotImplementedException();
-        }
+            FTLState.Starting or FTLState.Travelling or FTLState.Arriving or FTLState.Cooldown => component.StateTime,
+            FTLState.Available => default,
+            _ => throw new NotImplementedException(),
+        };
     }
 
     /// <summary>
@@ -286,7 +280,7 @@ public sealed partial class ShuttleSystem
         {
 
             // Too large to FTL
-            if (FTLMassLimit > 0 &&  shuttlePhysics.Mass > FTLMassLimit)
+            if (FTLMassLimit > 0 && shuttlePhysics.Mass > FTLMassLimit)
             {
                 reason = Loc.GetString("shuttle-console-mass");
                 return false;
@@ -300,7 +294,7 @@ public sealed partial class ShuttleSystem
         }
 
         // Check if the shuttle is in an expedition
-        if (TryComp<TransformComponent>(shuttleUid, out var xform) &&
+        if (TryComp(shuttleUid, out TransformComponent? xform) &&
             xform.MapUid != null &&
             HasComp<SalvageExpeditionComponent>(xform.MapUid))
         {
@@ -334,7 +328,7 @@ public sealed partial class ShuttleSystem
         string? priorityTag = null)
     {
         // Check if destination is an expedition map
-        bool isExpedition = IsTargetExpedition(coordinates);
+        var isExpedition = IsTargetExpedition(coordinates);
 
         // If going to an expedition, undock all other shuttles before FTL
         if (isExpedition)
@@ -401,7 +395,7 @@ public sealed partial class ShuttleSystem
         string? priorityTag = null)
     {
         // TODO: Validation
-        if (!TryComp<FTLDestinationComponent>(_mapManager.GetMapEntityId(_transform.GetMapId(target)), out var dest))
+        if (!TryComp<FTLDestinationComponent>(_mapManager.GetMap(_transform.GetMapId(target)), out var dest))
         {
             return;
         }
@@ -411,7 +405,7 @@ public sealed partial class ShuttleSystem
 
         // Check if destination is in an expedition map
         var targetCoords = new EntityCoordinates(target, Vector2.Zero);
-        bool isExpedition = IsTargetExpedition(targetCoords);
+        var isExpedition = IsTargetExpedition(targetCoords);
 
         // If going to an expedition, undock all other shuttles before FTL
         if (isExpedition)
@@ -443,7 +437,7 @@ public sealed partial class ShuttleSystem
         }
 
         var hyperspace = EnsureComp<FTLComponent>(shuttleUid);
-        SetupFTL(hyperspace, startupTime, hyperspaceTime, priorityTag);
+        SetupFTL(shuttleUid, hyperspace, startupTime, hyperspaceTime, priorityTag);
 
         if (TryComp<DockingComponent>(target, out var dock) && dock.Docked && dock.DockedWith != null)
         {
@@ -471,7 +465,7 @@ public sealed partial class ShuttleSystem
     /// <summary>
     /// Sets up the FTL component with startup and travel times and priority tag.
     /// </summary>
-    private void SetupFTL(FTLComponent hyperspace, float? startupTime, float? hyperspaceTime, string? priorityTag)
+    private void SetupFTL(EntityUid uid, FTLComponent hyperspace, float? startupTime, float? hyperspaceTime, string? priorityTag)
     {
         startupTime ??= DefaultStartupTime;
         hyperspaceTime ??= DefaultTravelTime;
@@ -483,7 +477,7 @@ public sealed partial class ShuttleSystem
             TimeSpan.FromSeconds(hyperspace.StartupTime));
         hyperspace.PriorityTag = priorityTag;
 
-        _console.RefreshShuttleConsoles(hyperspace.Owner);
+        _console.RefreshShuttleConsoles(uid);
     }
 
     /// <summary>
@@ -596,7 +590,7 @@ public sealed partial class ShuttleSystem
         else
         {
             // Check if all docked shuttles can FTL
-            bool canAllFTL = true;
+            var canAllFTL = true;
             foreach (var dockedUid in dockedShuttles)
             {
                 if (dockedUid == uid)
@@ -910,12 +904,12 @@ public sealed partial class ShuttleSystem
         _audio.SetGridAudio(audio);
 
         // Re-enable map if it was paused.
-        if (TryComp<FTLDestinationComponent>(_mapManager.GetMapEntityId(mapId), out var dest))
+        if (TryComp<FTLDestinationComponent>(_mapManager.GetMap(mapId), out var dest))
         {
             dest.Enabled = true;
         }
 
-        _mapManager.SetMapPaused(mapId, false);
+        _mapManager.SetPaused(_mapManager.GetMap(mapId), false);
         Smimsh(uid, xform: xform);
 
         // Add cooldown before removing the FTL component
@@ -1287,43 +1281,52 @@ public sealed partial class ShuttleSystem
             {
                 var collidingBox = _transform.GetWorldMatrix(grid).TransformBox(Comp<MapGridComponent>(grid).LocalAABB);
 
+                var left = targetAABB.Left;
+                var right = targetAABB.Right;
+                var bottom = targetAABB.Bottom;
+                var top = targetAABB.Top;
+                var width = targetAABB.Width;
+                var height = targetAABB.Height;
+
                 if (positiveX == true)
                 {
-                    var newLeft = Math.Max(targetAABB.Left, collidingBox.Right + _random.NextFloat(minMargin, maxMargin));
-                    targetAABB.Right = newLeft + targetAABB.Width;
-                    targetAABB.Left = newLeft;
+                    var newLeft = Math.Max(left, collidingBox.Right + _random.NextFloat(minMargin, maxMargin));
+                    right = newLeft + width;
+                    left = newLeft;
                 }
                 else if (positiveX == false)
                 {
-                    var newRight = Math.Min(targetAABB.Right, collidingBox.Left - _random.NextFloat(minMargin, maxMargin));
-                    targetAABB.Left = newRight - targetAABB.Width;
-                    targetAABB.Right = newRight;
+                    var newRight = Math.Min(right, collidingBox.Left - _random.NextFloat(minMargin, maxMargin));
+                    left = newRight - width;
+                    right = newRight;
                 }
                 else
                 {
                     var margin = _random.NextFloat(-maxMargin, maxMargin);
-                    targetAABB.Left += margin;
-                    targetAABB.Right += margin;
+                    left += margin;
+                    right += margin;
                 }
 
                 if (positiveY == true)
                 {
-                    var newBottom = Math.Max(targetAABB.Bottom, collidingBox.Top + _random.NextFloat(minMargin, maxMargin));
-                    targetAABB.Top = newBottom + targetAABB.Height;
-                    targetAABB.Bottom = newBottom;
+                    var newBottom = Math.Max(bottom, collidingBox.Top + _random.NextFloat(minMargin, maxMargin));
+                    top = newBottom + height;
+                    bottom = newBottom;
                 }
                 else if (positiveY == false)
                 {
-                    var newTop = Math.Min(targetAABB.Top, collidingBox.Bottom - _random.NextFloat(minMargin, maxMargin));
-                    targetAABB.Bottom = newTop - targetAABB.Height;
-                    targetAABB.Top = newTop;
+                    var newTop = Math.Min(top, collidingBox.Bottom - _random.NextFloat(minMargin, maxMargin));
+                    bottom = newTop - height;
+                    top = newTop;
                 }
                 else
                 {
                     var margin = _random.NextFloat(-maxMargin, maxMargin);
-                    targetAABB.Bottom += margin;
-                    targetAABB.Top += margin;
+                    bottom += margin;
+                    top += margin;
                 }
+
+                targetAABB = new Box2(left, bottom, right, top);
             }
             iteration++;
         }
@@ -1574,7 +1577,7 @@ public sealed partial class ShuttleSystem
         LeaveNoFTLBehind((entity.Owner, xform), oldGridMatrix, oldMapUid);
 
         // Reset rotation so they always face the same direction.
-        xform.LocalRotation = Angle.Zero;
+        _transform.SetLocalRotation(entity.Owner, Angle.Zero, xform);
         _index += width + Buffer;
 
         // Frontier: rollover coordinates

@@ -7,11 +7,11 @@ using Robust.Shared.Random;
 
 namespace Content.Server.Xenoarchaeology.XenoArtifacts.Effects.Systems;
 
-public sealed class TelepathicArtifactSystem : EntitySystem
+public sealed partial class TelepathicArtifactSystem : EntitySystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private SharedPopupSystem _popupSystem = default!;
 
     public override void Initialize()
     {
@@ -25,7 +25,7 @@ public sealed class TelepathicArtifactSystem : EntitySystem
         var victims = _lookup.GetEntitiesInRange(uid, component.Range);
         foreach (var victimUid in victims)
         {
-            if (!EntityManager.HasComponent<ActorComponent>(victimUid))
+            if (!HasComp<ActorComponent>(victimUid))
                 continue;
 
             // roll if msg should be usual or drastic

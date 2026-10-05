@@ -7,10 +7,10 @@ using Content.Shared.Verbs;
 
 namespace Content.Server.Xenoarchaeology.Equipment.Systems;
 
-public sealed class NodeScannerSystem : EntitySystem
+public sealed partial class NodeScannerSystem : EntitySystem
 {
-    [Dependency] private readonly UseDelaySystem _useDelay = default!;
-    [Dependency] private readonly PopupSystem _popupSystem = default!;
+    [Dependency] private UseDelaySystem _useDelay = default!;
+    [Dependency] private PopupSystem _popupSystem = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -21,7 +21,7 @@ public sealed class NodeScannerSystem : EntitySystem
 
     private void OnBeforeRangedInteract(EntityUid uid, NodeScannerComponent component, BeforeRangedInteractEvent args)
     {
-        if (args.Handled || !args.CanReach || args.Target is not {} target)
+        if (args.Handled || !args.CanReach || args.Target is not { } target)
             return;
 
         if (!TryComp<ArtifactComponent>(target, out var artifact) || artifact.CurrentNodeId == null)

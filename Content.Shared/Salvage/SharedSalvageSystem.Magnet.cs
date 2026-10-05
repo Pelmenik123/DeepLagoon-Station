@@ -47,7 +47,7 @@ public abstract partial class SharedSalvageSystem
         {
             case AsteroidOffering:
                 var configId = _asteroidConfigs[rand.Next(_asteroidConfigs.Count)];
-                var configProto =_proto.Index(configId);
+                var configProto = _proto.Index(configId);
                 var layers = new Dictionary<string, int>();
 
                 var data = new DungeonData();
@@ -83,7 +83,7 @@ public abstract partial class SharedSalvageSystem
                     MarkerLayers = layers,
                 };
             case DebrisOffering:
-                var id = rand.Pick(_debrisConfigs);
+                var id = _debrisConfigs[rand.Next(_debrisConfigs.Count)];
                 return new DebrisOffering
                 {
                     Id = id

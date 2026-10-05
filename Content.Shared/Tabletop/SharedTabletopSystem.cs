@@ -11,13 +11,13 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared.Tabletop
 {
-    public abstract class SharedTabletopSystem : EntitySystem
+    public abstract partial class SharedTabletopSystem : EntitySystem
     {
-        [Dependency] protected readonly ActionBlockerSystem ActionBlockerSystem = default!;
-        [Dependency] private readonly SharedInteractionSystem _interactionSystem = default!;
-        [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-        [Dependency] protected readonly SharedTransformSystem Transforms = default!;
-        [Dependency] private readonly IMapManager _mapMan = default!;
+        [Dependency] protected ActionBlockerSystem ActionBlockerSystem = default!;
+        [Dependency] private SharedInteractionSystem _interactionSystem = default!;
+        [Dependency] private SharedAppearanceSystem _appearance = default!;
+        [Dependency] protected SharedTransformSystem Transforms = default!;
+        [Dependency] private SharedMapSystem _mapMan = default!;
 
         public override void Initialize()
         {
@@ -40,9 +40,9 @@ namespace Content.Shared.Tabletop
                 return;
 
             // Move the entity and dirty it (we use the map ID from the entity so noone can try to be funny and move the item to another map)
-            var transform = EntityManager.GetComponent<TransformComponent>(moved);
-            Transforms.SetParent(moved, transform, _mapMan.GetMapEntityId(transform.MapID));
-            Transforms.SetLocalPositionNoLerp(transform, msg.Coordinates.Position);
+            var transform = Comp<TransformComponent>(moved);
+            Transforms.SetParent(moved, transform, _mapMan.GetMap(transform.MapID));
+            Transforms.SetLocalPositionNoLerp(moved, msg.Coordinates.Position, transform);
         }
 
         private void OnDraggingPlayerChanged(TabletopDraggingPlayerChangedEvent msg, EntitySessionEventArgs args)
@@ -61,12 +61,12 @@ namespace Content.Shared.Tabletop
             if (draggableComponent.DraggingPlayer != null)
             {
                 _appearance.SetData(dragged, TabletopItemVisuals.Scale, new Vector2(1.25f, 1.25f), appearance);
-                _appearance.SetData(dragged, TabletopItemVisuals.DrawDepth, (int) DrawDepth.DrawDepth.Items + 1, appearance);
+                _appearance.SetData(dragged, TabletopItemVisuals.DrawDepth, (int)DrawDepth.DrawDepth.Items + 1, appearance);
             }
             else
             {
                 _appearance.SetData(dragged, TabletopItemVisuals.Scale, Vector2.One, appearance);
-                _appearance.SetData(dragged, TabletopItemVisuals.DrawDepth, (int) DrawDepth.DrawDepth.Items, appearance);
+                _appearance.SetData(dragged, TabletopItemVisuals.DrawDepth, (int)DrawDepth.DrawDepth.Items, appearance);
             }
         }
 

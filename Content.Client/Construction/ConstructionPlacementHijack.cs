@@ -15,6 +15,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Linq;
+using Robust.Client.Graphics;
+using Robust.Shared.GameObjects;
+using Robust.Client.GameObjects;
+using Robust.Shared.IoC;
 using Content.Shared.Construction.Prototypes;
 using Robust.Client.Placement;
 using Robust.Client.Utility;
@@ -64,7 +68,7 @@ namespace Content.Client.Construction
         public override void StartHijack(PlacementManager manager)
         {
             base.StartHijack(manager);
-            manager.CurrentTextures = _prototype?.Layers.Select(sprite => sprite.DirFrame0()).ToList();
+            manager.CurrentTextures = _prototype?.Layers.Select(sprite => (IDirectionalTextureProvider)IoCManager.Resolve<IEntityManager>().System<SpriteSystem>().RsiStateLike(sprite)).ToList();
         }
     }
 }

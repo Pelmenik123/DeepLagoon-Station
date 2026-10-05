@@ -1,4 +1,4 @@
-﻿// SPDX-FileCopyrightText: 2019 Víctor Aguilera Puerto
+// SPDX-FileCopyrightText: 2019 Víctor Aguilera Puerto
 // SPDX-FileCopyrightText: 2020 py01
 // SPDX-FileCopyrightText: 2021 Leon Friedrich
 // SPDX-FileCopyrightText: 2021 Paul

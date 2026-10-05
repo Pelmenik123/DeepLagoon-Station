@@ -13,7 +13,7 @@ namespace Content.Client.Shuttles.UI;
 public sealed partial class ShuttleConsoleWindow : FancyWindow,
     IComputerWindow<ShuttleBoundUserInterfaceState>
 {
-    [Dependency] private readonly IEntityManager _entManager = default!;
+    [Dependency] private IEntityManager _entManager = default!;
 
     private ShuttleConsoleMode _mode = ShuttleConsoleMode.Nav;
 
@@ -64,12 +64,12 @@ public sealed partial class ShuttleConsoleWindow : FancyWindow,
         {
             UndockRequest?.Invoke(entity);
         };
-        
+
         DockContainer.UndockAllRequest += dockEntities =>
         {
             UndockAllRequest?.Invoke(dockEntities);
         };
-        
+
         DockContainer.ToggleFTLLockRequest += (dockEntities, enabled) =>
         {
             ToggleFTLLockRequest?.Invoke(dockEntities, enabled);

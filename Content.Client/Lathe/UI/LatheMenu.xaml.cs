@@ -42,8 +42,8 @@ namespace Content.Client.Lathe.UI;
 [GenerateTypedNameReferences]
 public sealed partial class LatheMenu : FancyWindow
 {
-    [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
 
     private readonly SpriteSystem _spriteSystem;
     private readonly LatheSystem _lathe;
@@ -57,7 +57,7 @@ public sealed partial class LatheMenu : FancyWindow
     public event Action<int>? OnRecipeCancelled;
     // </Mono>
 
-    public List<ProtoId<LatheRecipePrototype>> Recipes = new();
+    public List<ProtoId<LatheRecipePrototype>> Recipes = [];
 
     public List<ProtoId<LatheCategoryPrototype>>? Categories;
 
@@ -188,11 +188,11 @@ public sealed partial class LatheMenu : FancyWindow
             var sheetVolume = _materialStorage.GetSheetVolume(proto);
 
             var unit = Loc.GetString(proto.Unit);
-            var sheets = adjustedAmount / (float) sheetVolume;
+            var sheets = adjustedAmount / (float)sheetVolume;
 
             var availableAmount = _materialStorage.GetMaterialAmount(Entity, id);
             var missingAmount = Math.Max(0, adjustedAmount - availableAmount);
-            var missingSheets = missingAmount / (float) sheetVolume;
+            var missingSheets = missingAmount / (float)sheetVolume;
 
             var name = Loc.GetString(proto.Name);
 
@@ -266,16 +266,18 @@ public sealed partial class LatheMenu : FancyWindow
     /// <param name="queue"></param>
     public void PopulateQueueList(List<LatheRecipeBatch> queue) // Frontier: LatheRecipePrototype<LatheRecipeBatch
     {
-        QueueList.DisposeAllChildren();
+        QueueList.RemoveAllChildren();
 
         var idx = 1;
         foreach (var batch in queue) // Frontier: recipe<batch
         {
-            var queuedRecipeBox = new BoxContainer();
-            queuedRecipeBox.Orientation = BoxContainer.LayoutOrientation.Horizontal;
+            var queuedRecipeBox = new BoxContainer
+            {
+                Orientation = BoxContainer.LayoutOrientation.Horizontal
+            };
 
             // Frontier: batch handling
-            queuedRecipeBox.AddChild(GetRecipeDisplayControl(batch.Recipe));
+            queuedRecipeBox.AddChild(GetRecipeDisplayControl(_prototypeManager.Index(batch.Recipe)));
 
             var queuedRecipeLabel = new Label();
             if (batch.ItemsRequested > 1)
@@ -285,8 +287,10 @@ public sealed partial class LatheMenu : FancyWindow
             // End Frontier
             queuedRecipeBox.AddChild(queuedRecipeLabel);
             // <Mono>
-            var cancelButton = new Button();
-            cancelButton.Text = "X";
+            var cancelButton = new Button
+            {
+                Text = "X"
+            };
             cancelButton.StyleClasses.Add(StyleBase.ButtonCaution);
             cancelButton.OnPressed += _ => OnRecipeCancelled?.Invoke(batch.Index);
             queuedRecipeBox.AddChild(cancelButton);
@@ -296,16 +300,18 @@ public sealed partial class LatheMenu : FancyWindow
         }
     }
 
-    public void SetQueueInfo(LatheRecipePrototype? recipe)
+    public void SetQueueInfo(ProtoId<LatheRecipePrototype>? recipe)
     {
         FabricatingContainer.Visible = recipe != null;
         if (recipe == null)
             return;
 
-        FabricatingDisplayContainer.Children.Clear();
-        FabricatingDisplayContainer.AddChild(GetRecipeDisplayControl(recipe));
+        var proto = _prototypeManager.Index(recipe.Value);
 
-        NameLabel.Text = _lathe.GetRecipeName(recipe);
+        FabricatingDisplayContainer.Children.Clear();
+        FabricatingDisplayContainer.AddChild(GetRecipeDisplayControl(proto));
+
+        NameLabel.Text = _lathe.GetRecipeName(recipe.Value);
     }
 
     // <Mono>
@@ -324,8 +330,10 @@ public sealed partial class LatheMenu : FancyWindow
     {
         if (recipe.Icon != null)
         {
-            var textRect = new TextureRect();
-            textRect.Texture = _spriteSystem.Frame0(recipe.Icon);
+            var textRect = new TextureRect
+            {
+                Texture = _spriteSystem.Frame0(recipe.Icon)
+            };
             return textRect;
         }
 

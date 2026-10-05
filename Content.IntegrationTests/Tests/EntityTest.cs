@@ -29,7 +29,7 @@ namespace Content.IntegrationTests.Tests
             var server = pair.Server;
 
             var entityMan = server.ResolveDependency<IEntityManager>();
-            var mapManager = server.ResolveDependency<IMapManager>();
+            var mapManager = server.System<SharedMapSystem>();
             var prototypeMan = server.ResolveDependency<IPrototypeManager>();
             var mapSystem = entityMan.System<SharedMapSystem>();
 
@@ -154,7 +154,7 @@ namespace Content.IntegrationTests.Tests
 
             var cfg = server.ResolveDependency<IConfigurationManager>();
             var prototypeMan = server.ResolveDependency<IPrototypeManager>();
-            var mapManager = server.ResolveDependency<IMapManager>();
+            var mapManager = server.System<SharedMapSystem>();
             var sEntMan = server.ResolveDependency<IEntityManager>();
             var mapSys = server.System<SharedMapSystem>();
 
@@ -274,7 +274,7 @@ namespace Content.IntegrationTests.Tests
             await pair.RunTicksSync(3);
 
             // We consider only non-audio entities, as some entities will just play sounds when they spawn.
-            int Count(IEntityManager ent) =>  ent.EntityCount - ent.Count<AudioComponent>();
+            int Count(IEntityManager ent) => ent.EntityCount - ent.Count<AudioComponent>();
 
             foreach (var protoId in protoIds)
             {
@@ -388,7 +388,7 @@ namespace Content.IntegrationTests.Tests
 
                     foreach (var type in componentFactory.AllRegisteredTypes)
                     {
-                        var component = (Component) componentFactory.GetComponent(type);
+                        var component = (Component)componentFactory.GetComponent(type);
                         var name = componentFactory.GetComponentName(type);
 
                         // If this component is ignored

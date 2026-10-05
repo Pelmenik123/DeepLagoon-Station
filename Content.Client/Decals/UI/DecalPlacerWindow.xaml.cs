@@ -15,8 +15,8 @@ namespace Content.Client.Decals.UI;
 [GenerateTypedNameReferences]
 public sealed partial class DecalPlacerWindow : DefaultWindow
 {
-    [Dependency] private readonly IPrototypeManager _prototype = default!;
-    [Dependency] private readonly IEntityManager _e = default!;
+    [Dependency] private IPrototypeManager _prototype = default!;
+    [Dependency] private IEntityManager _e = default!;
 
     private readonly DecalPlacementSystem _decalPlacementSystem;
 
@@ -204,7 +204,7 @@ public sealed partial class DecalPlacerWindow : DefaultWindow
         foreach (var decalPrototype in prototypes)
         {
             if (decalPrototype.ShowMenu)
-                _decals.Add(decalPrototype.ID, decalPrototype.Sprite.Frame0());
+                _decals.Add(decalPrototype.ID, SpriteComponentExt.Sys.Frame0(decalPrototype.Sprite));
         }
 
         RefreshList();

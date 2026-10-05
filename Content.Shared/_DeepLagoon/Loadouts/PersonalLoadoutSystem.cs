@@ -11,12 +11,12 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared._DeepLagoon.Loadouts;
 
 /// <summary>Validate on both client and server; the server always supplies the actually assigned job.</summary>
-public sealed class PersonalLoadoutSystem : EntitySystem
+public sealed partial class PersonalLoadoutSystem : EntitySystem
 {
     public const string Role = "DLEinsteinPersonal";
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
-    [Dependency] private readonly IConfigurationManager _configuration = default!;
-    [Dependency] private readonly ISharedPlaytimeManager _playtime = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private IConfigurationManager _configuration = default!;
+    [Dependency] private ISharedPlaytimeManager _playtime = default!;
 
     public int Points => Math.Max(0, _configuration.GetCVar(CCVars.PersonalLoadoutPoints));
 
@@ -98,7 +98,7 @@ public sealed class PersonalLoadoutSystem : EntitySystem
         {
             Name = prototype.PersonalCustomName ? Limit(data.Name, HumanoidCharacterProfile.MaxNameLength) : null,
             Description = prototype.PersonalCustomDescription ? Limit(data.Description, HumanoidCharacterProfile.MaxDescLength) : null,
-            Color = prototype.PersonalCustomColor && data.Color != null && Robust.Shared.Maths.Color.TryFromHex(data.Color) is { } color ? color.ToHex() : null,
+            Color = prototype.PersonalCustomColor && data.Color != null && Robust.Shared.Maths.Color.TryFromHex(data.Color, out var color) ? color.ToHex() : null,
             Heirloom = prototype.PersonalHeirloom && data.Heirloom,
         };
     }

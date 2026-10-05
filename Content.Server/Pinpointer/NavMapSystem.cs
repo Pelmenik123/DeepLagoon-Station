@@ -33,13 +33,12 @@ namespace Content.Server.Pinpointer;
 /// </summary>
 public sealed partial class NavMapSystem : SharedNavMapSystem
 {
-    [Dependency] private readonly IAdminLogManager _adminLog = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] private readonly SharedMapSystem _mapSystem = default!;
-    [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
-    [Dependency] private readonly IMapManager _mapManager = default!;
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
-    [Dependency] private readonly ITileDefinitionManager _tileDefManager = default!;
+    [Dependency] private IAdminLogManager _adminLog = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private SharedMapSystem _mapSystem = default!;
+    [Dependency] private SharedTransformSystem _transformSystem = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
+    [Dependency] private ITileDefinitionManager _tileDefManager = default!;
 
     public const float CloseDistance = 15f;
     public const float FarDistance = 30f;
@@ -298,7 +297,7 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
         else
             tileData &= FloorMask;
 
-        var enumerator = _mapSystem.GetAnchoredEntitiesEnumerator(uid, mapGrid, tile);
+        var enumerator = _mapSystem.GetAnchoredEntities(uid, mapGrid, tile);
         while (enumerator.MoveNext(out var ent))
         {
             if (!_airtightQuery.TryComp(ent, out var airtight))
@@ -309,7 +308,7 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
                 continue;
 
             var directions = (int)airtight.AirBlockedDirection;
-            tileData |= directions << (int) category;
+            tileData |= directions << (int)category;
         }
 
         // Remove walls that intersect with doors (unless they can both physically fit on the same tile)
@@ -317,7 +316,7 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
         // Is this for blast-doors or something?
 
         // Shift airlock bits over to the wall bits
-        var shiftedAirlockBits = (tileData & AirlockMask) >> ((int) NavMapChunkType.Airlock - (int) NavMapChunkType.Wall);
+        var shiftedAirlockBits = (tileData & AirlockMask) >> ((int)NavMapChunkType.Airlock - (int)NavMapChunkType.Wall);
 
         // And then mask door bits
         tileData &= ~shiftedAirlockBits;
@@ -476,7 +475,7 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
             return beacon.Value.Comp.Text!;
 
         var gridOffset = Angle.Zero;
-        if (_mapManager.TryFindGridAt(pos.Value, out var grid, out _))
+        if (_mapSystem.TryFindGridAt(pos.Value, out var grid, out _))
             gridOffset = Transform(grid).LocalRotation;
 
         // get the angle between the two positions, adjusted for the grid rotation so that

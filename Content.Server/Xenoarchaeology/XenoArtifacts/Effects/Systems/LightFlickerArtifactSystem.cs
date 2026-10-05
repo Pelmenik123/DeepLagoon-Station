@@ -1,4 +1,4 @@
-﻿using Content.Server.Ghost;
+using Content.Server.Ghost;
 using Content.Server.Light.Components;
 using Content.Server.Xenoarchaeology.XenoArtifacts.Effects.Components;
 using Content.Server.Xenoarchaeology.XenoArtifacts.Events;
@@ -9,11 +9,11 @@ namespace Content.Server.Xenoarchaeology.XenoArtifacts.Effects.Systems;
 /// <summary>
 /// This handles...
 /// </summary>
-public sealed class LightFlickerArtifactSystem : EntitySystem
+public sealed partial class LightFlickerArtifactSystem : EntitySystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly GhostSystem _ghost = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private GhostSystem _ghost = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -24,7 +24,7 @@ public sealed class LightFlickerArtifactSystem : EntitySystem
     private void OnActivated(EntityUid uid, LightFlickerArtifactComponent component, ArtifactActivatedEvent args)
     {
         var lights = GetEntityQuery<PoweredLightComponent>();
-        foreach (var light in _lookup.GetEntitiesInRange(uid, component.Radius, LookupFlags.StaticSundries ))
+        foreach (var light in _lookup.GetEntitiesInRange(uid, component.Radius, LookupFlags.StaticSundries))
         {
             if (!lights.HasComponent(light))
                 continue;

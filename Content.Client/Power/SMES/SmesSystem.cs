@@ -1,11 +1,12 @@
-﻿using Content.Shared.Power;
+using Content.Shared.Power;
 using Content.Shared.SMES;
 using Robust.Client.GameObjects;
 
 namespace Content.Client.Power.SMES;
 
-public sealed class SmesVisualizerSystem : VisualizerSystem<SmesComponent>
+public sealed partial class SmesVisualizerSystem : VisualizerSystem<SmesComponent>
 {
+    [Dependency] private SpriteSystem _sprite = default!;
     protected override void OnAppearanceChange(EntityUid uid, SmesComponent comp, ref AppearanceChangeEvent args)
     {
         if (args.Sprite == null)
@@ -13,12 +14,12 @@ public sealed class SmesVisualizerSystem : VisualizerSystem<SmesComponent>
 
         if (!AppearanceSystem.TryGetData<int>(uid, SmesVisuals.LastChargeLevel, out var level, args.Component) || level == 0)
         {
-            args.Sprite.LayerSetVisible(SmesVisualLayers.Charge, false);
+            _sprite.LayerSetVisible(args.Sprite.AsEntity(), SmesVisualLayers.Charge, false);
         }
         else
         {
-            args.Sprite.LayerSetVisible(SmesVisualLayers.Charge, true);
-            args.Sprite.LayerSetState(SmesVisualLayers.Charge, $"{comp.ChargeOverlayPrefix}{level}");
+            _sprite.LayerSetVisible(args.Sprite.AsEntity(), SmesVisualLayers.Charge, true);
+            _sprite.LayerSetRsiState(args.Sprite.AsEntity(), SmesVisualLayers.Charge, $"{comp.ChargeOverlayPrefix}{level}");
         }
 
         if (!AppearanceSystem.TryGetData<ChargeState>(uid, SmesVisuals.LastChargeState, out var state, args.Component))
@@ -27,16 +28,16 @@ public sealed class SmesVisualizerSystem : VisualizerSystem<SmesComponent>
         switch (state)
         {
             case ChargeState.Still:
-                args.Sprite.LayerSetState(SmesVisualLayers.Input, $"{comp.InputOverlayPrefix}0");
-                args.Sprite.LayerSetState(SmesVisualLayers.Output, $"{comp.OutputOverlayPrefix}1");
+                _sprite.LayerSetRsiState(args.Sprite.AsEntity(), SmesVisualLayers.Input, $"{comp.InputOverlayPrefix}0");
+                _sprite.LayerSetRsiState(args.Sprite.AsEntity(), SmesVisualLayers.Output, $"{comp.OutputOverlayPrefix}1");
                 break;
             case ChargeState.Charging:
-                args.Sprite.LayerSetState(SmesVisualLayers.Input, $"{comp.InputOverlayPrefix}1");
-                args.Sprite.LayerSetState(SmesVisualLayers.Output, $"{comp.OutputOverlayPrefix}1");
+                _sprite.LayerSetRsiState(args.Sprite.AsEntity(), SmesVisualLayers.Input, $"{comp.InputOverlayPrefix}1");
+                _sprite.LayerSetRsiState(args.Sprite.AsEntity(), SmesVisualLayers.Output, $"{comp.OutputOverlayPrefix}1");
                 break;
             case ChargeState.Discharging:
-                args.Sprite.LayerSetState(SmesVisualLayers.Input, $"{comp.InputOverlayPrefix}0");
-                args.Sprite.LayerSetState(SmesVisualLayers.Output, $"{comp.OutputOverlayPrefix}2");
+                _sprite.LayerSetRsiState(args.Sprite.AsEntity(), SmesVisualLayers.Input, $"{comp.InputOverlayPrefix}0");
+                _sprite.LayerSetRsiState(args.Sprite.AsEntity(), SmesVisualLayers.Output, $"{comp.OutputOverlayPrefix}2");
                 break;
         }
     }

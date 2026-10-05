@@ -135,7 +135,7 @@ namespace Content.Shared.Chemistry.Components
             _heatCapacity = 0;
             foreach (var (reagent, quantity) in Contents)
             {
-                _heatCapacity += (float) quantity *
+                _heatCapacity += (float)quantity *
                                     protoMan.Index<ReagentPrototype>(reagent.Prototype).SpecificHeat;
             }
 
@@ -224,7 +224,7 @@ namespace Content.Shared.Chemistry.Components
         public void ValidateSolution()
         {
             // sandbox forbids: [Conditional("DEBUG")]
-    #if DEBUG
+#if DEBUG
             // Correct volume
             DebugTools.Assert(Contents.Select(x => x.Quantity).Sum() == Volume);
 
@@ -242,7 +242,7 @@ namespace Content.Shared.Chemistry.Components
                 UpdateHeatCapacity(null);
                 DebugTools.Assert(MathHelper.CloseTo(_heatCapacity, cur, tolerance: 0.01));
             }
-    #endif
+#endif
         }
 
         void ISerializationHooks.AfterDeserialization()
@@ -344,7 +344,7 @@ namespace Content.Shared.Chemistry.Components
             var total = FixedPoint2.Zero;
             foreach (var (reagent, quantity) in Contents)
             {
-                if (prototypes.Contains(reagent.Prototype))
+                if (prototypes.Contains(reagent.Prototype.Id))
                     total += quantity;
             }
 
@@ -655,7 +655,7 @@ namespace Content.Shared.Chemistry.Components
             List<ReagentQuantity> excluded = new();
             for (var i = Contents.Count - 1; i >= 0; i--)
             {
-                if (includedPrototypes.Contains(Contents[i].Reagent.Prototype))
+                if (includedPrototypes.Contains(Contents[i].Reagent.Prototype.Id))
                     continue;
 
                 excluded.Add(Contents[i]);
@@ -696,7 +696,7 @@ namespace Content.Shared.Chemistry.Components
             var origVol = Volume;
             var effVol = Volume.Value;
             newSolution = new Solution(Contents.Count) { Temperature = Temperature };
-            var remaining = (long) toTake.Value;
+            var remaining = (long)toTake.Value;
 
             for (var i = Contents.Count - 1; i >= 0; i--) // iterate backwards because of remove swap.
             {
@@ -712,7 +712,7 @@ namespace Content.Shared.Chemistry.Components
                     continue;
                 }
 
-                var splitQuantity = FixedPoint2.FromCents((int) split);
+                var splitQuantity = FixedPoint2.FromCents((int)split);
                 var newQuantity = quantity - splitQuantity;
 
                 DebugTools.Assert(newQuantity >= 0);
@@ -818,7 +818,7 @@ namespace Content.Shared.Chemistry.Components
                 var (reagent, quantity) = Contents[i];
 
                 // Each reagent to split must be in the set given.
-                if (!reagents.Contains(reagent.Prototype))
+                if (!reagents.Contains(reagent.Prototype.Id))
                     continue;
 
                 // If the reagent has more than enough volume to remove, no need to remove it from the list.
@@ -877,7 +877,7 @@ namespace Content.Shared.Chemistry.Components
 
             var effVol = Volume.Value;
             Volume -= toTake;
-            var remaining = (long) toTake.Value;
+            var remaining = (long)toTake.Value;
             for (var i = Contents.Count - 1; i >= 0; i--)// iterate backwards because of remove swap.
             {
                 var (reagent, quantity) = Contents[i];
@@ -892,7 +892,7 @@ namespace Content.Shared.Chemistry.Components
                     continue;
                 }
 
-                var splitQuantity = FixedPoint2.FromCents((int) split);
+                var splitQuantity = FixedPoint2.FromCents((int)split);
                 var newQuantity = quantity - splitQuantity;
 
                 if (newQuantity > FixedPoint2.Zero)
@@ -980,7 +980,7 @@ namespace Content.Shared.Chemistry.Components
 
             foreach (var (reagent, quantity) in Contents)
             {
-                if (without.Contains(reagent.Prototype))
+                if (without.Contains(reagent.Prototype.Id))
                     continue;
 
                 runningTotalQuantity += quantity;
@@ -1023,7 +1023,7 @@ namespace Content.Shared.Chemistry.Components
 
             foreach (var (reagent, quantity) in Contents)
             {
-                if (!included.Contains(reagent.Prototype))
+                if (!included.Contains(reagent.Prototype.Id))
                     continue;
 
                 runningTotalQuantity += quantity;

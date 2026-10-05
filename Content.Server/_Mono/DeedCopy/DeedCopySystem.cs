@@ -10,11 +10,11 @@ namespace Content.Server._Mono.DeedCopy;
 /// <summary>
 /// System for copying deeds between ID cards through interaction.
 /// </summary>
-public sealed class DeedCopySystem : EntitySystem
+public sealed partial class DeedCopySystem : EntitySystem
 {
-    [Dependency] private readonly SharedIdCardSystem _idCardSystem = default!;
-    [Dependency] private readonly PopupSystem _popupSystem = default!;
-    [Dependency] private readonly ISerializationManager _serializationManager = default!;
+    [Dependency] private SharedIdCardSystem _idCardSystem = default!;
+    [Dependency] private PopupSystem _popupSystem = default!;
+    [Dependency] private ISerializationManager _serializationManager = default!;
 
     public override void Initialize()
     {
@@ -63,7 +63,7 @@ public sealed class DeedCopySystem : EntitySystem
         var copiedDeed = _serializationManager.CreateCopy(sourceDeed, notNullableOverride: true);
 
         // Add the copied component to the target entity
-        EntityManager.AddComponent(targetId, copiedDeed, overwrite: true);
+        AddComp(targetId, copiedDeed, overwrite: true);
 
         // Success message
         _popupSystem.PopupEntity(

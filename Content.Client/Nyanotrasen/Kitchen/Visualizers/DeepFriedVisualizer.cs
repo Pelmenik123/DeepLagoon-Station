@@ -11,10 +11,11 @@ using Content.Client.Nyanotrasen.Kitchen.Components;
 
 namespace Content.Client.Kitchen.Visualizers
 {
-    public sealed class DeepFriedVisualizerSystem : VisualizerSystem<DeepFriedComponent>
+    public sealed partial class DeepFriedVisualizerSystem : VisualizerSystem<DeepFriedComponent>
     {
-        [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-        [Dependency] private readonly IPrototypeManager _prototype = default!;
+        [Dependency] private SpriteSystem _sprite = default!;
+        [Dependency] private SharedAppearanceSystem _appearance = default!;
+        [Dependency] private IPrototypeManager _prototype = default!;
 
         private const string FriedShader = "Crispy";
         private const string SpectralShader = "Spectral";
@@ -60,7 +61,7 @@ namespace Content.Client.Kitchen.Visualizers
 
             foreach (var key in args.RevealedLayers)
             {
-                if (!sprite.LayerMapTryGet(key, out var index) || sprite[index] is not Layer layer)
+                if (!_sprite.LayerMapTryGet(sprite.AsEntity(), key, out var index, false) || sprite[index] is not Layer layer)
                     continue;
 
                 sprite.LayerSetShader(index, shader); // Frontier: ShaderName<shader
@@ -85,7 +86,7 @@ namespace Content.Client.Kitchen.Visualizers
 
             foreach (var key in args.RevealedLayers)
             {
-                if (!sprite.LayerMapTryGet(key, out var index) || sprite[index] is not Layer layer)
+                if (!_sprite.LayerMapTryGet(sprite.AsEntity(), key, out var index, false) || sprite[index] is not Layer layer)
                     continue;
 
                 sprite.LayerSetShader(index, shader); // Frontier: ShaderName<shader

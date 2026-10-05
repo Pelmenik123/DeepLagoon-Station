@@ -66,13 +66,13 @@ using Prometheus;
 
 namespace Content.Server.Physics.Controllers;
 
-public sealed class MoverController : SharedMoverController
+public sealed partial class MoverController : SharedMoverController
 {
     private static readonly Gauge ActiveMoverGauge = Metrics.CreateGauge(
         "physics_active_mover_count",
         "Active amount of InputMovers being processed by MoverController");
-    [Dependency] private readonly ThrusterSystem _thruster = default!;
-    [Dependency] private readonly SharedTransformSystem _xformSystem = default!;
+    ThrusterSystem _thruster => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<ThrusterSystem>();
+    SharedTransformSystem _xformSystem => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedTransformSystem>();
 
     private Dictionary<EntityUid, (ShuttleComponent, List<(EntityUid, PilotComponent, InputMoverComponent, TransformComponent)>)> _shuttlePilots = new();
 

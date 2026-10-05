@@ -23,12 +23,12 @@ namespace Content.Server._NF.Shipyard.Systems;
 /// <summary>
 /// Manages ship ownership and handles cleanup of ships when owners are offline too long
 /// </summary>
-public sealed class ShipOwnershipSystem : EntitySystem
+public sealed partial class ShipOwnershipSystem : EntitySystem
 {
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
-    [Dependency] private readonly IMapManager _mapManager = default!;
-    [Dependency] private readonly MindSystem _mind = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
+    [Dependency] private SharedMapSystem _mapManager = default!;
+    [Dependency] private MindSystem _mind = default!;
 
     private readonly HashSet<EntityUid> _pendingDeletionShips = new();
 
@@ -63,7 +63,7 @@ public sealed class ShipOwnershipSystem : EntitySystem
     public void RegisterShipOwnership(EntityUid gridUid, ICommonSession owningPlayer)
     {
         // Don't register ownership if the entity isn't valid
-        if (!EntityManager.EntityExists(gridUid))
+        if (!Exists(gridUid))
             return;
 
         // Add ownership component to the ship
@@ -75,7 +75,7 @@ public sealed class ShipOwnershipSystem : EntitySystem
         Dirty(gridUid, comp);
 
         // Log ship registration
-        Logger.InfoS("shipOwnership", $"Registered ship {ToPrettyString(gridUid)} to player {owningPlayer.Name} ({owningPlayer.UserId})");
+        Log.Info("shipOwnership", $"Registered ship {ToPrettyString(gridUid)} to player {owningPlayer.Name} ({owningPlayer.UserId})");
     }
 
     public override void Update(float frameTime)
@@ -90,7 +90,7 @@ public sealed class ShipOwnershipSystem : EntitySystem
         _nextDeletionCheckTime = _gameTiming.CurTime + TimeSpan.FromSeconds(DeletionCheckIntervalSeconds);
 
         // Log that we're checking for ships to delete
-        Logger.DebugS("shipOwnership", $"Checking for abandoned ships to delete");
+        Log.Debug("shipOwnership", $"Checking for abandoned ships to delete");
 
         // Check for ships that need to be deleted due to owner absence
         var query = EntityQueryEnumerator<ShipOwnershipComponent>();
@@ -114,7 +114,7 @@ public sealed class ShipOwnershipSystem : EntitySystem
                 if (HasLivingBeingsOnShip(uid, mobQuery, xformQuery))
                 {
                     // Skip deletion if living beings are on the ship
-                    Logger.DebugS("shipOwnership", $"Skipping deletion of abandoned ship {ToPrettyString(uid)} because there are living beings on it");
+                    Log.Debug("shipOwnership", $"Skipping deletion of abandoned ship {ToPrettyString(uid)} because there are living beings on it");
 
                     // Reset the timer to check again later
                     ownership.LastStatusChangeTime = _gameTiming.CurTime;
@@ -130,13 +130,13 @@ public sealed class ShipOwnershipSystem : EntitySystem
         // Process deletions outside of enumeration
         foreach (var shipUid in _pendingDeletionShips)
         {
-            if (!EntityManager.EntityExists(shipUid))
+            if (!Exists(shipUid))
                 continue;
 
             // Only handle deletion if this entity has a transform and is a grid
-            if (TryComp<TransformComponent>(shipUid, out var transform) && transform.GridUid == shipUid)
+            if (TryComp(shipUid, out TransformComponent? transform) && transform.GridUid == shipUid)
             {
-                Logger.InfoS("shipOwnership", $"Deleting abandoned ship {ToPrettyString(shipUid)}");
+                Log.Info("shipOwnership", $"Deleting abandoned ship {ToPrettyString(shipUid)}");
 
                 // Delete the grid entity
                 QueueDel(shipUid);
@@ -232,14 +232,14 @@ public sealed class ShipOwnershipSystem : EntitySystem
                     // Player has connected, update ownership
                     ownership.IsOwnerOnline = true;
                     ownership.LastStatusChangeTime = _gameTiming.CurTime;
-                    Logger.DebugS("shipOwnership", $"Owner of ship {ToPrettyString(shipUid)} has connected");
+                    Log.Debug("shipOwnership", $"Owner of ship {ToPrettyString(shipUid)} has connected");
                     break;
 
                 case SessionStatus.Disconnected:
                     // Player has disconnected, update ownership
                     ownership.IsOwnerOnline = false;
                     ownership.LastStatusChangeTime = _gameTiming.CurTime;
-                    Logger.DebugS("shipOwnership", $"Owner of ship {ToPrettyString(shipUid)} has disconnected");
+                    Log.Debug("shipOwnership", $"Owner of ship {ToPrettyString(shipUid)} has disconnected");
                     break;
             }
 

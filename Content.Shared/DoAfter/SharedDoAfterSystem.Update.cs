@@ -9,12 +9,12 @@ namespace Content.Shared.DoAfter;
 
 public abstract partial class SharedDoAfterSystem : EntitySystem
 {
-    [Dependency] private readonly IDynamicTypeFactory _factory = default!;
-    [Dependency] private readonly SharedGravitySystem _gravity = default!;
-    [Dependency] private readonly SharedInteractionSystem _interaction = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
+    [Dependency] private IDynamicTypeFactory _factory = default!;
+    [Dependency] private SharedGravitySystem _gravity = default!;
+    [Dependency] private SharedInteractionSystem _interaction = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
 
-    private DoAfter[] _doAfters = Array.Empty<DoAfter>();
+    private DoAfter[] _doAfters = [];
 
     public override void Update(float frameTime)
     {
@@ -95,15 +95,12 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
     {
         var args = doAfter.Args;
 
-        if (args.ExtraCheck?.Invoke() == false)
-            return false;
-
         if (doAfter.AttemptEvent == null)
         {
             // I feel like this is somewhat cursed, but its the only way I can think of without having to just send
             // redundant data over the network and increasing DoAfter boilerplate.
             var evType = typeof(DoAfterAttemptEvent<>).MakeGenericType(args.Event.GetType());
-            doAfter.AttemptEvent = _factory.CreateInstance(evType, new object[] { doAfter, args.Event });
+            doAfter.AttemptEvent = _factory.CreateInstance(evType, [doAfter, args.Event]);
         }
 
         args.Event.DoAfter = doAfter;
@@ -112,7 +109,7 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
         else
             RaiseLocalEvent(doAfter.AttemptEvent);
 
-        var ev = (CancellableEntityEventArgs) doAfter.AttemptEvent;
+        var ev = (CancellableEntityEventArgs)doAfter.AttemptEvent;
         if (!ev.Cancelled)
             return true;
 
@@ -154,7 +151,7 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
         if (args.Used is { } used && !xformQuery.HasComponent(used))
             return true;
 
-        if (args.EventTarget is {Valid: true} eventTarget && !xformQuery.HasComponent(eventTarget))
+        if (args.EventTarget is { Valid: true } eventTarget && !xformQuery.HasComponent(eventTarget))
             return true;
 
         if (!xformQuery.TryGetComponent(args.User, out var userXform))
@@ -164,8 +161,7 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
         if (args.Target is { } target && !xformQuery.TryGetComponent(target, out targetXform))
             return true;
 
-        TransformComponent? usedXform = null;
-        if (args.Used is { } @using && !xformQuery.TryGetComponent(@using, out usedXform))
+        if (args.Used is { } @using && !xformQuery.TryGetComponent(@using, out var usedXform))
             return true;
 
         // TODO: Re-use existing xform query for these calculations.
@@ -211,7 +207,7 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
             }
             else
             {
-                if (!_interaction.InRangeUnobstructed(args.User,args.Used.Value))
+                if (!_interaction.InRangeUnobstructed(args.User, args.Used.Value))
                     return true;
             }
         }
@@ -230,7 +226,7 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
             // If an item was in the user's hand to begin with,
             // check if the user is no longer holding the item.
             if (args.BreakOnDropItem && doAfter.InitialItem != null && !_hands.IsHolding((args.User, hands), doAfter.InitialItem))
-                    return true;
+                return true;
 
             // If the user changes which hand is active at all, interrupt the do-after
             if (args.BreakOnHandChange && hands.ActiveHand?.Name != doAfter.InitialHand)

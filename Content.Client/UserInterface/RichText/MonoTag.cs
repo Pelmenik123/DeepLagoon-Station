@@ -10,19 +10,21 @@ namespace Content.Client.UserInterface.RichText;
 /// <summary>
 /// Sets the font to a monospaced variant
 /// </summary>
-public sealed class MonoTag : IMarkupTag
+public sealed partial class MonoTag : IMarkupTagHandler
 {
-    [ValidatePrototypeId<FontPrototype>] public const string MonoFont = "Monospace";
+    public const string MonoFont = "Monospace";
 
-    [Dependency] private readonly IResourceCache _resourceCache = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IResourceCache _resourceCache = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
 
     public string Name => "mono";
 
     /// <inheritdoc/>
     public void PushDrawContext(MarkupNode node, MarkupDrawingContext context)
     {
+#pragma warning disable CS0618 // Upstream SS14 master calls FontTag.CreateFont in the same handler.
         var font = FontTag.CreateFont(context.Font, node, _resourceCache, _prototypeManager, MonoFont);
+#pragma warning restore CS0618
         context.Font.Push(font);
     }
 

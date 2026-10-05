@@ -6,12 +6,13 @@ using Robust.Shared.Prototypes;
 namespace Content.Client.Audio.Jukebox;
 
 
-public sealed class JukeboxSystem : SharedJukeboxSystem
+public sealed partial class JukeboxSystem : SharedJukeboxSystem
 {
-    [Dependency] private readonly IPrototypeManager _protoManager = default!;
-    [Dependency] private readonly AnimationPlayerSystem _animationPlayer = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearanceSystem = default!;
-    [Dependency] private readonly SharedUserInterfaceSystem _uiSystem = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IPrototypeManager _protoManager = default!;
+    [Dependency] private AnimationPlayerSystem _animationPlayer = default!;
+    [Dependency] private SharedAppearanceSystem _appearanceSystem = default!;
+    [Dependency] private SharedUserInterfaceSystem _uiSystem = default!;
 
     public override void Initialize()
     {
@@ -109,7 +110,7 @@ public sealed class JukeboxSystem : SharedJukeboxSystem
         if (!_animationPlayer.HasRunningAnimation(uid, state))
         {
             var animation = GetAnimation(layer, state, animationTime);
-            sprite.LayerSetVisible(layer, true);
+            _sprite.LayerSetVisible(sprite.AsEntity(), layer, true);
             _animationPlayer.Play(uid, animation, state);
         }
     }
@@ -138,8 +139,8 @@ public sealed class JukeboxSystem : SharedJukeboxSystem
         if (string.IsNullOrEmpty(state))
             return;
 
-        sprite.LayerSetVisible(layer, true);
-        sprite.LayerSetAutoAnimated(layer, true);
-        sprite.LayerSetState(layer, state);
+        _sprite.LayerSetVisible(sprite.AsEntity(), layer, true);
+        _sprite.LayerSetAutoAnimated(sprite.AsEntity(), layer, true);
+        _sprite.LayerSetRsiState(sprite.AsEntity(), layer, state);
     }
 }

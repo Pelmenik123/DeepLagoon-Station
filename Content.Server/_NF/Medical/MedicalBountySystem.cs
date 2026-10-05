@@ -29,20 +29,20 @@ namespace Content.Server._NF.Medical;
 
 public sealed partial class MedicalBountySystem : EntitySystem
 {
-    [Dependency] IRobustRandom _random = default!;
-    [Dependency] IPrototypeManager _proto = default!;
-    [Dependency] DamageableSystem _damageable = default!;
-    [Dependency] BloodstreamSystem _bloodstream = default!;
-    [Dependency] SharedContainerSystem _container = default!;
-    [Dependency] StackSystem _stack = default!;
-    [Dependency] AudioSystem _audio = default!;
-    [Dependency] PopupSystem _popup = default!;
-    [Dependency] UserInterfaceSystem _ui = default!;
-    [Dependency] PowerReceiverSystem _power = default!;
-    [Dependency] SharedAppearanceSystem _appearance = default!;
-    [Dependency] BankSystem _bank = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private BloodstreamSystem _bloodstream = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
+    [Dependency] private StackSystem _stack = default!;
+    [Dependency] private AudioSystem _audio = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private UserInterfaceSystem _ui = default!;
+    [Dependency] private PowerReceiverSystem _power = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private BankSystem _bank = default!;
 
-    private List<MedicalBountyPrototype> _cachedPrototypes = new();
+    private List<MedicalBountyPrototype> _cachedPrototypes = [];
 
     public override void Initialize()
     {
@@ -73,7 +73,7 @@ public sealed partial class MedicalBountySystem : EntitySystem
 
     private void CacheBountyPrototypes()
     {
-        _cachedPrototypes = _proto.EnumeratePrototypes<MedicalBountyPrototype>().ToList();
+        _cachedPrototypes = [.. _proto.EnumeratePrototypes<MedicalBountyPrototype>()];
     }
 
     private void InitializeMedicalBounty(EntityUid entity, MedicalBountyComponent component, ComponentStartup args)
@@ -105,10 +105,11 @@ public sealed partial class MedicalBountySystem : EntitySystem
         // Apply damage from prototype, keep track of value
         // Filter damage types to only those supported by the entity
         DamageSpecifier damageToApply = new DamageSpecifier();
-        var bountyValueAccum = component.Bounty.BaseReward;
+        var bounty = _proto.Index(component.Bounty.Value);
+        var bountyValueAccum = bounty.BaseReward;
         var supportedDamageTypes = damageable.Damage.DamageDict.Keys.ToHashSet();
 
-        foreach (var (damageType, damageValue) in component.Bounty.DamageSets)
+        foreach (var (damageType, damageValue) in bounty.DamageSets)
         {
             if (!_proto.TryIndex<DamageTypePrototype>(damageType, out var damageProto))
                 continue;
@@ -131,7 +132,7 @@ public sealed partial class MedicalBountySystem : EntitySystem
         // Inject reagents into chemical solution, if any (only if entity has bloodstream)
         if (hasBloodstream && bloodstream != null)
         {
-            foreach (var (reagentType, reagentValue) in component.Bounty.Reagents)
+            foreach (var (reagentType, reagentValue) in bounty.Reagents)
             {
                 if (!_proto.HasIndex<ReagentPrototype>(reagentType))
                     continue;
@@ -164,7 +165,7 @@ public sealed partial class MedicalBountySystem : EntitySystem
         }
 
         // Assumption: only one object can be in the MedicalBountyRedemption
-        EntityUid bountyUid = container.ContainedEntities[0];
+        var bountyUid = container.ContainedEntities[0];
 
         if (!TryComp<MedicalBountyComponent>(bountyUid, out var medicalBounty) ||
             medicalBounty.Bounty == null ||
@@ -176,7 +177,7 @@ public sealed partial class MedicalBountySystem : EntitySystem
         }
 
         // Check that the entity inside is alive.
-        var bounty = medicalBounty.Bounty;
+        var bounty = _proto.Index(medicalBounty.Bounty.Value);
         if (damageable.TotalDamage > bounty.MaximumDamageToRedeem)
         {
             _popup.PopupEntity(Loc.GetString("medical-bounty-redemption-fail-too-much-damage"), uid);
@@ -273,7 +274,7 @@ public sealed partial class MedicalBountySystem : EntitySystem
         }
 
         // Assumption: only one object can be stored in the MedicalBountyRedemption entity
-        EntityUid bountyUid = container.ContainedEntities[0];
+        var bountyUid = container.ContainedEntities[0];
 
         // We either have no value or no way to accurately calculate the value of the bounty.
         if (!TryComp<MedicalBountyComponent>(bountyUid, out var medicalBounty) ||
@@ -285,7 +286,7 @@ public sealed partial class MedicalBountySystem : EntitySystem
         }
 
         // Check that the entity inside is sufficiently healed.
-        var bounty = medicalBounty.Bounty;
+        var bounty = _proto.Index(medicalBounty.Bounty.Value);
         if (damageable.TotalDamage > bounty.MaximumDamageToRedeem)
         {
             return new MedicalBountyRedemptionUIState(MedicalBountyRedemptionStatus.TooDamaged, 0);

@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Content.Shared.Emag.Systems;
 using Content.Shared.Medical.Cryogenics;
 using Content.Shared.Verbs;
@@ -7,9 +7,10 @@ using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
 
 namespace Content.Client.Medical.Cryogenics;
 
-public sealed class CryoPodSystem: SharedCryoPodSystem
+public sealed partial class CryoPodSystem : SharedCryoPodSystem
 {
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
 
     public override void Initialize()
     {
@@ -34,7 +35,7 @@ public sealed class CryoPodSystem: SharedCryoPodSystem
         }
 
         component.PreviousOffset = spriteComponent.Offset;
-        spriteComponent.Offset = new Vector2(0, 1);
+        _sprite.SetOffset(spriteComponent.AsEntity(), new Vector2(0, 1));
     }
 
     private void OnCryoPodRemoval(EntityUid uid, InsideCryoPodComponent component, ComponentRemove args)
@@ -44,7 +45,7 @@ public sealed class CryoPodSystem: SharedCryoPodSystem
             return;
         }
 
-        spriteComponent.Offset = component.PreviousOffset;
+        _sprite.SetOffset(spriteComponent.AsEntity(), component.PreviousOffset);
     }
 
     private void OnAppearanceChange(EntityUid uid, CryoPodComponent component, ref AppearanceChangeEvent args)
@@ -62,16 +63,16 @@ public sealed class CryoPodSystem: SharedCryoPodSystem
 
         if (isOpen)
         {
-            args.Sprite.LayerSetState(CryoPodVisualLayers.Base, "pod-open");
-            args.Sprite.LayerSetVisible(CryoPodVisualLayers.Cover, false);
-            args.Sprite.DrawDepth = (int) DrawDepth.Objects;
+            _sprite.LayerSetRsiState(args.Sprite.AsEntity(), CryoPodVisualLayers.Base, "pod-open");
+            _sprite.LayerSetVisible(args.Sprite.AsEntity(), CryoPodVisualLayers.Cover, false);
+            _sprite.SetDrawDepth(args.Sprite.AsEntity(), (int)DrawDepth.Objects);
         }
         else
         {
-            args.Sprite.DrawDepth = (int) DrawDepth.Mobs;
-            args.Sprite.LayerSetState(CryoPodVisualLayers.Base, isOn ? "pod-on" : "pod-off");
-            args.Sprite.LayerSetState(CryoPodVisualLayers.Cover, isOn ? "cover-on" : "cover-off");
-            args.Sprite.LayerSetVisible(CryoPodVisualLayers.Cover, true);
+            _sprite.SetDrawDepth(args.Sprite.AsEntity(), (int)DrawDepth.Mobs);
+            _sprite.LayerSetRsiState(args.Sprite.AsEntity(), CryoPodVisualLayers.Base, isOn ? "pod-on" : "pod-off");
+            _sprite.LayerSetRsiState(args.Sprite.AsEntity(), CryoPodVisualLayers.Cover, isOn ? "cover-on" : "cover-off");
+            _sprite.LayerSetVisible(args.Sprite.AsEntity(), CryoPodVisualLayers.Cover, true);
         }
     }
 }

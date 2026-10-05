@@ -27,9 +27,9 @@ namespace Content.Server._NF.Bank;
 
 public sealed partial class BankSystem : SharedBankSystem
 {
-    [Dependency] private readonly IServerPreferencesManager _prefsManager = default!;
-    [Dependency] private readonly ISharedPlayerManager _playerManager = default!;
-    [Dependency] private readonly IServerDbManager _db = default!;
+    [Dependency] private IServerPreferencesManager _prefsManager = default!;
+    [Dependency] private ISharedPlayerManager _playerManager = default!;
+    [Dependency] private IServerDbManager _db = default!;
 
     private ISawmill _log = default!;
 
@@ -282,7 +282,7 @@ public sealed partial class BankSystem : SharedBankSystem
         // Update preferences in cache if the player data exists
         if (_prefsManager.TryGetCachedPreferences(userId, out var cachedPrefs))
         {
-            _prefsManager.SetProfile(userId, index, newProfile);
+            await _prefsManager.SetProfile(userId, index, newProfile);
         }
         else
         {
@@ -324,7 +324,7 @@ public sealed partial class BankSystem : SharedBankSystem
         // Update preferences in cache if the player data exists
         if (_prefsManager.TryGetCachedPreferences(userId, out var cachedPrefs))
         {
-            _prefsManager.SetProfile(userId, index, newProfile);
+            await _prefsManager.SetProfile(userId, index, newProfile);
         }
         else
         {

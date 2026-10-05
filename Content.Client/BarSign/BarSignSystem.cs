@@ -6,10 +6,11 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client.BarSign;
 
-public sealed class BarSignSystem : VisualizerSystem<BarSignComponent>
+public sealed partial class BarSignSystem : VisualizerSystem<BarSignComponent>
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly UserInterfaceSystem _ui = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private UserInterfaceSystem _ui = default!;
 
     public override void Initialize()
     {
@@ -41,12 +42,12 @@ public sealed class BarSignSystem : VisualizerSystem<BarSignComponent>
             && sign.Current != null
             && _prototypeManager.TryIndex(sign.Current, out var proto))
         {
-            sprite.LayerSetSprite(0, proto.Icon);
+            _sprite.LayerSetSprite(sprite.AsEntity(), 0, proto.Icon);
             sprite.LayerSetShader(0, "unshaded");
         }
         else
         {
-            sprite.LayerSetState(0, "empty");
+            _sprite.LayerSetRsiState(sprite.AsEntity(), 0, "empty");
             sprite.LayerSetShader(0, null, null);
         }
     }

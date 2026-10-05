@@ -21,20 +21,20 @@ namespace Content.Shared._Goobstation.Clothing.Systems;
 /// <summary>
 ///     System used for sealable clothing (like modsuits)
 /// </summary>
-public abstract class SharedSealableClothingSystem : EntitySystem
+public abstract partial class SharedSealableClothingSystem : EntitySystem
 {
-    [Dependency] private readonly INetManager _netManager = default!;
-    [Dependency] private readonly ActionBlockerSystem _actionBlockerSystem = default!;
-    [Dependency] private readonly ActionContainerSystem _actionContainerSystem = default!;
-    [Dependency] private readonly ComponentTogglerSystem _componentTogglerSystem = default!;
-    [Dependency] private readonly SharedActionsSystem _actionsSystem = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearanceSystem = default!;
-    [Dependency] private readonly SharedAudioSystem _audioSystem = default!;
-    [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
-    [Dependency] private readonly SharedInteractionSystem _interactionSystem = default!;
-    [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
-    [Dependency] private readonly SharedPowerCellSystem _powerCellSystem = default!;
-    [Dependency] private readonly ToggleableClothingSystem _toggleableSystem = default!;
+    [Dependency] private INetManager _netManager = default!;
+    [Dependency] private ActionBlockerSystem _actionBlockerSystem = default!;
+    [Dependency] private ActionContainerSystem _actionContainerSystem = default!;
+    [Dependency] private ComponentTogglerSystem _componentTogglerSystem = default!;
+    [Dependency] private SharedActionsSystem _actionsSystem = default!;
+    [Dependency] private SharedAppearanceSystem _appearanceSystem = default!;
+    [Dependency] private SharedAudioSystem _audioSystem = default!;
+    [Dependency] private SharedDoAfterSystem _doAfterSystem = default!;
+    [Dependency] private SharedInteractionSystem _interactionSystem = default!;
+    [Dependency] private SharedPopupSystem _popupSystem = default!;
+    [Dependency] private SharedPowerCellSystem _powerCellSystem = default!;
+    [Dependency] private ToggleableClothingSystem _toggleableSystem = default!;
 
     public override void Initialize()
     {
@@ -339,7 +339,7 @@ public abstract class SharedSealableClothingSystem : EntitySystem
                 return false;
             }
 
-            comp.ProcessQueue.Enqueue(EntityManager.GetNetEntity(sealeable));
+            comp.ProcessQueue.Enqueue(GetNetEntity(sealeable));
         }
 
         comp.IsInProcess = true;
@@ -378,11 +378,11 @@ public abstract class SharedSealableClothingSystem : EntitySystem
             return;
         }
 
-        var processingPart = EntityManager.GetEntity(comp.ProcessQueue.Dequeue());
+        var processingPart = GetEntity(comp.ProcessQueue.Dequeue());
         Dirty(control);
 
         // If the entity no longer exists (e.g., due to limb loss), skip it and continue
-        if (!EntityManager.EntityExists(processingPart))
+        if (!Exists(processingPart))
         {
             NextSealProcess(control);
             return;

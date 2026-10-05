@@ -31,14 +31,14 @@ namespace Content.Shared.Materials;
 /// This handles storing materials and modifying their amounts
 /// <see cref="MaterialStorageComponent"/>
 /// </summary>
-public abstract class SharedMaterialStorageSystem : EntitySystem
+public abstract partial class SharedMaterialStorageSystem : EntitySystem
 {
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IPrototypeManager _prototype = default!;
-    [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IPrototypeManager _prototype = default!;
+    [Dependency] private EntityWhitelistSystem _whitelistSystem = default!;
 
-    [Dependency] private readonly SharedStackSystem _sharedStackSystem = default!; // Frontier
+    [Dependency] private SharedStackSystem _sharedStackSystem = default!; // Frontier
 
     /// <summary>
     /// Default volume for a sheet if the material's entity prototype has no material composition.
@@ -199,7 +199,7 @@ public abstract class SharedMaterialStorageSystem : EntitySystem
     /// <param name="materials"></param>
     /// <returns>If the amount can be changed</returns>
     /// <param name="localOnly"></param>
-    public bool CanChangeMaterialAmount(Entity<MaterialStorageComponent?> entity, Dictionary<string,int> materials, bool localOnly = false)
+    public bool CanChangeMaterialAmount(Entity<MaterialStorageComponent?> entity, Dictionary<string, int> materials, bool localOnly = false)
     {
         if (!Resolve(entity, ref entity.Comp))
             return false;
@@ -238,7 +238,7 @@ public abstract class SharedMaterialStorageSystem : EntitySystem
             return false;
         if (!CanChangeMaterialAmount(uid, materialId, volume, component, localOnly))
             return false;
-        var changeEv = new ConsumeStoredMaterialsEvent((uid, component), new() {{materialId, volume}}, localOnly);
+        var changeEv = new ConsumeStoredMaterialsEvent((uid, component), new() { { materialId, volume } }, localOnly);
         RaiseLocalEvent(uid, ref changeEv);
         var remaining = changeEv.Materials.Values.First();
 
@@ -521,7 +521,7 @@ public abstract class SharedMaterialStorageSystem : EntitySystem
 
         var proto = _prototype.Index<EntityPrototype>(material.StackEntity);
 
-        if (!proto.TryGetComponent<PhysicalCompositionComponent>(out var composition, EntityManager.ComponentFactory))
+        if (!proto.TryComp<PhysicalCompositionComponent>(out var composition, EntityManager.ComponentFactory))
             return DefaultSheetVolume;
 
         return composition.MaterialComposition.FirstOrDefault(kvp => kvp.Key == material.ID).Value;

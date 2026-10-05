@@ -12,15 +12,15 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared.Weapons.Hitscan.Systems;
 
-public sealed class HitscanBasicVisualsSystem : EntitySystem
+public sealed partial class HitscanBasicVisualsSystem : EntitySystem
 {
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     public override void Initialize()
     {
         base.Initialize();
 
-        SubscribeLocalEvent<HitscanBasicVisualsComponent, HitscanRaycastFiredEvent>(OnHitscanHit, before: [ typeof(HitscanReflectSystem) ]);
+        SubscribeLocalEvent<HitscanBasicVisualsComponent, HitscanRaycastFiredEvent>(OnHitscanHit, before: [typeof(HitscanReflectSystem)]);
     }
 
     private void OnHitscanHit(Entity<HitscanBasicVisualsComponent> hitscan, ref HitscanRaycastFiredEvent args)

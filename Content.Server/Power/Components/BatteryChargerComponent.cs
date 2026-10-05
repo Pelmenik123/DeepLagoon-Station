@@ -1,4 +1,4 @@
-﻿using Content.Server.Power.NodeGroups;
+using Content.Server.Power.NodeGroups;
 
 namespace Content.Server.Power.Components
 {
@@ -8,14 +8,14 @@ namespace Content.Server.Power.Components
     [RegisterComponent]
     public sealed partial class BatteryChargerComponent : BasePowerNetComponent
     {
-        protected override void AddSelfToNet(IPowerNet net)
+        protected override void AddSelfToNet(EntityUid owner, IPowerNet net)
         {
-            net.AddCharger(this);
+            net.AddCharger((owner, this));
         }
 
-        protected override void RemoveSelfFromNet(IPowerNet net)
+        protected override void RemoveSelfFromNet(EntityUid owner, IPowerNet net)
         {
-            net.RemoveCharger(this);
+            net.RemoveCharger((owner, this));
         }
     }
 }

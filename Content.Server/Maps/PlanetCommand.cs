@@ -22,11 +22,11 @@ namespace Content.Server.Maps;
 /// Converts the supplied map into a "planet" with defaults.
 /// </summary>
 [AdminCommand(AdminFlags.Mapping)]
-public sealed class PlanetCommand : IConsoleCommand
+public sealed partial class PlanetCommand : IConsoleCommand
 {
-    [Dependency] private readonly IEntityManager _entManager = default!;
-    [Dependency] private readonly IMapManager _mapManager = default!;
-    [Dependency] private readonly IPrototypeManager _protoManager = default!;
+    [Dependency] private IEntityManager _entManager = default!;
+    SharedMapSystem _mapManager => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
+    [Dependency] private IPrototypeManager _protoManager = default!;
 
     public string Command => "planet";
     public string Description => Loc.GetString("cmd-planet-desc");
@@ -60,7 +60,7 @@ public sealed class PlanetCommand : IConsoleCommand
         }
 
         var biomeSystem = _entManager.System<BiomeSystem>();
-        var mapUid = _mapManager.GetMapEntityId(mapId);
+        var mapUid = _mapManager.GetMap(mapId);
         biomeSystem.EnsurePlanet(mapUid, biomeTemplate);
 
         shell.WriteLine(Loc.GetString("cmd-planet-success", ("mapId", mapId)));
@@ -81,3 +81,4 @@ public sealed class PlanetCommand : IConsoleCommand
         return CompletionResult.Empty;
     }
 }
+

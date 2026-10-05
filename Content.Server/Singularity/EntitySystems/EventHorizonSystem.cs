@@ -42,18 +42,17 @@ namespace Content.Server.Singularity.EntitySystems;
 /// The entity system primarily responsible for managing <see cref="EventHorizonComponent"/>s.
 /// Handles their consumption of entities.
 /// </summary>
-public sealed class EventHorizonSystem : SharedEventHorizonSystem
+public sealed partial class EventHorizonSystem : SharedEventHorizonSystem
 {
     #region Dependencies
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IMapManager _mapMan = default!;
-    [Dependency] private readonly IAdminLogManager _adminLogger = default!;
-    [Dependency] private readonly SharedContainerSystem _containerSystem = default!;
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly SharedTransformSystem _xformSystem = default!;
-    [Dependency] private readonly SharedMapSystem _mapSystem = default!;
-    [Dependency] private readonly TagSystem _tagSystem = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IAdminLogManager _adminLogger = default!;
+    [Dependency] private SharedContainerSystem _containerSystem = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private SharedTransformSystem _xformSystem = default!;
+    [Dependency] private SharedMapSystem _mapSystem = default!;
+    [Dependency] private TagSystem _tagSystem = default!;
     #endregion Dependencies
 
     private EntityQuery<PhysicsComponent> _physicsQuery;
@@ -153,7 +152,7 @@ public sealed class EventHorizonSystem : SharedEventHorizonSystem
             _adminLogger.Add(LogType.EntityDelete, LogImpact.Extreme, $"{ToPrettyString(morsel)} entered the event horizon of {ToPrettyString(hungry)} and was deleted");
         }
 
-        EntityManager.QueueDeleteEntity(morsel);
+        QueueDel(morsel);
         var evSelf = new EntityConsumedByEventHorizonEvent(morsel, hungry, eventHorizon, outerContainer);
         var evEaten = new EventHorizonConsumedEntityEvent(morsel, hungry, eventHorizon, outerContainer);
         RaiseLocalEvent(hungry, ref evSelf);
@@ -302,7 +301,7 @@ public sealed class EventHorizonSystem : SharedEventHorizonSystem
     /// </summary>
     public bool CanConsumeTile(EntityUid hungry, TileRef tile, MapGridComponent grid, EventHorizonComponent eventHorizon)
     {
-        foreach (var blockingEntity in grid.GetAnchoredEntities(tile.GridIndices))
+        foreach (var blockingEntity in _mapSystem.GetAnchoredEntities(tile.GridUid, grid, tile.GridIndices))
         {
             if (!CanConsumeEntity(hungry, blockingEntity, eventHorizon))
                 return false;
@@ -323,7 +322,7 @@ public sealed class EventHorizonSystem : SharedEventHorizonSystem
         var box = Box2.CenteredAround(mapPos.Position, new Vector2(range, range));
         var circle = new Circle(mapPos.Position, range);
         var grids = new List<Entity<MapGridComponent>>();
-        _mapMan.FindGridsIntersecting(mapPos.MapId, box, ref grids);
+        _mapSystem.FindGridsIntersecting(mapPos.MapId, box, ref grids);
 
         foreach (var grid in grids)
         {
@@ -469,14 +468,14 @@ public sealed class EventHorizonSystem : SharedEventHorizonSystem
     private void OnEventHorizonContained(EventHorizonContainedEvent args)
     {
         var uid = args.Entity;
-        if (!EntityManager.EntityExists(uid))
+        if (!Exists(uid))
             return;
         var comp = args.EventHorizon;
         if (comp.BeingConsumedByAnotherEventHorizon)
             return;
 
         var containerEntity = args.Args.Container.Owner;
-        if (!EntityManager.EntityExists(containerEntity))
+        if (!Exists(containerEntity))
             return;
         if (AttemptConsumeEntity(uid, containerEntity, comp))
             return; // If we consume the entity we also consume everything in the containers it has.

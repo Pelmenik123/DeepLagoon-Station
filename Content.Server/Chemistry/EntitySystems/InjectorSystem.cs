@@ -19,11 +19,11 @@ using System.Linq; // Frontier
 
 namespace Content.Server.Chemistry.EntitySystems;
 
-public sealed class InjectorSystem : SharedInjectorSystem
+public sealed partial class InjectorSystem : SharedInjectorSystem
 {
-    [Dependency] private readonly BloodstreamSystem _blood = default!;
-    [Dependency] private readonly ReactiveSystem _reactiveSystem = default!;
-    [Dependency] private readonly OpenableSystem _openable = default!;
+    [Dependency] private BloodstreamSystem _blood = default!;
+    [Dependency] private ReactiveSystem _reactiveSystem = default!;
+    [Dependency] private OpenableSystem _openable = default!;
 
     public override void Initialize()
     {
@@ -184,12 +184,12 @@ public sealed class InjectorSystem : SharedInjectorSystem
             if (injector.Comp.ToggleState == InjectorToggleMode.Inject)
             {
                 AdminLogger.Add(LogType.ForceFeed,
-                    $"{EntityManager.ToPrettyString(user):user} is attempting to inject {EntityManager.ToPrettyString(target):target} with a solution {SharedSolutionContainerSystem.ToPrettyString(solution):solution}");
+                    $"{ToPrettyString(user):user} is attempting to inject {ToPrettyString(target):target} with a solution {SharedSolutionContainerSystem.ToPrettyString(solution):solution}");
             }
             else
             {
                 AdminLogger.Add(LogType.ForceFeed,
-                    $"{EntityManager.ToPrettyString(user):user} is attempting to draw {injector.Comp.TransferAmount.ToString()} units from {EntityManager.ToPrettyString(target):target}");
+                    $"{ToPrettyString(user):user} is attempting to draw {injector.Comp.TransferAmount.ToString()} units from {ToPrettyString(target):target}");
             }
         }
         else
@@ -200,12 +200,12 @@ public sealed class InjectorSystem : SharedInjectorSystem
             if (injector.Comp.ToggleState == InjectorToggleMode.Inject)
             {
                 AdminLogger.Add(LogType.Ingestion,
-                    $"{EntityManager.ToPrettyString(user):user} is attempting to inject themselves with a solution {SharedSolutionContainerSystem.ToPrettyString(solution):solution}.");
+                    $"{ToPrettyString(user):user} is attempting to inject themselves with a solution {SharedSolutionContainerSystem.ToPrettyString(solution):solution}.");
             }
             else
             {
                 AdminLogger.Add(LogType.ForceFeed,
-                    $"{EntityManager.ToPrettyString(user):user} is attempting to draw {injector.Comp.TransferAmount.ToString()} units from themselves.");
+                    $"{ToPrettyString(user):user} is attempting to draw {injector.Comp.TransferAmount.ToString()} units from themselves.");
             }
         }
 
@@ -415,14 +415,14 @@ public sealed class InjectorSystem : SharedInjectorSystem
     private void DrawFromBlood(Entity<InjectorComponent> injector, Entity<BloodstreamComponent> target,
         Entity<SolutionComponent> injectorSolution, FixedPoint2 transferAmount, EntityUid user)
     {
-        var drawAmount = (float) transferAmount;
+        var drawAmount = (float)transferAmount;
 
         if (SolutionContainers.ResolveSolution(target.Owner, target.Comp.ChemicalSolutionName,
                 ref target.Comp.ChemicalSolution))
         {
             var chemTemp = SolutionContainers.SplitSolution(target.Comp.ChemicalSolution.Value, drawAmount * 0.15f);
             SolutionContainers.TryAddSolution(injectorSolution, chemTemp);
-            drawAmount -= (float) chemTemp.Volume;
+            drawAmount -= (float)chemTemp.Volume;
         }
 
         if (SolutionContainers.ResolveSolution(target.Owner, target.Comp.BloodSolutionName,

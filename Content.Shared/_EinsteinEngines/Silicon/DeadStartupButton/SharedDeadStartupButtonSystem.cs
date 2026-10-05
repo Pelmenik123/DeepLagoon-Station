@@ -15,10 +15,10 @@ namespace Content.Shared._EinsteinEngines.Silicon.DeadStartupButton;
 /// </summary>
 public abstract partial class SharedDeadStartupButtonSystem : EntitySystem
 {
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
-    [Dependency] private readonly INetManager _net = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedDoAfterSystem _doAfterSystem = default!;
+    [Dependency] private INetManager _net = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -49,7 +49,7 @@ public abstract partial class SharedDeadStartupButtonSystem : EntitySystem
         if (!_net.IsServer)
             return;
         _audio.PlayPvs(comp.ButtonSound, target);
-        var args = new DoAfterArgs(EntityManager, user, comp.DoAfterInterval, new OnDoAfterButtonPressedEvent(), target, target:target)
+        var args = new DoAfterArgs(EntityManager, user, comp.DoAfterInterval, new OnDoAfterButtonPressedEvent(), target, target: target)
         {
             BreakOnDamage = true,
             BreakOnMove = true,

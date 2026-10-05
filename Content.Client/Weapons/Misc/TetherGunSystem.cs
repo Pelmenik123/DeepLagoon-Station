@@ -8,15 +8,16 @@ using Robust.Shared.Timing;
 
 namespace Content.Client.Weapons.Misc;
 
-public sealed class TetherGunSystem : SharedTetherGunSystem
+public sealed partial class TetherGunSystem : SharedTetherGunSystem
 {
-    [Dependency] private readonly IEyeManager _eyeManager = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IInputManager _input = default!;
-    [Dependency] private readonly IMapManager _mapManager = default!;
-    [Dependency] private readonly IOverlayManager _overlay = default!;
-    [Dependency] private readonly IPlayerManager _player = default!;
-    [Dependency] private readonly MapSystem _mapSystem = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IEyeManager _eyeManager = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IInputManager _input = default!;
+    [Dependency] private SharedMapSystem _mapManager = default!;
+    [Dependency] private IOverlayManager _overlay = default!;
+    [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private MapSystem _mapSystem = default!;
 
     public override void Initialize()
     {
@@ -33,7 +34,7 @@ public sealed class TetherGunSystem : SharedTetherGunSystem
         if (!TryComp<SpriteComponent>(component.Tethered, out var sprite))
             return;
 
-        sprite.Color = component.LineColor;
+        _sprite.SetColor(sprite.AsEntity(), component.LineColor);
     }
 
     public override void Shutdown()
@@ -105,11 +106,11 @@ public sealed class TetherGunSystem : SharedTetherGunSystem
 
         if (TryComp<ForceGunComponent>(component.Tetherer, out var force))
         {
-            sprite.Color = force.LineColor;
+            _sprite.SetColor(sprite.AsEntity(), force.LineColor);
         }
         else if (TryComp<TetherGunComponent>(component.Tetherer, out var tether))
         {
-            sprite.Color = tether.LineColor;
+            _sprite.SetColor(sprite.AsEntity(), tether.LineColor);
         }
     }
 
@@ -118,6 +119,6 @@ public sealed class TetherGunSystem : SharedTetherGunSystem
         if (!TryComp<SpriteComponent>(uid, out var sprite))
             return;
 
-        sprite.Color = Color.White;
+        _sprite.SetColor(sprite.AsEntity(), Color.White);
     }
 }

@@ -18,15 +18,15 @@ using Content.Shared._EinsteinEngines.Silicon.Components;
 
 namespace Content.Server.Chat;
 
-public sealed class SuicideSystem : EntitySystem
+public sealed partial class SuicideSystem : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _entityLookupSystem = default!;
-    [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
-    [Dependency] private readonly TagSystem _tagSystem = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly GhostSystem _ghostSystem = default!;
-    [Dependency] private readonly SharedSuicideSystem _suicide = default!;
+    [Dependency] private EntityLookupSystem _entityLookupSystem = default!;
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
+    [Dependency] private TagSystem _tagSystem = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private GhostSystem _ghostSystem = default!;
+    [Dependency] private SharedSuicideSystem _suicide = default!;
 
     public override void Initialize()
     {
@@ -48,7 +48,7 @@ public sealed class SuicideSystem : EntitySystem
         if (!TryComp<MobStateComponent>(victim, out var mobState) || _mobState.IsDead(victim, mobState))
             return false;
 
-        _adminLogger.Add(LogType.Mind, $"{EntityManager.ToPrettyString(victim):player} is attempting to suicide");
+        _adminLogger.Add(LogType.Mind, $"{ToPrettyString(victim):player} is attempting to suicide");
 
         ICommonSession? session = null;
 
@@ -74,7 +74,7 @@ public sealed class SuicideSystem : EntitySystem
         }
         else
         {
-            _adminLogger.Add(LogType.Mind, $"{EntityManager.ToPrettyString(victim):player} suicided.");
+            _adminLogger.Add(LogType.Mind, $"{ToPrettyString(victim):player} suicided.");
         }
         return true;
     }
@@ -114,7 +114,7 @@ public sealed class SuicideSystem : EntitySystem
         var suicideByEnvironmentEvent = new SuicideByEnvironmentEvent(victim);
 
         // Try to suicide by raising an event on the held item
-        if (EntityManager.TryGetComponent(victim, out HandsComponent? handsComponent)
+        if (TryComp(victim, out HandsComponent? handsComponent)
             && handsComponent.ActiveHandEntity is { } item)
         {
             RaiseLocalEvent(item, suicideByEnvironmentEvent);

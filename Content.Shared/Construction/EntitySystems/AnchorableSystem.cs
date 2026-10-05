@@ -24,14 +24,14 @@ namespace Content.Shared.Construction.EntitySystems;
 
 public sealed partial class AnchorableSystem : EntitySystem
 {
-    [Dependency] private readonly IMapManager _mapManager = default!;
-    [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly PullingSystem _pulling = default!;
-    [Dependency] private readonly SharedToolSystem _tool = default!;
-    [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
-    [Dependency] private   readonly TagSystem _tagSystem = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
+    [Dependency] private SharedMapSystem _mapManager = default!;
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private PullingSystem _pulling = default!;
+    [Dependency] private SharedToolSystem _tool = default!;
+    [Dependency] private SharedTransformSystem _transformSystem = default!;
+    [Dependency] private TagSystem _tagSystem = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
 
     private EntityQuery<PhysicsComponent> _physicsQuery;
 
@@ -122,7 +122,7 @@ public sealed partial class AnchorableSystem : EntitySystem
         _adminLogger.Add(
             LogType.Unanchor,
             LogImpact.Low,
-            $"{EntityManager.ToPrettyString(args.User):user} unanchored {EntityManager.ToPrettyString(uid):anchored} using {EntityManager.ToPrettyString(used):using}"
+            $"{ToPrettyString(args.User):user} unanchored {ToPrettyString(uid):anchored} using {ToPrettyString(used):using}"
         );
     }
 
@@ -141,7 +141,7 @@ public sealed partial class AnchorableSystem : EntitySystem
 
         // Snap rotation to cardinal (multiple of 90)
         var rot = xform.LocalRotation;
-        xform.LocalRotation = Math.Round(rot / (Math.PI / 2)) * (Math.PI / 2);
+        _transformSystem.SetLocalRotation(uid, Math.Round(rot / (Math.PI / 2)) * (Math.PI / 2), xform);
 
         if (TryComp<PullableComponent>(uid, out var pullable) && pullable.Puller != null)
         {
@@ -174,7 +174,7 @@ public sealed partial class AnchorableSystem : EntitySystem
         _adminLogger.Add(
             LogType.Anchor,
             LogImpact.Low,
-            $"{EntityManager.ToPrettyString(args.User):user} anchored {EntityManager.ToPrettyString(uid):anchored} using {EntityManager.ToPrettyString(used):using}"
+            $"{ToPrettyString(args.User):user} anchored {ToPrettyString(uid):anchored} using {ToPrettyString(used):using}"
         );
     }
 
@@ -268,9 +268,9 @@ public sealed partial class AnchorableSystem : EntitySystem
 
         // Need to cast the event or it will be raised as BaseAnchoredAttemptEvent.
         if (anchoring)
-            RaiseLocalEvent(uid, (AnchorAttemptEvent) attempt);
+            RaiseLocalEvent(uid, (AnchorAttemptEvent)attempt);
         else
-            RaiseLocalEvent(uid, (UnanchorAttemptEvent) attempt);
+            RaiseLocalEvent(uid, (UnanchorAttemptEvent)attempt);
 
         anchorable.CurrentDelay = anchorable.Delay + attempt.Delay; // Frontier: assign delay from base value
 
@@ -280,22 +280,22 @@ public sealed partial class AnchorableSystem : EntitySystem
     private bool TileFree(EntityCoordinates coordinates, PhysicsComponent anchorBody)
     {
         // Probably ignore CanCollide on the anchoring body?
-        var gridUid = coordinates.GetGridUid(EntityManager);
+        var gridUid = _transformSystem.GetGrid(coordinates);
 
         if (!TryComp<MapGridComponent>(gridUid, out var grid))
             return false;
 
-        var tileIndices = grid.TileIndicesFor(coordinates);
-        return TileFree(grid, tileIndices, anchorBody.CollisionLayer, anchorBody.CollisionMask);
+        var tileIndices = _mapManager.TileIndicesFor(gridUid.Value, grid, coordinates);
+        return TileFree(gridUid.Value, grid, tileIndices, anchorBody.CollisionLayer, anchorBody.CollisionMask);
     }
 
     /// <summary>
     /// Returns true if no hard anchored entities match the collision layer or mask specified.
     /// </summary>
     /// <param name="grid"></param>
-    public bool TileFree(MapGridComponent grid, Vector2i gridIndices, int collisionLayer = 0, int collisionMask = 0)
+    public bool TileFree(EntityUid gridUid, MapGridComponent grid, Vector2i gridIndices, int collisionLayer = 0, int collisionMask = 0)
     {
-        var enumerator = grid.GetAnchoredEntitiesEnumerator(gridIndices);
+        var enumerator = _mapManager.GetAnchoredEntities(gridUid, grid, gridIndices);
 
         while (enumerator.MoveNext(out var ent))
         {
@@ -329,12 +329,12 @@ public sealed partial class AnchorableSystem : EntitySystem
 
     public bool AnyUnstackablesAnchoredAt(EntityCoordinates location)
     {
-        var gridUid = location.GetGridUid(EntityManager);
+        var gridUid = _transformSystem.GetGrid(location);
 
         if (!TryComp<MapGridComponent>(gridUid, out var grid))
             return false;
 
-        var enumerator = grid.GetAnchoredEntitiesEnumerator(grid.LocalToTile(location));
+        var enumerator = _mapManager.GetAnchoredEntities(gridUid.Value, grid, _mapManager.LocalToTile(gridUid.Value, grid, location));
 
         while (enumerator.MoveNext(out var entity))
         {

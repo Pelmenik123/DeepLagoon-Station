@@ -15,11 +15,11 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._Mono.CorticalBorer;
 
-public sealed class CorticalBorerInfestedSystem : EntitySystem
+public sealed partial class CorticalBorerInfestedSystem : EntitySystem
 {
-    [Dependency] private readonly ContainerSystem _container = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly CorticalBorerSystem _borer = default!;
+    [Dependency] private ContainerSystem _container = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private CorticalBorerSystem _borer = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -61,7 +61,7 @@ public sealed class CorticalBorerInfestedSystem : EntitySystem
         if (args.NewMobState != MobState.Dead)
             return;
 
-        if(infected.Comp.Borer.Comp.ControlingHost)
+        if (infected.Comp.Borer.Comp.ControlingHost)
             _borer.EndControl(infected.Comp.Borer);
     }
 

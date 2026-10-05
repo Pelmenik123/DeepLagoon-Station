@@ -9,7 +9,6 @@ namespace Content.Client._NF.Shipyard.BUI;
 public sealed class ShipyardConsoleBoundUserInterface : BoundUserInterface
 {
     private ShipyardConsoleMenu? _menu;
-    private ShipyardRulesPopup? _rulesWindow;
     public int Balance { get; private set; }
 
     public int? ShipSellValue { get; private set; }
@@ -62,7 +61,7 @@ public sealed class ShipyardConsoleBoundUserInterface : BoundUserInterface
 
         Balance = cState.Balance;
         ShipSellValue = cState.ShipSellValue;
-        var castState = (ShipyardConsoleInterfaceState) state;
+        var castState = (ShipyardConsoleInterfaceState)state;
         Populate(castState.ShipyardPrototypes.available, castState.ShipyardPrototypes.unavailable, castState.FreeListings, castState.IsTargetIdPresent);
         _menu?.UpdateState(castState);
     }
@@ -73,7 +72,7 @@ public sealed class ShipyardConsoleBoundUserInterface : BoundUserInterface
 
         if (!disposing) return;
 
-        _menu?.Dispose();
+        _menu?.DisposeControl();
     }
 
     private void ApproveOrder(ButtonEventArgs args)
@@ -86,13 +85,13 @@ public sealed class ShipyardConsoleBoundUserInterface : BoundUserInterface
         var vesselId = row.Vessel.ID;
         SendMessage(new ShipyardConsolePurchaseMessage(vesselId));
     }
-    
+
     private void SellShip(ButtonEventArgs args)
     {
         //reserved for a sanity check, but im not sure what since we check all the important stuffs on server already
         SendMessage(new ShipyardConsoleSellMessage());
     }
-    
+
     private void UnassignDeed(ButtonEventArgs args)
     {
         SendMessage(new ShipyardConsoleUnassignDeedMessage());

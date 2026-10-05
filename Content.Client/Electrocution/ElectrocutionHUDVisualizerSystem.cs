@@ -8,9 +8,10 @@ namespace Content.Client.Electrocution;
 /// <summary>
 /// Shows the Electrocution HUD to entities with the ShowElectrocutionHUDComponent.
 /// </summary>
-public sealed class ElectrocutionHUDVisualizerSystem : VisualizerSystem<ElectrocutionHUDVisualsComponent>
+public sealed partial class ElectrocutionHUDVisualizerSystem : VisualizerSystem<ElectrocutionHUDVisualsComponent>
 {
-    [Dependency] private readonly IPlayerManager _playerMan = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IPlayerManager _playerMan = default!;
 
     public override void Initialize()
     {
@@ -59,9 +60,9 @@ public sealed class ElectrocutionHUDVisualizerSystem : VisualizerSystem<Electroc
                 continue;
 
             if (electrified)
-                spriteComp.LayerSetVisible(ElectrifiedLayers.HUD, true);
+                _sprite.LayerSetVisible(spriteComp.AsEntity(), ElectrifiedLayers.HUD, true);
             else
-                spriteComp.LayerSetVisible(ElectrifiedLayers.HUD, false);
+                _sprite.LayerSetVisible(spriteComp.AsEntity(), ElectrifiedLayers.HUD, false);
         }
     }
 
@@ -73,7 +74,7 @@ public sealed class ElectrocutionHUDVisualizerSystem : VisualizerSystem<Electroc
         while (electrifiedQuery.MoveNext(out var uid, out var _, out var appearanceComp, out var spriteComp))
         {
 
-            spriteComp.LayerSetVisible(ElectrifiedLayers.HUD, false);
+            _sprite.LayerSetVisible(spriteComp.AsEntity(), ElectrifiedLayers.HUD, false);
         }
     }
 
@@ -88,8 +89,8 @@ public sealed class ElectrocutionHUDVisualizerSystem : VisualizerSystem<Electroc
 
         var player = _playerMan.LocalEntity;
         if (electrified && HasComp<ShowElectrocutionHUDComponent>(player))
-            args.Sprite.LayerSetVisible(ElectrifiedLayers.HUD, true);
+            _sprite.LayerSetVisible(args.Sprite.AsEntity(), ElectrifiedLayers.HUD, true);
         else
-            args.Sprite.LayerSetVisible(ElectrifiedLayers.HUD, false);
+            _sprite.LayerSetVisible(args.Sprite.AsEntity(), ElectrifiedLayers.HUD, false);
     }
 }

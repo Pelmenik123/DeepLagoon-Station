@@ -17,13 +17,13 @@ using Robust.Shared.Timing;
 
 namespace Content.Client.Drunk;
 
-public sealed class DrunkOverlay : Overlay
+public sealed partial class DrunkOverlay : Overlay
 {
-    [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly IEntitySystemManager _sysMan = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IEntitySystemManager _sysMan = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     public override OverlaySpace Space => OverlaySpace.WorldSpace;
     public override bool RequestScreenTexture => true;
@@ -39,7 +39,7 @@ public sealed class DrunkOverlay : Overlay
     public DrunkOverlay()
     {
         IoCManager.InjectDependencies(this);
-        _drunkShader = _prototypeManager.Index<ShaderPrototype>("Drunk").InstanceUnique();
+        _drunkShader = _prototypeManager.Index<ShaderPrototype>(new ProtoId<ShaderPrototype>("Drunk")).InstanceUnique();
     }
 
     protected override void FrameUpdate(FrameEventArgs args)
@@ -59,10 +59,10 @@ public sealed class DrunkOverlay : Overlay
             return;
 
         var curTime = _timing.CurTime;
-        var timeLeft = (float) (time.Value.Item2 - curTime).TotalSeconds;
+        var timeLeft = (float)(time.Value.Item2 - curTime).TotalSeconds;
 
 
-        CurrentBoozePower += 8f * (0.5f*timeLeft - CurrentBoozePower) * args.DeltaSeconds / (timeLeft+1);
+        CurrentBoozePower += 8f * (0.5f * timeLeft - CurrentBoozePower) * args.DeltaSeconds / (timeLeft + 1);
     }
 
     protected override bool BeforeDraw(in OverlayDrawArgs args)

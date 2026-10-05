@@ -23,7 +23,7 @@ namespace Content.Client.Chemistry.UI
     [GenerateTypedNameReferences]
     public sealed partial class ChemMasterWindow : FancyWindow
     {
-        [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+        [Dependency] private IPrototypeManager _prototypeManager = default!;
         public event Action<BaseButton.ButtonEventArgs, ReagentButton>? OnReagentButtonPressed;
         public readonly Button[] PillTypeButtons;
 
@@ -69,7 +69,7 @@ namespace Content.Client.Chemistry.UI
                 var specifier = new SpriteSpecifier.Rsi(resourcePath, "pill" + (i + 1));
                 TextureRect pillTypeTexture = new TextureRect
                 {
-                    Texture = specifier.Frame0(),
+                    Texture = SpriteComponentExt.Sys.Frame0(specifier),
                     TextureScale = new Vector2(1.75f, 1.75f),
                     Stretch = TextureRect.StretchMode.KeepCentered,
                 };
@@ -257,7 +257,7 @@ namespace Content.Client.Chemistry.UI
                 _prototypeManager.TryIndex(reagentId.Prototype, out ReagentPrototype? proto);
                 var name = proto?.LocalizedName ?? Loc.GetString("chem-master-window-unknown-reagent-text");
                 var reagentColor = proto?.SubstanceColor ?? default(Color);
-                reagentList.Add(new (reagentId, name, reagentColor, quantity));
+                reagentList.Add(new(reagentId, name, reagentColor, quantity));
             }
 
             // We sort here since we need sorted list to be filled first.
@@ -350,7 +350,7 @@ namespace Content.Client.Chemistry.UI
             var rowColor1 = Color.FromHex("#1B1B1E");
             var rowColor2 = Color.FromHex("#202025");
             var currentRowColor = (rowCount % 2 == 1) ? rowColor1 : rowColor2;
-            if ((reagentColor == default(Color))|(!addReagentButtons))
+            if ((reagentColor == default(Color)) | (!addReagentButtons))
             {
                 reagentColor = currentRowColor;
             }

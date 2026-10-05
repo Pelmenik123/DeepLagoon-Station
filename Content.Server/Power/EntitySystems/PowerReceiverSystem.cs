@@ -15,10 +15,10 @@ using Content.Shared.Emp; // Frontier: Upstream - #28984
 
 namespace Content.Server.Power.EntitySystems
 {
-    public sealed class PowerReceiverSystem : SharedPowerReceiverSystem
+    public sealed partial class PowerReceiverSystem : SharedPowerReceiverSystem
     {
-        [Dependency] private readonly IAdminManager _adminManager = default!;
-        [Dependency] private readonly AudioSystem _audio = default!;
+        [Dependency] private IAdminManager _adminManager = default!;
+        [Dependency] private AudioSystem _audio = default!;
 
         private EntityQuery<ApcPowerReceiverComponent> _recQuery;
         private EntityQuery<ApcPowerProviderComponent> _provQuery;
@@ -62,7 +62,7 @@ namespace Content.Server.Power.EntitySystems
             {
                 Text = Loc.GetString("verb-debug-toggle-need-power"),
                 Category = VerbCategory.Debug,
-                Icon = new SpriteSpecifier.Texture(new ("/Textures/Interface/VerbIcons/smite.svg.192dpi.png")), // "smite" is a lightning bolt
+                Icon = new SpriteSpecifier.Texture(new("/Textures/Interface/VerbIcons/smite.svg.192dpi.png")), // "smite" is a lightning bolt
                 Act = () =>
                 {
                     SetNeedsPower(uid, !component.NeedsPower, component);
@@ -83,8 +83,7 @@ namespace Content.Server.Power.EntitySystems
 
         private void OnProviderConnected(Entity<ApcPowerReceiverComponent> receiver, ref ExtensionCableSystem.ProviderConnectedEvent args)
         {
-            var providerUid = args.Provider.Owner;
-            if (!_provQuery.TryGetComponent(providerUid, out var provider))
+            if (!_provQuery.TryGetComponent(args.Provider.Owner, out var provider))
                 return;
 
             receiver.Comp.Provider = provider;
@@ -117,7 +116,7 @@ namespace Content.Server.Power.EntitySystems
 
         private void AddSwitchPowerVerb(EntityUid uid, PowerSwitchComponent component, GetVerbsEvent<AlternativeVerb> args)
         {
-            if(!args.CanAccess || !args.CanInteract)
+            if (!args.CanAccess || !args.CanInteract)
                 return;
 
             if (!HasComp<HandsComponent>(args.User))
@@ -135,7 +134,7 @@ namespace Content.Server.Power.EntitySystems
                 {
                     TogglePower(uid, user: args.User); // Frontier: Upstream - #28984
                 },
-                Icon = new SpriteSpecifier.Texture(new ("/Textures/Interface/VerbIcons/Spare/poweronoff.svg.192dpi.png")),
+                Icon = new SpriteSpecifier.Texture(new("/Textures/Interface/VerbIcons/Spare/poweronoff.svg.192dpi.png")),
                 Text = Loc.GetString("power-switch-component-toggle-verb"),
                 Priority = -3
             };
@@ -171,9 +170,9 @@ namespace Content.Server.Power.EntitySystems
 
         public override void SetLoad(SharedApcPowerReceiverComponent comp, float load) // Goobstation - override shared method
         {
-            ((ApcPowerReceiverComponent) comp).Load = load; // Goobstation
+            ((ApcPowerReceiverComponent)comp).Load = load; // Goobstation
         }
-        
+
         public override bool ResolveApc(EntityUid entity, [NotNullWhen(true)] ref SharedApcPowerReceiverComponent? component)
         {
             if (component != null)

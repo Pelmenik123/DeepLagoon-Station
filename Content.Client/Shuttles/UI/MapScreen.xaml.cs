@@ -41,10 +41,10 @@ namespace Content.Client.Shuttles.UI;
 [GenerateTypedNameReferences]
 public sealed partial class MapScreen : BoxContainer
 {
-    [Dependency] private readonly IEntityManager _entManager = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IMapManager _mapManager = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private IEntityManager _entManager = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    SharedMapSystem _mapManager => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
+    [Dependency] private IRobustRandom _random = default!;
     private readonly DetectionSystem _detection; // Mono
     private readonly SharedAudioSystem _audio;
     private readonly SharedMapSystem _maps;
@@ -282,7 +282,7 @@ public sealed partial class MapScreen : BoxContainer
     private void ClearMapObjects()
     {
         _mapObjectControls.Clear();
-        HyperspaceDestinations.DisposeAllChildren();
+        HyperspaceDestinations.RemoveAllChildren();
         _pendingMapObjects.Clear();
         _mapObjects.Clear();
         _mapHeadings.Clear();
@@ -532,7 +532,7 @@ public sealed partial class MapScreen : BoxContainer
 
             foreach (var child in _sortChildren)
             {
-                child.Orphan();
+                if (!child.Disposed) child.Orphan();
             }
 
             _sortChildren.Sort((x, y) =>
@@ -588,3 +588,4 @@ public sealed partial class MapScreen : BoxContainer
         }
     }
 }
+

@@ -1,12 +1,13 @@
 using Content.Shared.NPC;
 using Robust.Shared.Collections;
+using Robust.Shared.Random;
 using Robust.Shared.Utility;
 
 namespace Content.Server.Procedural;
 
 public sealed partial class DungeonSystem
 {
-    public List<(Vector2i Start, Vector2i End)> MinimumSpanningTree(List<Vector2i> tiles, System.Random random)
+    public List<(Vector2i Start, Vector2i End)> MinimumSpanningTree(List<Vector2i> tiles, IRobustRandom random)
     {
         // Generate connections between all rooms.
         var connections = new Dictionary<Vector2i, List<(Vector2i Tile, float Distance)>>(tiles.Count);
@@ -45,18 +46,18 @@ public sealed partial class DungeonSystem
 
             foreach (var node in forest)
             {
-                foreach (var conn in connections[node])
+                foreach (var (Tile, Distance) in connections[node])
                 {
                     // Existing tile, skip
-                    if (forest.Contains(conn.Tile))
+                    if (forest.Contains(Tile))
                         continue;
 
                     // Not the cheapest
-                    if (cheapestDistance < conn.Distance)
+                    if (cheapestDistance < Distance)
                         continue;
 
-                    cheapestDistance = conn.Distance;
-                    cheapest = (node, conn.Tile);
+                    cheapestDistance = Distance;
+                    cheapest = (node, Tile);
                     // List is pre-sorted so we can just breakout easily.
                     break;
                 }
@@ -86,7 +87,7 @@ public sealed partial class DungeonSystem
         var cameFrom = new Dictionary<Vector2i, Vector2i>();
         var directions = new Dictionary<Vector2i, Direction>();
         var costSoFar = new Dictionary<Vector2i, float>();
-        forbiddenTiles ??= new HashSet<Vector2i>();
+        forbiddenTiles ??= [];
 
         foreach (var (start, end) in edges)
         {

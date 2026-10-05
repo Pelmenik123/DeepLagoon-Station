@@ -5,10 +5,10 @@ using Robust.Shared.Timing;
 
 namespace Content.Server.Chemistry.EntitySystems;
 
-public sealed class SolutionPurgeSystem : EntitySystem
+public sealed partial class SolutionPurgeSystem : EntitySystem
 {
-    [Dependency] private readonly SharedSolutionContainerSystem _solutionContainer = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private SharedSolutionContainerSystem _solutionContainer = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     public override void Update(float frameTime)
     {
@@ -23,7 +23,7 @@ public sealed class SolutionPurgeSystem : EntitySystem
             // timer ignores if it's empty, it's just a fixed cycle
             purge.NextPurgeTime += purge.Duration;
             if (_solutionContainer.TryGetSolution((uid, manager), purge.Solution, out var solution))
-                _solutionContainer.SplitSolutionWithout(solution.Value, purge.Quantity, purge.Preserve.ToArray());
+                _solutionContainer.SplitSolutionWithout(solution.Value, purge.Quantity, purge.Preserve.Select(x => x.Id).ToArray());
         }
     }
 }

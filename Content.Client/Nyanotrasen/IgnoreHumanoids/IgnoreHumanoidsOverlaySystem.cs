@@ -7,11 +7,11 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client.IgnoreHumanoids
 {
-    public sealed class IgnoreHumanoidsOverlaySystem : EntitySystem
+    public sealed partial class IgnoreHumanoidsOverlaySystem : EntitySystem
     {
-        [Dependency] private readonly IPlayerManager _player = default!;
-        [Dependency] private readonly IPrototypeManager _protoMan = default!;
-        [Dependency] private readonly IOverlayManager _overlayMan = default!;
+        [Dependency] private IPlayerManager _player = default!;
+        [Dependency] private IPrototypeManager _protoMan = default!;
+        [Dependency] private IOverlayManager _overlayMan = default!;
 
         private IgnoreHumanoidsOverlay _overlay = default!;
         public override void Initialize()
@@ -29,7 +29,7 @@ namespace Content.Client.IgnoreHumanoids
 
         private void OnInit(EntityUid uid, IgnoreHumanoidsOverlayComponent component, ComponentInit args)
         {
-            if (_player.LocalPlayer?.ControlledEntity == uid)
+            if (_player.LocalSession?.AttachedEntity == uid)
             {
                 _overlayMan.AddOverlay(_overlay);
             }
@@ -38,7 +38,7 @@ namespace Content.Client.IgnoreHumanoids
         }
         private void OnRemove(EntityUid uid, IgnoreHumanoidsOverlayComponent component, ComponentRemove args)
         {
-            if (_player.LocalPlayer?.ControlledEntity == uid)
+            if (_player.LocalSession?.AttachedEntity == uid)
             {
                 _overlay.Reset();
                 _overlayMan.RemoveOverlay(_overlay);

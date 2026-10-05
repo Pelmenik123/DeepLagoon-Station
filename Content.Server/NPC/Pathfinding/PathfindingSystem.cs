@@ -40,20 +40,20 @@ namespace Content.Server.NPC.Pathfinding
          * See PathfindingSystem.Grid for a description of the grid implementation.
          */
 
-        [Dependency] private readonly IAdminManager _adminManager = default!;
-        [Dependency] private readonly IGameTiming _timing = default!;
-        [Dependency] private readonly IParallelManager _parallel = default!;
-        [Dependency] private readonly IPlayerManager _playerManager = default!;
-        [Dependency] private readonly IRobustRandom _random = default!;
-        [Dependency] private readonly DestructibleSystem _destructible = default!;
-        [Dependency] private readonly EntityLookupSystem _lookup = default!;
-        [Dependency] private readonly FixtureSystem _fixtures = default!;
-        [Dependency] private readonly NPCSystem _npc = default!;
-        [Dependency] private readonly SharedMapSystem _maps = default!;
-        [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-        [Dependency] private readonly SharedTransformSystem _transform = default!;
+        [Dependency] private IAdminManager _adminManager = default!;
+        [Dependency] private IGameTiming _timing = default!;
+        [Dependency] private IParallelManager _parallel = default!;
+        [Dependency] private IPlayerManager _playerManager = default!;
+        [Dependency] private IRobustRandom _random = default!;
+        [Dependency] private DestructibleSystem _destructible = default!;
+        [Dependency] private EntityLookupSystem _lookup = default!;
+        [Dependency] private FixtureSystem _fixtures = default!;
+        [Dependency] private NPCSystem _npc = default!;
+        [Dependency] private SharedMapSystem _maps = default!;
+        [Dependency] private SharedPhysicsSystem _physics = default!;
+        [Dependency] private SharedTransformSystem _transform = default!;
 
-        private readonly Dictionary<ICommonSession, PathfindingDebugMode> _subscribedSessions = new();
+        private readonly Dictionary<ICommonSession, PathfindingDebugMode> _subscribedSessions = [];
 
         [ViewVariables]
         private readonly List<PathRequest> _pathRequests = new(PathTickLimit);
@@ -66,7 +66,7 @@ namespace Content.Server.NPC.Pathfinding
         private const int PathTickLimit = 256;
 
         private int _portalIndex;
-        private readonly Dictionary<int, PathPortal> _portals = new();
+        private readonly Dictionary<int, PathPortal> _portals = [];
 
         private EntityQuery<AccessReaderComponent> _accessQuery;
         private EntityQuery<DestructibleComponent> _destructibleQuery;
@@ -128,17 +128,12 @@ namespace Content.Server.NPC.Pathfinding
 
                 try
                 {
-                    switch (request)
+                    results[i] = request switch
                     {
-                        case AStarPathRequest astar:
-                            results[i] = UpdateAStarPath(astar);
-                            break;
-                        case BFSPathRequest bfs:
-                            results[i] = UpdateBFSPath(_random, bfs);
-                            break;
-                        default:
-                            throw new NotImplementedException();
-                    }
+                        AStarPathRequest astar => UpdateAStarPath(astar),
+                        BFSPathRequest bfs => UpdateBFSPath(_random, bfs),
+                        _ => throw new NotImplementedException(),
+                    };
                 }
                 catch (Exception)
                 {
@@ -265,7 +260,7 @@ namespace Content.Server.NPC.Pathfinding
             PathFlags flags = PathFlags.None)
         {
             if (!TryComp(entity, out TransformComponent? start))
-                return new PathResultEvent(PathResult.NoPath, new List<PathPoly>());
+                return new PathResultEvent(PathResult.NoPath, []);
 
             var layer = 0;
             var mask = 0;
@@ -279,7 +274,7 @@ namespace Content.Server.NPC.Pathfinding
             var path = await GetPath(request);
 
             if (path.Result != PathResult.Path)
-                return new PathResultEvent(PathResult.NoPath, new List<PathPoly>());
+                return new PathResultEvent(PathResult.NoPath, []);
 
             return new PathResultEvent(PathResult.Path, path.Path);
         }
@@ -327,7 +322,7 @@ namespace Content.Server.NPC.Pathfinding
         {
             if (!TryComp(entity, out TransformComponent? xform) ||
                 !TryComp(target, out TransformComponent? targetXform))
-                return new PathResultEvent(PathResult.NoPath, new List<PathPoly>());
+                return new PathResultEvent(PathResult.NoPath, []);
 
             var request = GetRequest(entity, xform.Coordinates, targetXform.Coordinates, range, cancelToken, flags);
             return await GetPath(request);
@@ -493,7 +488,7 @@ namespace Content.Server.NPC.Pathfinding
                 _pathRequests.Add(request);
             }
 
-            await request.Task;
+            var path = await request.Task;
 
             if (request.Task.Exception != null)
             {
@@ -502,13 +497,11 @@ namespace Content.Server.NPC.Pathfinding
 
             if (!request.Task.IsCompletedSuccessfully)
             {
-                return new PathResultEvent(PathResult.NoPath, new List<PathPoly>());
+                return new PathResultEvent(PathResult.NoPath, []);
             }
 
             // Same context as do_after and not synchronously blocking soooo
-#pragma warning disable RA0004
-            var ev = new PathResultEvent(request.Task.Result, request.Polys);
-#pragma warning restore RA0004
+            var ev = new PathResultEvent(path, request.Polys);
 
             return ev;
         }
@@ -546,7 +539,7 @@ namespace Content.Server.NPC.Pathfinding
                 if ((session.Value & PathfindingDebugMode.Routes) == 0x0)
                     continue;
 
-                RaiseNetworkEvent(new PathRouteMessage(request.Polys.Select(GetDebugPoly).ToList(), new Dictionary<DebugPathPoly, float>()), session.Key.Channel);
+                RaiseNetworkEvent(new PathRouteMessage([.. request.Polys.Select(GetDebugPoly)], []), session.Key.Channel);
             }
         }
 
@@ -702,7 +695,7 @@ namespace Content.Server.NPC.Pathfinding
                 for (var y = 0; y < extent; y++)
                 {
                     var index = GetIndex(x, y);
-                    data[new Vector2i(x, y)] = tilePolys[index].Select(GetDebugPoly).ToList();
+                    data[new Vector2i(x, y)] = [.. tilePolys[index].Select(GetDebugPoly)];
                 }
             }
 
@@ -747,7 +740,7 @@ namespace Content.Server.NPC.Pathfinding
                 for (var y = 0; y < ChunkSize; y++)
                 {
                     var index = GetIndex(x, y);
-                    polys[new Vector2i(x, y)] = chunk.Polygons[index].Select(GetDebugPoly).ToList();
+                    polys[new Vector2i(x, y)] = [.. chunk.Polygons[index].Select(GetDebugPoly)];
                 }
             }
 

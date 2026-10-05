@@ -17,10 +17,10 @@ namespace Content.Server.Station.Systems;
 // Contains code for round-start spawning.
 public sealed partial class StationJobsSystem
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IBanManager _banManager = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!; // Frontier
-    [Dependency] private readonly PlayTimeTrackingSystem _playTime = default!; // Frontier
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IBanManager _banManager = default!;
+    [Dependency] private IPlayerManager _playerManager = default!; // Frontier
+    [Dependency] PlayTimeTrackingSystem _playTime = default!;
 
     private Dictionary<int, HashSet<string>> _jobsByWeight = default!;
     private List<int> _orderedWeights = default!;
@@ -261,11 +261,11 @@ public sealed partial class StationJobsSystem
                         }
                     } while (priorCount != stationShares[station]);
                 }
-                done: ;
+            done:;
             }
         }
 
-        endFunc:
+    endFunc:
         return assigned;
     }
 

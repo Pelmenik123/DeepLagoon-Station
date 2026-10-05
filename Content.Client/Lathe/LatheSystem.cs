@@ -6,9 +6,10 @@ using Content.Shared.Research.Prototypes;
 
 namespace Content.Client.Lathe;
 
-public sealed class LatheSystem : SharedLatheSystem
+public sealed partial class LatheSystem : SharedLatheSystem
 {
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
 
     public override void Initialize()
     {
@@ -25,25 +26,25 @@ public sealed class LatheSystem : SharedLatheSystem
         // Lathe specific stuff
         if (_appearance.TryGetData<bool>(uid, LatheVisuals.IsRunning, out var isRunning, args.Component))
         {
-            if (args.Sprite.LayerMapTryGet(LatheVisualLayers.IsRunning, out var runningLayer) &&
+            if (_sprite.LayerMapTryGet(args.Sprite.AsEntity(), LatheVisualLayers.IsRunning, out var runningLayer, false) &&
                 component.RunningState != null &&
                 component.IdleState != null)
             {
                 var state = isRunning ? component.RunningState : component.IdleState;
-                args.Sprite.LayerSetState(runningLayer, state);
+                _sprite.LayerSetRsiState(args.Sprite.AsEntity(), runningLayer, state);
             }
         }
 
         if (_appearance.TryGetData<bool>(uid, PowerDeviceVisuals.Powered, out var powered, args.Component) &&
-            args.Sprite.LayerMapTryGet(PowerDeviceVisualLayers.Powered, out var powerLayer))
+            _sprite.LayerMapTryGet(args.Sprite.AsEntity(), PowerDeviceVisualLayers.Powered, out var powerLayer, false))
         {
-            args.Sprite.LayerSetVisible(powerLayer, powered);
+            _sprite.LayerSetVisible(args.Sprite.AsEntity(), powerLayer, powered);
 
             if (component.UnlitIdleState != null &&
                 component.UnlitRunningState != null)
             {
                 var state = isRunning ? component.UnlitRunningState : component.UnlitIdleState;
-                args.Sprite.LayerSetState(powerLayer, state);
+                _sprite.LayerSetRsiState(args.Sprite.AsEntity(), powerLayer, state);
             }
         }
     }

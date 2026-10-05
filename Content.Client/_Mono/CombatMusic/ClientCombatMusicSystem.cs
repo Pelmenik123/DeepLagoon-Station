@@ -14,11 +14,11 @@ using Robust.Shared.Player;
 
 namespace Content.Client._Mono.CombatMusic;
 
-public sealed class ClientCombatMusicSystem : EntitySystem
+public sealed partial class ClientCombatMusicSystem : EntitySystem
 {
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly ContentAudioSystem _contentAudio = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private ContentAudioSystem _contentAudio = default!;
 
     private bool _enabled = true;
     private EntityUid? _stream;

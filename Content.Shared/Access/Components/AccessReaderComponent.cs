@@ -2,7 +2,6 @@ using Content.Shared.StationRecords;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
-using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.Set;
 
 namespace Content.Shared.Access.Components;
 
@@ -31,7 +30,8 @@ public sealed partial class AccessReaderComponent : Component
     /// List of access groups that grant access to this reader. Only a single matching group is required to gain access.
     /// A group matches if it is a subset of the set being checked against.
     /// </summary>
-    [DataField("access")] [ViewVariables(VVAccess.ReadWrite)]
+    [DataField("access")]
+    [ViewVariables(VVAccess.ReadWrite)]
     public List<HashSet<ProtoId<AccessLevelPrototype>>> AccessLists = new();
 
     /// <summary>

@@ -17,14 +17,14 @@ namespace Content.Shared._EstacaoPirata.Cards.Card;
 /// <summary>
 /// This handles...
 /// </summary>
-public sealed class CardSystem : EntitySystem
+public sealed partial class CardSystem : EntitySystem
 {
-    [Dependency] private readonly INetManager _net = default!;
-    [Dependency] private readonly CardStackSystem _cardStack = default!;
-    [Dependency] private readonly CardDeckSystem _cardDeck = default!;
-    [Dependency] private readonly CardHandSystem _cardHand = default!;
-    [Dependency] private readonly SharedContainerSystem _container = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
+    [Dependency] private INetManager _net = default!;
+    [Dependency] private CardStackSystem _cardStack = default!;
+    [Dependency] private CardDeckSystem _cardDeck = default!;
+    [Dependency] private CardHandSystem _cardHand = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
     /// <inheritdoc/>
     public override void Initialize()
     {
@@ -38,7 +38,7 @@ public sealed class CardSystem : EntitySystem
     {
         if (args.IsInDetailsRange && !component.Flipped)
         {
-            args.PushMarkup(Loc.GetString("card-examined", ("target",  Loc.GetString(component.Name))));
+            args.PushMarkup(Loc.GetString("card-examined", ("target", Loc.GetString(component.Name))));
         }
     }
 
@@ -118,7 +118,7 @@ public sealed class CardSystem : EntitySystem
         else if (HasComp<CardHandComponent>(second))
         {
             cardStack = SpawnInSameParent(_cardHand.CardHandBaseName, first);
-            if(TryComp<CardHandComponent>(cardStack, out var stackHand))
+            if (TryComp<CardHandComponent>(cardStack, out var stackHand))
                 stackHand.Flipped = firstComp.Flipped;
             flip = firstComp.Flipped;
         }
@@ -132,7 +132,7 @@ public sealed class CardSystem : EntitySystem
         _cardStack.TransferNLastCardFromStacks(user, secondStack.Cards.Count, second, secondStack, cardStack, stack);
         if (flip != null)
             _cardStack.FlipAllCards(cardStack, stack, flip); //???
-        if(pickup)
+        if (pickup)
             _hands.TryPickupAnyHand(user, cardStack);
     }
 

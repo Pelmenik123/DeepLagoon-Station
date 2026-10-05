@@ -1,4 +1,4 @@
-﻿using Content.Shared.CCVar;
+using Content.Shared.CCVar;
 using Robust.Client.GameObjects;
 using Robust.Shared.Configuration;
 using Robust.Shared.Reflection;
@@ -8,16 +8,17 @@ namespace Content.Client.Options;
 /// <summary>
 /// Implements <see cref="OptionsVisualizerComponent"/>.
 /// </summary>
-public sealed class OptionsVisualizerSystem : EntitySystem
+public sealed partial class OptionsVisualizerSystem : EntitySystem
 {
+    [Dependency] private SpriteSystem _sprite = default!;
     private static readonly (OptionVisualizerOptions, CVarDef<bool>)[] OptionVars =
     {
         (OptionVisualizerOptions.Test, CCVars.DebugOptionVisualizerTest),
         (OptionVisualizerOptions.ReducedMotion, CCVars.ReducedMotion),
     };
 
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly IReflectionManager _reflection = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IReflectionManager _reflection = default!;
 
     private OptionVisualizerOptions _currentOptions;
 
@@ -89,8 +90,10 @@ public sealed class OptionsVisualizerSystem : EntitySystem
             if (matchedDatum == null)
                 continue;
 
-            var layerIndex = sprite.LayerMapReserveBlank(layerKey);
-            sprite.LayerSetData(layerIndex, matchedDatum.Data);
+            var layerIndex = layerKey is Enum layerEnum
+                ? _sprite.LayerMapReserve(sprite.AsEntity(), layerEnum)
+                : _sprite.LayerMapReserve(sprite.AsEntity(), (string)layerKey);
+            _sprite.LayerSetData(sprite.AsEntity(), layerIndex, matchedDatum.Data);
         }
     }
 }

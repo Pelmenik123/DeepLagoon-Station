@@ -16,11 +16,11 @@ using Robust.Shared.Physics;
 
 namespace Content.Client.Light;
 
-public sealed class RoofOverlay : Overlay
+public sealed partial class RoofOverlay : Overlay
 {
     private readonly IEntityManager _entManager;
-    [Dependency] private readonly IMapManager _mapManager = default!;
-    [Dependency] private readonly IOverlayManager _overlay = default!;
+    SharedMapSystem _mapManager => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
+    [Dependency] private IOverlayManager _overlay = default!;
 
     private readonly EntityLookupSystem _lookup;
     private readonly SharedMapSystem _mapSystem;
@@ -75,7 +75,7 @@ public sealed class RoofOverlay : Overlay
         if (_grids.Count == 0)
             return;
 
-        var lightScale = viewport.LightRenderTarget.Size / (Vector2) viewport.Size;
+        var lightScale = viewport.LightRenderTarget.Size / (Vector2)viewport.Size;
         var scale = viewport.RenderScale / (Vector2.One / lightScale);
 
         worldHandle.RenderInRenderTarget(target,
@@ -93,7 +93,7 @@ public sealed class RoofOverlay : Overlay
 
                     worldHandle.SetTransform(matty);
 
-                    var tileEnumerator = _mapSystem.GetTilesEnumerator(grid.Owner, grid, bounds);
+                    var tileEnumerator = _mapSystem.GetTilesIntersecting(grid.Owner, grid, bounds);
                     var roofEnt = (grid.Owner, grid.Comp, roof);
 
                     // Due to stencilling we essentially draw on unrooved tiles
@@ -115,3 +115,4 @@ public sealed class RoofOverlay : Overlay
         worldHandle.SetTransform(Matrix3x2.Identity);
     }
 }
+

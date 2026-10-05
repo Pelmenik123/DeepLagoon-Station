@@ -1,4 +1,4 @@
-﻿using Content.Client.Storage.Components;
+using Content.Client.Storage.Components;
 using Content.Shared.Rounding;
 using Content.Shared.Storage;
 using Robust.Client.GameObjects;
@@ -6,8 +6,9 @@ using Robust.Client.GameObjects;
 namespace Content.Client.Storage.Systems;
 
 /// <inheritdoc cref="StorageContainerVisualsComponent"/>
-public sealed class StorageContainerVisualsSystem : VisualizerSystem<StorageContainerVisualsComponent>
+public sealed partial class StorageContainerVisualsSystem : VisualizerSystem<StorageContainerVisualsComponent>
 {
+    [Dependency] private SpriteSystem _sprite = default!;
     protected override void OnAppearanceChange(EntityUid uid, StorageContainerVisualsComponent component, ref AppearanceChangeEvent args)
     {
         if (args.Sprite == null)
@@ -19,9 +20,9 @@ public sealed class StorageContainerVisualsSystem : VisualizerSystem<StorageCont
         if (!AppearanceSystem.TryGetData<int>(uid, StorageVisuals.Capacity, out var capacity, args.Component))
             return;
 
-        var fraction = used / (float) capacity;
+        var fraction = used / (float)capacity;
 
-        if (!args.Sprite.LayerMapTryGet(component.FillLayer, out var fillLayer))
+        if (!_sprite.LayerMapTryGet(args.Sprite.AsEntity(), component.FillLayer, out var fillLayer, false))
             return;
 
         var closestFillSprite = Math.Min(ContentHelpers.RoundToNearestLevels(fraction, 1, component.MaxFillLevels + 1),
@@ -32,13 +33,13 @@ public sealed class StorageContainerVisualsSystem : VisualizerSystem<StorageCont
             if (component.FillBaseName == null)
                 return;
 
-            args.Sprite.LayerSetVisible(fillLayer, true);
+            _sprite.LayerSetVisible(args.Sprite.AsEntity(), fillLayer, true);
             var stateName = component.FillBaseName + closestFillSprite;
-            args.Sprite.LayerSetState(fillLayer, stateName);
+            _sprite.LayerSetRsiState(args.Sprite.AsEntity(), fillLayer, stateName);
         }
         else
         {
-            args.Sprite.LayerSetVisible(fillLayer, false);
+            _sprite.LayerSetVisible(args.Sprite.AsEntity(), fillLayer, false);
         }
     }
 }

@@ -14,10 +14,10 @@ namespace Content.Shared.DoAfter;
 
 public abstract partial class SharedDoAfterSystem : EntitySystem
 {
-    [Dependency] protected readonly IGameTiming GameTiming = default!;
-    [Dependency] private readonly ActionBlockerSystem _actionBlocker = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly TagSystem _tag = default!;
+    [Dependency] protected IGameTiming GameTiming = default!;
+    [Dependency] private ActionBlockerSystem _actionBlocker = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private TagSystem _tag = default!;
 
     /// <summary>
     ///     We'll use an excess time so stuff like finishing effects can show.
@@ -171,7 +171,9 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
     /// <param name="component">The user's DoAfter component</param>
     /// <returns></returns>
     public bool TryStartDoAfter(DoAfterArgs args, DoAfterComponent? component = null)
-        => TryStartDoAfter(args, out _, component);
+    {
+        return TryStartDoAfter(args, out _, component);
+    }
 
     /// <summary>
     ///     Attempts to start a new DoAfter. Note that even if this function returns false, an interaction may have
@@ -183,9 +185,11 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
     /// <returns></returns>
     public bool TryStartDoAfter(DoAfterArgs args, [NotNullWhen(true)] out DoAfterId? id, DoAfterComponent? comp = null)
     {
+#pragma warning disable CS0618 // Upstream SS14 master has the same assert; the async path is retained for legacy ConstructionSystem callers.
         DebugTools.Assert(args.Broadcast || Exists(args.EventTarget) || args.Event.GetType() == typeof(AwaitedDoAfterEvent));
+#pragma warning restore CS0618
         DebugTools.Assert(args.Event.GetType().HasCustomAttribute<NetSerializableAttribute>()
-            || args.Event.GetType().Namespace is {} ns && ns.StartsWith("Content.IntegrationTests"), // classes defined in tests cannot be marked as serializable.
+            || args.Event.GetType().Namespace is { } ns && ns.StartsWith("Content.IntegrationTests"), // classes defined in tests cannot be marked as serializable.
             $"Do after event is not serializable. Event: {args.Event.GetType()}");
 
         if (!Resolve(args.User, ref comp))
@@ -301,7 +305,7 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
         return IsDuplicate(args, otherArgs, otherArgs.DuplicateCondition);
     }
 
-    private bool IsDuplicate(DoAfterArgs args, DoAfterArgs otherArgs, DuplicateConditions conditions )
+    private bool IsDuplicate(DoAfterArgs args, DoAfterArgs otherArgs, DuplicateConditions conditions)
     {
         if ((conditions & DuplicateConditions.SameTarget) != 0
             && args.Target != otherArgs.Target)

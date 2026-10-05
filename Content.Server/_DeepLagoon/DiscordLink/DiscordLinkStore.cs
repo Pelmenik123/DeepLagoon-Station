@@ -251,7 +251,7 @@ public sealed class DiscordLinkStore : IDisposable
             """, ("$id", discordId), ("$now", now));
         using (var command = Command("SELECT attempts FROM discord_link_attempts WHERE discord_id=$id", ("$id", discordId)))
         {
-            if ((long) command.ExecuteScalar()! > 10)
+            if ((long)command.ExecuteScalar()! > 10)
                 throw new LinkException("rate_limited");
         }
         using var transaction = _db.BeginTransaction();

@@ -12,9 +12,9 @@ namespace Content.Server._DeepLagoon.InteractionPanel;
 
 public sealed partial class InteractionPanelSystem
 {
-    [Dependency] private readonly IServerDbManager _db = default!;
-    [Dependency] private readonly IAdminLogManager _adminLog = default!;
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
+    [Dependency] private IServerDbManager _db = default!;
+    [Dependency] private IAdminLogManager _adminLog = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
     private readonly Dictionary<NetUserId, InteractionPanelCustomAction[]> _libraries = new();
     private readonly HashSet<NetUserId> _libraryBusy = new();
     private readonly Dictionary<NetUserId, TimeSpan> _nextLibraryWrite = new();

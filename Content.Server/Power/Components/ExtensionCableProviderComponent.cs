@@ -1,4 +1,4 @@
-﻿using Content.Server.Power.EntitySystems;
+using Content.Server.Power.EntitySystems;
 
 namespace Content.Server.Power.Components
 {
@@ -13,7 +13,7 @@ namespace Content.Server.Power.Components
         [DataField("transferRange")]
         public int TransferRange { get; set; } = 3;
 
-        [ViewVariables] public List<ExtensionCableReceiverComponent> LinkedReceivers { get; } = new();
+        [ViewVariables] public List<Entity<ExtensionCableReceiverComponent>> LinkedReceivers { get; } = [];
 
         /// <summary>
         ///     If <see cref="ExtensionCableReceiverComponent"/>s should consider connecting to this.

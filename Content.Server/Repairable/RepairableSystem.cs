@@ -29,12 +29,12 @@ using SharedToolSystem = Content.Shared.Tools.Systems.SharedToolSystem;
 
 namespace Content.Server.Repairable
 {
-    public sealed class RepairableSystem : SharedRepairableSystem
+    public sealed partial class RepairableSystem : SharedRepairableSystem
     {
-        [Dependency] private readonly SharedToolSystem _toolSystem = default!;
-        [Dependency] private readonly DamageableSystem _damageableSystem = default!;
-        [Dependency] private readonly SharedPopupSystem _popup = default!;
-        [Dependency] private readonly IAdminLogManager _adminLogger= default!;
+        [Dependency] private SharedToolSystem _toolSystem = default!;
+        [Dependency] private DamageableSystem _damageableSystem = default!;
+        [Dependency] private SharedPopupSystem _popup = default!;
+        [Dependency] private IAdminLogManager _adminLogger = default!;
 
         public override void Initialize()
         {
@@ -47,7 +47,7 @@ namespace Content.Server.Repairable
             if (args.Cancelled)
                 return;
 
-            if (!EntityManager.TryGetComponent(uid, out DamageableComponent? damageable) || damageable.TotalDamage == 0)
+            if (!TryComp(uid, out DamageableComponent? damageable) || damageable.TotalDamage == 0)
                 return;
 
             if (component.Damage != null)

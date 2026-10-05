@@ -29,8 +29,8 @@ namespace Content.Client.Humanoid;
 [GenerateTypedNameReferences]
 public sealed partial class MarkingPicker : Control
 {
-    [Dependency] private readonly MarkingManager _markingManager = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+    [Dependency] private MarkingManager _markingManager = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
 
     public Action<MarkingSet>? OnMarkingAdded;
     public Action<MarkingSet>? OnMarkingRemoved;
@@ -58,7 +58,7 @@ public sealed partial class MarkingPicker : Control
 
     public string IgnoreCategories
     {
-        get => string.Join(',',  _ignoreCategories);
+        get => string.Join(',', _ignoreCategories);
         set
         {
             _ignoreCategories.Clear();
@@ -137,7 +137,7 @@ public sealed partial class MarkingPicker : Control
         RobustXamlLoader.Load(this);
         IoCManager.InjectDependencies(this);
 
-        CMarkingCategoryButton.OnItemSelected +=  OnCategoryChange;
+        CMarkingCategoryButton.OnItemSelected += OnCategoryChange;
         CMarkingsUnused.OnItemSelected += item =>
             _selectedUnusedMarking = CMarkingsUnused[item.ItemIndex];
 
@@ -235,7 +235,7 @@ public sealed partial class MarkingPicker : Control
                 continue;
             }
 
-            var item = CMarkingsUnused.AddItem($"{GetMarkingName(marking)}", marking.Sprites[0].Frame0());
+            var item = CMarkingsUnused.AddItem($"{GetMarkingName(marking)}", SpriteComponentExt.Sys.Frame0(marking.Sprites[0]));
             item.Metadata = marking;
         }
 
@@ -269,7 +269,7 @@ public sealed partial class MarkingPicker : Control
             var _item = new ItemList.Item(CMarkingsUsed)
             {
                 Text = text,
-                Icon = newMarking.Sprites[0].Frame0(),
+                Icon = SpriteComponentExt.Sys.Frame0(newMarking.Sprites[0]),
                 Selectable = true,
                 Metadata = newMarking,
                 IconModulate = marking.MarkingColors[0]
@@ -400,7 +400,7 @@ public sealed partial class MarkingPicker : Control
     private void OnUsedMarkingSelected(ItemList.ItemListSelectedEventArgs item)
     {
         _selectedMarking = CMarkingsUsed[item.ItemIndex];
-        var prototype = (MarkingPrototype) _selectedMarking.Metadata!;
+        var prototype = (MarkingPrototype)_selectedMarking.Metadata!;
 
         if (prototype.ForcedColoring)
         {
@@ -411,7 +411,7 @@ public sealed partial class MarkingPicker : Control
 
         var stateNames = GetMarkingStateNames(prototype);
         _currentMarkingColors.Clear();
-        CMarkingColors.DisposeAllChildren();
+        CMarkingColors.RemoveAllChildren();
         List<ColorSelectorSliders> colorSliders = new();
         for (int i = 0; i < prototype.Sprites.Count; i++)
         {
@@ -456,7 +456,7 @@ public sealed partial class MarkingPicker : Control
     private void ColorChanged(int colorIndex)
     {
         if (_selectedMarking is null) return;
-        var markingPrototype = (MarkingPrototype) _selectedMarking.Metadata!;
+        var markingPrototype = (MarkingPrototype)_selectedMarking.Metadata!;
         int markingIndex = _currentMarkings.FindIndexOf(_selectedMarkingCategory, markingPrototype.ID);
 
         if (markingIndex < 0) return;
@@ -479,7 +479,7 @@ public sealed partial class MarkingPicker : Control
             return;
         }
 
-        var marking = (MarkingPrototype) _selectedUnusedMarking.Metadata!;
+        var marking = (MarkingPrototype)_selectedUnusedMarking.Metadata!;
         var markingObject = marking.AsMarking();
 
         // We need add hair markings in cloned set manually because _currentMarkings doesn't have it
@@ -526,7 +526,7 @@ public sealed partial class MarkingPicker : Control
         var item = new ItemList.Item(CMarkingsUsed)
         {
             Text = Loc.GetString("marking-used", ("marking-name", $"{GetMarkingName(marking)}"), ("marking-category", Loc.GetString($"markings-category-{marking.MarkingCategory}"))),
-            Icon = marking.Sprites[0].Frame0(),
+            Icon = SpriteComponentExt.Sys.Frame0(marking.Sprites[0]),
             Selectable = true,
             Metadata = marking,
         };
@@ -540,7 +540,7 @@ public sealed partial class MarkingPicker : Control
     {
         if (_selectedMarking is null) return;
 
-        var marking = (MarkingPrototype) _selectedMarking.Metadata!;
+        var marking = (MarkingPrototype)_selectedMarking.Metadata!;
 
         _currentMarkings.Remove(_selectedMarkingCategory, marking.ID);
 
@@ -550,7 +550,7 @@ public sealed partial class MarkingPicker : Control
 
         if (marking.MarkingCategory == _selectedMarkingCategory)
         {
-            var item = CMarkingsUnused.AddItem($"{GetMarkingName(marking)}", marking.Sprites[0].Frame0());
+            var item = CMarkingsUnused.AddItem($"{GetMarkingName(marking)}", SpriteComponentExt.Sys.Frame0(marking.Sprites[0]));
             item.Metadata = marking;
         }
         _selectedMarking = null;

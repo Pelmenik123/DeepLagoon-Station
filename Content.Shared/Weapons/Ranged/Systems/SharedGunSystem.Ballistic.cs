@@ -39,8 +39,8 @@ namespace Content.Shared.Weapons.Ranged.Systems;
 
 public abstract partial class SharedGunSystem
 {
-    [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
-    [Dependency] private readonly SharedInteractionSystem _interaction = default!;
+    [Dependency] SharedDoAfterSystem _doAfter = default!;
+    [Dependency] SharedInteractionSystem _interaction = default!;
 
 
     protected virtual void InitializeBallistic()
@@ -325,7 +325,11 @@ public abstract partial class SharedGunSystem
             {
                 component.UnspawnedCount--;
                 DirtyField(uid, component, nameof(BallisticAmmoProviderComponent.UnspawnedCount));
-                entity = Spawn(component.Proto, args.Coordinates);
+                // Goobstation - spent ammo is put back in the gun if it doesn't autocycle, so it has to be a
+                // predicted spawn to be allowed into the networked ammo container slot on the client.
+                entity = component.AutoCycle
+                    ? Spawn(component.Proto, args.Coordinates)
+                    : PredictedSpawnAtPosition(component.Proto, args.Coordinates);
                 args.Ammo.Add((entity, EnsureShootable(entity)));
 
                 // Goobstation - put spent ammo back in the gun if it doesn't autocycle

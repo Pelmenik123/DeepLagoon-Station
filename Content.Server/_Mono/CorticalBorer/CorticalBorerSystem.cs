@@ -42,20 +42,19 @@ namespace Content.Server._Mono.CorticalBorer;
 
 public sealed partial class CorticalBorerSystem : SharedCorticalBorerSystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly BloodstreamSystem _blood = default!;
-    [Dependency] private readonly HealthAnalyzerSystem _analyzer = default!;
-    [Dependency] private readonly DoAfterSystem _doAfter = default!;
-    [Dependency] private readonly IPrototypeManager _proto = default!;
-    [Dependency] private readonly InventorySystem _inventory = default!;
-    [Dependency] private readonly UserInterfaceSystem _userInterfaceSystem = default!;
-    [Dependency] private readonly ISharedAdminLogManager _admin = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly IChatManager _chat = default!;
-    [Dependency] private readonly AlertsSystem _alerts = default!;
-    [Dependency] private readonly GhostRoleSystem _ghost  = default!;
-    [Dependency] private readonly MetaDataSystem _metaData = default!;
-    [Dependency] private readonly CollectiveMindUpdateSystem _collective = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private BloodstreamSystem _blood = default!;
+    [Dependency] private HealthAnalyzerSystem _analyzer = default!;
+    [Dependency] private DoAfterSystem _doAfter = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private InventorySystem _inventory = default!;
+    [Dependency] private UserInterfaceSystem _userInterfaceSystem = default!;
+    [Dependency] private ISharedAdminLogManager _admin = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private IChatManager _chat = default!;
+    [Dependency] private AlertsSystem _alerts = default!;
+    [Dependency] private GhostRoleSystem _ghost = default!;
+    [Dependency] private CollectiveMindUpdateSystem _collective = default!;
 
     public override void Initialize()
     {
@@ -86,7 +85,8 @@ public sealed partial class CorticalBorerSystem : SharedCorticalBorerSystem
     {
         base.Update(frameTime);
 
-        foreach (var comp in EntityManager.EntityQuery<CorticalBorerComponent>())
+        var query = EntityQueryEnumerator<CorticalBorerComponent>();
+        while (query.MoveNext(out var uid, out var comp))
         {
             if (_timing.CurTime < comp.UpdateTimer)
                 continue;
@@ -94,10 +94,10 @@ public sealed partial class CorticalBorerSystem : SharedCorticalBorerSystem
             comp.UpdateTimer = _timing.CurTime + TimeSpan.FromSeconds(comp.UpdateCooldown);
 
             if (comp.Host != null)
-                UpdateChems((comp.Owner, comp), comp.ChemicalGenerationRate);
+                UpdateChems((uid, comp), comp.ChemicalGenerationRate);
         }
 
-        foreach (var comp in EntityManager.EntityQuery<CorticalBorerInfestedComponent>())
+        foreach (var comp in EntityQuery<CorticalBorerInfestedComponent>())
         {
             if (_timing.CurTime >= comp.ControlTimeEnd)
                 EndControl(comp.Borer);
@@ -235,7 +235,7 @@ public sealed partial class CorticalBorerSystem : SharedCorticalBorerSystem
             var chems = ent.Comp.ChemicalPoints;
             var color = proto.SubstanceColor;
 
-            clones.Add(new CorticalBorerDispenserItem(reagentName,reagentId, cost, amount, chems, color)); // need color and name
+            clones.Add(new CorticalBorerDispenserItem(reagentName, reagentId, cost, amount, chems, color)); // need color and name
         }
 
         return clones;
@@ -251,7 +251,7 @@ public sealed partial class CorticalBorerSystem : SharedCorticalBorerSystem
 
     public bool TryToggleCheckBlood(Entity<CorticalBorerComponent> ent)
     {
-        if(!TryComp<UserInterfaceComponent>(ent, out var uic))
+        if (!TryComp<UserInterfaceComponent>(ent, out var uic))
             return false;
 
         if (!TryComp<HealthAnalyzerComponent>(ent, out var health))
@@ -273,7 +273,7 @@ public sealed partial class CorticalBorerSystem : SharedCorticalBorerSystem
         if (!TryComp<HealthAnalyzerComponent>(ent, out var health))
             return;
 
-        if (!_ui.IsUiOpen((ent,uic), HealthAnalyzerUiKey.Key))
+        if (!_ui.IsUiOpen((ent, uic), HealthAnalyzerUiKey.Key))
             _ui.OpenUi((ent, uic), HealthAnalyzerUiKey.Key, ent);
         _analyzer.BeginAnalyzingEntity((ent, health), ent.Comp.Host.Value);
     }
@@ -286,7 +286,7 @@ public sealed partial class CorticalBorerSystem : SharedCorticalBorerSystem
         if (!TryComp<HealthAnalyzerComponent>(ent, out var health))
             return;
 
-        if(!health.ScannedEntity.HasValue)
+        if (!health.ScannedEntity.HasValue)
             return;
 
         _ui.CloseUi((ent, uic), HealthAnalyzerUiKey.Key, ent);
@@ -335,12 +335,12 @@ public sealed partial class CorticalBorerSystem : SharedCorticalBorerSystem
             _ghost.UnregisterGhostRole((worm, ghostRole)); // prevent players from taking the worm role once mind isn't in the worm
 
         // add the end control and vomit egg action
-        if (_actions.AddAction(host, "ActionEndControlHost") is {} actionEnd)
+        if (_actions.AddAction(host, "ActionEndControlHost") is { } actionEnd)
             infestedComp.RemoveAbilities.Add(actionEnd);
         if (comp.CanReproduce &&
             infestedComp.ControlTimeEnd != null) // you can't lay eggs with something you can control forever
         {
-            if (_actions.AddAction(host, "ActionLayEggHost") is {} actionLay)
+            if (_actions.AddAction(host, "ActionLayEggHost") is { } actionLay)
                 infestedComp.RemoveAbilities.Add(actionLay);
         }
 

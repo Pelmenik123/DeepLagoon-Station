@@ -1,12 +1,12 @@
-﻿using Content.Server.Xenoarchaeology.Equipment.Components;
+using Content.Server.Xenoarchaeology.Equipment.Components;
 using Content.Server.Xenoarchaeology.XenoArtifacts;
 using Robust.Shared.Containers;
 
 namespace Content.Server.Xenoarchaeology.Equipment.Systems;
 
-public sealed class SuppressArtifactContainerSystem : EntitySystem
+public sealed partial class SuppressArtifactContainerSystem : EntitySystem
 {
-    [Dependency] private readonly ArtifactSystem _artifact = default!;
+    [Dependency] private ArtifactSystem _artifact = default!;
 
     public override void Initialize()
     {

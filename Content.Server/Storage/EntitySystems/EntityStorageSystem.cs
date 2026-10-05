@@ -41,12 +41,12 @@ using Robust.Shared.Map;
 
 namespace Content.Server.Storage.EntitySystems;
 
-public sealed class EntityStorageSystem : SharedEntityStorageSystem
+public sealed partial class EntityStorageSystem : SharedEntityStorageSystem
 {
-    [Dependency] private readonly ConstructionSystem _construction = default!;
-    [Dependency] private readonly AtmosphereSystem _atmos = default!;
-    [Dependency] private readonly IMapManager _map = default!;
-    [Dependency] private readonly MapSystem _mapSystem = default!;
+    [Dependency] private ConstructionSystem _construction = default!;
+    [Dependency] private AtmosphereSystem _atmos = default!;
+    [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private MapSystem _mapSystem = default!;
 
     public override void Initialize()
     {
@@ -132,10 +132,10 @@ public sealed class EntityStorageSystem : SharedEntityStorageSystem
         if (!component.Airtight)
             return;
 
-        var serverComp = (EntityStorageComponent) component;
+        var serverComp = (EntityStorageComponent)component;
         var tile = GetOffsetTileRef(uid, serverComp);
 
-        if (tile != null && _atmos.GetTileMixture(tile.Value.GridUid, null, tile.Value.GridIndices, true) is {} environment)
+        if (tile != null && _atmos.GetTileMixture(tile.Value.GridUid, null, tile.Value.GridIndices, true) is { } environment)
         {
             _atmos.Merge(serverComp.Air, environment.RemoveVolume(serverComp.Air.Volume));
         }
@@ -143,14 +143,14 @@ public sealed class EntityStorageSystem : SharedEntityStorageSystem
 
     public override void ReleaseGas(EntityUid uid, SharedEntityStorageComponent component)
     {
-        var serverComp = (EntityStorageComponent) component;
+        var serverComp = (EntityStorageComponent)component;
 
         if (!serverComp.Airtight)
             return;
 
         var tile = GetOffsetTileRef(uid, serverComp);
 
-        if (tile != null && _atmos.GetTileMixture(tile.Value.GridUid, null, tile.Value.GridIndices, true) is {} environment)
+        if (tile != null && _atmos.GetTileMixture(tile.Value.GridUid, null, tile.Value.GridIndices, true) is { } environment)
         {
             _atmos.Merge(environment, serverComp.Air);
             serverComp.Air.Clear();
@@ -159,7 +159,7 @@ public sealed class EntityStorageSystem : SharedEntityStorageSystem
 
     private TileRef? GetOffsetTileRef(EntityUid uid, EntityStorageComponent component)
     {
-        var targetCoordinates = new EntityCoordinates(uid, component.EnteringOffset).ToMap(EntityManager, TransformSystem);
+        var targetCoordinates = TransformSystem.ToMapCoordinates(new EntityCoordinates(uid, component.EnteringOffset));
 
         if (_map.TryFindGridAt(targetCoordinates, out var gridId, out var grid))
         {

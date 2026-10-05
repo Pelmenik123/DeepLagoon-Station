@@ -15,8 +15,8 @@ namespace Content.Client._Goobstation.DragDrop;
 
 public sealed partial class GoobDragDropSystem : SharedGoobDragDropSystem
 {
-    [Dependency] private readonly ConstructionSystem _construction = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private ConstructionSystem _construction = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     public override void Initialize()
     {

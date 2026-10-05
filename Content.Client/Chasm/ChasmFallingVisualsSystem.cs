@@ -1,4 +1,4 @@
-﻿using Content.Shared.Chasm;
+using Content.Shared.Chasm;
 using Robust.Client.Animations;
 using Robust.Client.GameObjects;
 using Robust.Shared.Animations;
@@ -8,9 +8,10 @@ namespace Content.Client.Chasm;
 /// <summary>
 ///     Handles the falling animation for entities that fall into a chasm.
 /// </summary>
-public sealed class ChasmFallingVisualsSystem : EntitySystem
+public sealed partial class ChasmFallingVisualsSystem : EntitySystem
 {
-    [Dependency] private readonly AnimationPlayerSystem _anim = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private AnimationPlayerSystem _anim = default!;
 
     private readonly string _chasmFallAnimationKey = "chasm_fall";
 
@@ -46,9 +47,9 @@ public sealed class ChasmFallingVisualsSystem : EntitySystem
 
         var player = EnsureComp<AnimationPlayerComponent>(uid);
         if (_anim.HasRunningAnimation(player, _chasmFallAnimationKey))
-            _anim.Stop(player, _chasmFallAnimationKey);
+            _anim.Stop((uid, player), _chasmFallAnimationKey);
 
-        sprite.Scale = component.OriginalScale;
+        _sprite.SetScale(sprite.AsEntity(), component.OriginalScale);
     }
 
     private Animation GetFallingAnimation(ChasmFallingComponent component)

@@ -13,8 +13,8 @@ namespace Content.Client.Lobby.UI.Loadouts;
 [GenerateTypedNameReferences]
 public sealed partial class LoadoutContainer : BoxContainer
 {
-    [Dependency] private readonly IEntityManager _entManager = default!;
-    [Dependency] private readonly IPrototypeManager _protoManager = default!;
+    [Dependency] private IEntityManager _entManager = default!;
+    [Dependency] private IPrototypeManager _protoManager = default!;
 
     private readonly EntityUid? _entity;
 
@@ -43,7 +43,8 @@ public sealed partial class LoadoutContainer : BoxContainer
             bool hasEntity = !string.IsNullOrEmpty(loadProto.PreviewEntity?.Id);
 
             EntProtoId? ent = null;
-            if (!hasEntity || !hasDescription) {
+            if (!hasEntity || !hasDescription)
+            {
                 ent = _entManager.System<LoadoutSystem>().GetFirstOrNull(loadProto);
             }
             var finalEnt = hasEntity ? loadProto.PreviewEntity : ent;
@@ -53,7 +54,7 @@ public sealed partial class LoadoutContainer : BoxContainer
                 Sprite.SetEntity(_entity);
 
                 var spriteTooltip = new Tooltip();
-                var description = hasDescription ? loadProto.Description : _entManager.GetComponent<MetaDataComponent>(_entity.Value).EntityDescription; 
+                var description = hasDescription ? loadProto.Description : _entManager.GetComponent<MetaDataComponent>(_entity.Value).EntityDescription;
                 spriteTooltip.SetMessage(FormattedMessage.FromUnformatted(description));
                 Sprite.TooltipSupplier = _ => spriteTooltip; // Frontier: TooltipSupplier<Sprite.TooltipSupplier?
             }
@@ -61,12 +62,10 @@ public sealed partial class LoadoutContainer : BoxContainer
         }
     }
 
-    protected override void Dispose(bool disposing)
+    protected override void ExitedTree()
     {
-        base.Dispose(disposing);
+        base.ExitedTree();
 
-        if (!disposing)
-            return;
 
         _entManager.DeleteEntity(_entity);
     }

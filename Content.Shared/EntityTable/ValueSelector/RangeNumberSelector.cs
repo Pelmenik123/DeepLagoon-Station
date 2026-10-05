@@ -15,8 +15,8 @@ public sealed partial class RangeNumberSelector : NumberSelector
     [DataField]
     public Vector2 Range = new(1, 1);
 
-    public override float Get(System.Random rand, IEntityManager entMan, IPrototypeManager proto)
+    public override float Get(IRobustRandom rand, IEntityManager entMan, IPrototypeManager proto)
     {
-        return rand.NextFloat(Range.X, Range.Y + 1);
+        return (float)rand.NextDouble() * (Range.Y + 1 - Range.X) + Range.X;
     }
 }

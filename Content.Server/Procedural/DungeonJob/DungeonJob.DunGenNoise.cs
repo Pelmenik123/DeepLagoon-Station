@@ -19,7 +19,7 @@ public sealed partial class DungeonJob
         NoiseDunGen dungen,
         HashSet<Vector2i> reservedTiles,
         int seed,
-        Random random)
+        IRobustRandom random)
     {
         var tiles = new List<(Vector2i, Tile)>();
         var matrix = Matrix3Helpers.CreateTranslation(position);
@@ -46,26 +46,14 @@ public sealed partial class DungeonJob
 
             // Get a random exterior tile to start floodfilling from.
             var edge = random.Next(4);
-            Vector2i seedTile;
-
-            switch (edge)
+            var seedTile = edge switch
             {
-                case 0:
-                    seedTile = new Vector2i(random.Next(area.Left - 2, area.Right + 1), area.Bottom - 2);
-                    break;
-                case 1:
-                    seedTile = new Vector2i(area.Right + 1, random.Next(area.Bottom - 2, area.Top + 1));
-                    break;
-                case 2:
-                    seedTile = new Vector2i(random.Next(area.Left - 2, area.Right + 1), area.Top + 1);
-                    break;
-                case 3:
-                    seedTile = new Vector2i(area.Left - 2, random.Next(area.Bottom - 2, area.Top + 1));
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
+                0 => new Vector2i(random.Next(area.Left - 2, area.Right + 1), area.Bottom - 2),
+                1 => new Vector2i(area.Right + 1, random.Next(area.Bottom - 2, area.Top + 1)),
+                2 => new Vector2i(random.Next(area.Left - 2, area.Right + 1), area.Top + 1),
+                3 => new Vector2i(area.Left - 2, random.Next(area.Bottom - 2, area.Top + 1)),
+                _ => throw new ArgumentOutOfRangeException(),
+            };
             DebugTools.Assert(!visited.Contains(seedTile));
             var noiseFill = false;
             frontier.Clear();
@@ -95,7 +83,7 @@ public sealed partial class DungeonJob
 
                     roomArea = roomArea.UnionTile(node);
                     var tileDef = _tileDefManager[layer.Tile];
-                    var variant = _tile.PickVariant((ContentTileDefinition) tileDef, random);
+                    var variant = _tile.PickVariant((ContentTileDefinition)tileDef, random);
                     var adjusted = Vector2.Transform(node + _grid.TileSizeHalfVector, matrix).Floored();
 
                     tiles.Add((adjusted, new Tile(tileDef.TileId, variant: variant)));
@@ -139,7 +127,7 @@ public sealed partial class DungeonJob
             }
 
             center /= roomTiles.Count;
-            rooms.Add(new DungeonRoom(roomTiles, center, roomArea, new HashSet<Vector2i>()));
+            rooms.Add(new DungeonRoom(roomTiles, center, roomArea, []));
             await SuspendIfOutOfTime();
             ValidateResume();
         }

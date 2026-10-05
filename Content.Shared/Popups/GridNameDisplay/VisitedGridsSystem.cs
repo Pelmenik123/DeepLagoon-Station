@@ -7,10 +7,10 @@ namespace Content.Shared.Popups.GridNameDisplay;
 /// This system handles the <see cref="VisitedGridsComponent"/> which tracks which grids
 /// a player has visited to avoid showing redundant grid name popups.
 /// </summary>
-public sealed class VisitedGridsSystem : EntitySystem
+public sealed partial class VisitedGridsSystem : EntitySystem
 {
-    [Dependency] private readonly EntityManager _entityManager = default!;
-    [Dependency] private readonly IMapManager _mapManager = default!;
+    [Dependency] private EntityManager _entityManager = default!;
+    [Dependency] private SharedMapSystem _mapManager = default!;
 
     /// <inheritdoc/>
     public override void Initialize()

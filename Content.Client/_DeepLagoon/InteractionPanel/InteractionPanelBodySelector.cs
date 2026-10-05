@@ -75,7 +75,7 @@ public sealed class InteractionPanelBodySelector : Control
     {
         if (BodyScale <= 0) return null;
         point = (point - BodyOffset) / BodyScale;
-        return RegionAt((int) MathF.Floor(point.X), (int) MathF.Floor(point.Y));
+        return RegionAt((int)MathF.Floor(point.X), (int)MathF.Floor(point.Y));
     }
     protected override void MouseMove(GUIMouseMoveEventArgs args)
     {

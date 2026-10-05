@@ -11,12 +11,12 @@ namespace Content.Server.Popups.GridNameDisplay;
 /// This system tracks when players move between grids and sends grid name events
 /// to display when a player enters a new grid for the first time.
 /// </summary>
-public sealed class GridNameSystem : EntitySystem
+public sealed partial class GridNameSystem : EntitySystem
 {
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly PlayerSystem _playerSystem = default!;
-    [Dependency] private readonly VisitedGridsSystem _visitedGrids = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private PlayerSystem _playerSystem = default!;
+    [Dependency] private VisitedGridsSystem _visitedGrids = default!;
 
     public override void Initialize()
     {

@@ -9,10 +9,10 @@ using Robust.Shared.Player;
 
 namespace Content.Server.Arcade.BlockGame;
 
-public sealed class BlockGameArcadeSystem : EntitySystem
+public sealed partial class BlockGameArcadeSystem : EntitySystem
 {
-    [Dependency] private readonly UserInterfaceSystem _uiSystem = default!;
-    [Dependency] private readonly SpeakOnUIClosedSystem _speakOnUIClosed = default!;
+    [Dependency] private UserInterfaceSystem _uiSystem = default!;
+    [Dependency] private SpeakOnUIClosedSystem _speakOnUIClosed = default!;
 
     public override void Initialize()
     {
@@ -31,7 +31,7 @@ public sealed class BlockGameArcadeSystem : EntitySystem
 
     public override void Update(float frameTime)
     {
-        var query = EntityManager.EntityQueryEnumerator<BlockGameArcadeComponent>();
+        var query = EntityQueryEnumerator<BlockGameArcadeComponent>();
         while (query.MoveNext(out var _, out var blockGame))
         {
             blockGame.Game?.GameTick(frameTime);

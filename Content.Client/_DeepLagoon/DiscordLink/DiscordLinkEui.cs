@@ -10,7 +10,7 @@ using Robust.Client.UserInterface.CustomControls;
 namespace Content.Client._DeepLagoon.DiscordLink;
 
 [UsedImplicitly]
-public sealed class DiscordLinkEui : BaseEui
+public sealed partial class DiscordLinkEui : BaseEui
 {
     private sealed class AdmissionWindow : DefaultWindow
     {
@@ -63,7 +63,7 @@ public sealed class DiscordLinkEui : BaseEui
         _serverClosed = true;
         _window.ServerClosed = true;
         _window.Close();
-        _window.Dispose();
+        _window?.DisposeControl();
     }
 
     public override void HandleState(EuiStateBase state)

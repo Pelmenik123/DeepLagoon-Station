@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using Robust.Shared.Log;
 using Robust.Shared.Timing;
 using Serilog.Events;

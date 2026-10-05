@@ -10,21 +10,21 @@ namespace Content.Server.Power.NodeGroups
 {
     public interface IPowerNet : IBasePowerNet
     {
-        void AddDischarger(BatteryDischargerComponent discharger);
+        void AddDischarger(Entity<BatteryDischargerComponent> discharger);
 
-        void RemoveDischarger(BatteryDischargerComponent discharger);
+        void RemoveDischarger(Entity<BatteryDischargerComponent> discharger);
 
-        void AddCharger(BatteryChargerComponent charger);
+        void AddCharger(Entity<BatteryChargerComponent> charger);
 
-        void RemoveCharger(BatteryChargerComponent charger);
+        void RemoveCharger(Entity<BatteryChargerComponent> charger);
     }
 
     [NodeGroup(NodeGroupID.HVPower, NodeGroupID.MVPower)]
     [UsedImplicitly]
     public sealed partial class PowerNet : BasePowerNet<IPowerNet>, IPowerNet
     {
-        [ViewVariables] public readonly List<BatteryChargerComponent> Chargers = new();
-        [ViewVariables] public readonly List<BatteryDischargerComponent> Dischargers = new();
+        [ViewVariables] public readonly List<Entity<BatteryChargerComponent>> Chargers = [];
+        [ViewVariables] public readonly List<Entity<BatteryDischargerComponent>> Dischargers = [];
 
         public override void Initialize(Node sourceNode, IEntityManager entMan)
         {
@@ -39,12 +39,12 @@ namespace Content.Server.Power.NodeGroups
             PowerNetSystem?.DestroyPowerNet(this);
         }
 
-        protected override void SetNetConnectorNet(IBaseNetConnectorComponent<IPowerNet> netConnectorComponent)
+        protected override void SetNetConnectorNet(EntityUid owner, IBaseNetConnectorComponent<IPowerNet> netConnectorComponent)
         {
-            netConnectorComponent.Net = this;
+            netConnectorComponent.SetNet(owner, this);
         }
 
-        public void AddDischarger(BatteryDischargerComponent discharger)
+        public void AddDischarger(Entity<BatteryDischargerComponent> discharger)
         {
             if (EntMan == null)
                 return;
@@ -56,7 +56,7 @@ namespace Content.Server.Power.NodeGroups
             QueueNetworkReconnect();
         }
 
-        public void RemoveDischarger(BatteryDischargerComponent discharger)
+        public void RemoveDischarger(Entity<BatteryDischargerComponent> discharger)
         {
             if (EntMan == null)
                 return;
@@ -73,7 +73,7 @@ namespace Content.Server.Power.NodeGroups
             QueueNetworkReconnect();
         }
 
-        public void AddCharger(BatteryChargerComponent charger)
+        public void AddCharger(Entity<BatteryChargerComponent> charger)
         {
             if (EntMan == null)
                 return;
@@ -85,7 +85,7 @@ namespace Content.Server.Power.NodeGroups
             QueueNetworkReconnect();
         }
 
-        public void RemoveCharger(BatteryChargerComponent charger)
+        public void RemoveCharger(Entity<BatteryChargerComponent> charger)
         {
             if (EntMan == null)
                 return;
@@ -115,8 +115,8 @@ namespace Content.Server.Power.NodeGroups
             // This is just recycling the multi-tool examine.
             var ps = PowerNetSystem.GetNetworkStatistics(NetworkNode);
 
-            float storageRatio = ps.InStorageCurrent / Math.Max(ps.InStorageMax, 1.0f);
-            float outStorageRatio = ps.OutStorageCurrent / Math.Max(ps.OutStorageMax, 1.0f);
+            var storageRatio = ps.InStorageCurrent / Math.Max(ps.InStorageMax, 1.0f);
+            var outStorageRatio = ps.OutStorageCurrent / Math.Max(ps.OutStorageMax, 1.0f);
             return @$"Current Supply: {ps.SupplyCurrent:G3}
 From Batteries: {ps.SupplyBatteries:G3}
 Theoretical Supply: {ps.SupplyTheoretical:G3}

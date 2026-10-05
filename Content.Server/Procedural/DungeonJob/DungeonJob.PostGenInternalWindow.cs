@@ -4,6 +4,7 @@ using Content.Shared.Maps;
 using Content.Shared.Procedural;
 using Content.Shared.Procedural.PostGeneration;
 using Content.Shared.Storage;
+using Robust.Shared.Random;
 
 namespace Content.Server.Procedural.DungeonJob;
 
@@ -12,7 +13,7 @@ public sealed partial class DungeonJob
     /// <summary>
     /// <see cref="InternalWindowDunGen"/>
     /// </summary>
-    private async Task PostGen(InternalWindowDunGen gen, DungeonData data, Dungeon dungeon, HashSet<Vector2i> reservedTiles, Random random)
+    private async Task PostGen(InternalWindowDunGen gen, DungeonData data, Dungeon dungeon, HashSet<Vector2i> reservedTiles, IRobustRandom random)
     {
         if (!data.Tiles.TryGetValue(DungeonDataKey.FallbackTile, out var tileProto) ||
             !data.SpawnGroups.TryGetValue(DungeonDataKey.Window, out var windowGroup))
@@ -34,7 +35,7 @@ public sealed partial class DungeonJob
 
             for (var i = 0; i < 4; i++)
             {
-                var dir = (DirectionFlag) Math.Pow(2, i);
+                var dir = (DirectionFlag)Math.Pow(2, i);
                 var dirVec = dir.AsDir().ToIntVec();
 
                 foreach (var tile in room.Tiles)
@@ -42,7 +43,7 @@ public sealed partial class DungeonJob
                     var tileAngle = (tile + _grid.TileSizeHalfVector - room.Center).ToAngle();
                     var roundedAngle = Math.Round(tileAngle.Theta / (Math.PI / 2)) * (Math.PI / 2);
 
-                    var tileVec = (Vector2i) new Angle(roundedAngle).ToVec().Rounded();
+                    var tileVec = (Vector2i)new Angle(roundedAngle).ToVec().Rounded();
 
                     if (!tileVec.Equals(dirVec))
                         continue;
@@ -76,7 +77,7 @@ public sealed partial class DungeonJob
                     if (reservedTiles.Contains(windowTile))
                         continue;
 
-                    if (!_anchorable.TileFree(_grid, windowTile, DungeonSystem.CollisionLayer, DungeonSystem.CollisionMask))
+                    if (!_anchorable.TileFree(_gridUid, _grid, windowTile, DungeonSystem.CollisionLayer, DungeonSystem.CollisionMask))
                         continue;
 
                     validTiles.Add(windowTile);
@@ -88,9 +89,9 @@ public sealed partial class DungeonJob
                 {
                     var tile = validTiles[j];
                     var gridPos = _maps.GridTileToLocal(_gridUid, _grid, tile);
-                    _maps.SetTile(_gridUid, _grid, tile, _tile.GetVariantTile((ContentTileDefinition) tileDef, random));
+                    _maps.SetTile(_gridUid, _grid, tile, _tile.GetVariantTile((ContentTileDefinition)tileDef, random));
 
-                    _entManager.SpawnEntities(gridPos, EntitySpawnCollection.GetSpawns(window.Entries, random));
+                    SpawnEntities(gridPos, EntitySpawnCollection.GetSpawns(window.Entries, random));
                 }
 
                 if (validTiles.Count > 0)

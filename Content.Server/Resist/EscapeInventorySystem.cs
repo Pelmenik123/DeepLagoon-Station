@@ -7,35 +7,28 @@ using Content.Shared.Hands.EntitySystems;
 using Content.Server.Storage.Components;
 using Content.Shared.ActionBlocker;
 using Content.Shared.DoAfter;
-using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction.Events;
-using Content.Shared.Inventory;
 using Content.Shared.Movement.Events;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Resist;
-using Content.Shared.Storage;
 using Robust.Shared.Containers;
-using Content.Server.Storage.Components;
-using Content.Server.Carrying;
 using Content.Shared.Actions;
-using Content.Shared.Movement.Systems;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server.Resist;
 
-public sealed class EscapeInventorySystem : EntitySystem
+public sealed partial class EscapeInventorySystem : EntitySystem
 {
-    [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
-    [Dependency] private readonly PopupSystem _popupSystem = default!;
-    [Dependency] private readonly SharedContainerSystem _containerSystem = default!;
-    [Dependency] private readonly ActionBlockerSystem _actionBlockerSystem = default!;
-    [Dependency] private readonly SharedHandsSystem _handsSystem = default!;
-    [Dependency] private readonly CarryingSystem _carryingSystem = default!; // Carrying system from Nyanotrasen.
-    [Dependency] private readonly SharedActionsSystem _actions = default!;
-    [Dependency] private  readonly EntityManager _entityManager = default!;
+    [Dependency] private SharedDoAfterSystem _doAfterSystem = default!;
+    [Dependency] private PopupSystem _popupSystem = default!;
+    [Dependency] private SharedContainerSystem _containerSystem = default!;
+    [Dependency] private ActionBlockerSystem _actionBlockerSystem = default!;
+    [Dependency] private SharedHandsSystem _handsSystem = default!;
+    [Dependency] private CarryingSystem _carryingSystem = default!; // Carrying system from Nyanotrasen.
+    [Dependency] private SharedActionsSystem _actions = default!;
+    [Dependency] private EntityManager _entityManager = default!;
 
     // Frontier - cancel inventory escape
-    [ValidatePrototypeId<EntityPrototype>]
     private readonly string _escapeCancelAction = "ActionCancelEscape";
 
     /// <summary>
@@ -137,7 +130,7 @@ public sealed class EscapeInventorySystem : EntitySystem
     private void RemoveCancelAction(EntityUid uid, CanEscapeInventoryComponent component)
     {
         if (component.EscapeCancelAction is not { Valid: true })
-         return;
+            return;
 
         _actions.RemoveAction(uid, component.EscapeCancelAction);
         component.EscapeCancelAction = null;

@@ -10,8 +10,8 @@ namespace Content.Server._Mono.Trigger;
 
 public sealed partial class TriggerSystem : EntitySystem
 {
-    [Dependency] private readonly LightningSystem _lightning = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private LightningSystem _lightning = default!;
+    [Dependency] private IRobustRandom _random = default!;
 
     public override void Initialize()
     {

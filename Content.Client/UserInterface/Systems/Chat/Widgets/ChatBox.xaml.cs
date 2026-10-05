@@ -66,14 +66,14 @@ public partial class ChatBox : UIWidget
 
     private void OnMessageAdded(ChatMessage msg)
     {
-        Logger.DebugS("chat", $"{msg.Channel}: {msg.Message}");
+        Logger.GetSawmill("chat").Debug($"{msg.Channel}: {msg.Message}");
         if (!ChatInput.FilterButton.Popup.IsActive(msg.Channel))
         {
             return;
         }
 
         if (msg is { Read: false, AudioPath: { } })
-            _entManager.System<AudioSystem>().PlayGlobal(msg.AudioPath, Filter.Local(), false, AudioParams.Default.WithVolume(msg.AudioVolume));
+            _entManager.System<AudioSystem>().PlayGlobal(new ResolvedPathSpecifier(new ResPath(msg.AudioPath)), Filter.Local(), false, AudioParams.Default.WithVolume(msg.AudioVolume));
 
         msg.Read = true;
 
@@ -137,13 +137,13 @@ public partial class ChatBox : UIWidget
         formatted.PushColor(color);
         formatted.AddMarkupOrThrow(message);
         formatted.Pop();
-        if(repeat != 0) // WD EDIT START
+        if (repeat != 0) // WD EDIT START
         {
             int displayRepeat = repeat + 1;
             int sizeIncrease = Math.Min(displayRepeat / 6, 5);
-            formatted.AddMarkup(_loc.GetString("chat-system-repeated-message-counter",
+            formatted.AddMarkupOrThrow(_loc.GetString("chat-system-repeated-message-counter",
                 ("count", displayRepeat),
-                ("size", 8+sizeIncrease)
+                ("size", 8 + sizeIncrease)
             ));
         } // WD EDIT END
         Contents.AddMessage(formatted);
@@ -219,11 +219,10 @@ public partial class ChatBox : UIWidget
         _controller.NotifyChatTextChange();
     }
 
-    protected override void Dispose(bool disposing)
+    protected override void ExitedTree()
     {
-        base.Dispose(disposing);
+        base.ExitedTree();
 
-        if (!disposing) return;
         _controller.UnregisterChat(this);
         ChatInput.Input.OnTextEntered -= OnTextEntered;
         ChatInput.Input.OnKeyBindDown -= OnInputKeyBindDown;

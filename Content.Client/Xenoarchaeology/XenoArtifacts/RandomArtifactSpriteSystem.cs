@@ -1,10 +1,11 @@
-﻿using Content.Shared.Xenoarchaeology.XenoArtifacts;
+using Content.Shared.Xenoarchaeology.XenoArtifacts;
 using Robust.Client.GameObjects;
 
 namespace Content.Client.Xenoarchaeology.XenoArtifacts;
 
-public sealed class RandomArtifactSpriteSystem : VisualizerSystem<RandomArtifactSpriteComponent>
+public sealed partial class RandomArtifactSpriteSystem : VisualizerSystem<RandomArtifactSpriteComponent>
 {
+    [Dependency] private SpriteSystem _sprite = default!;
     protected override void OnAppearanceChange(EntityUid uid, RandomArtifactSpriteComponent component, ref AppearanceChangeEvent args)
     {
         if (args.Sprite == null)
@@ -20,18 +21,18 @@ public sealed class RandomArtifactSpriteSystem : VisualizerSystem<RandomArtifact
         var spritePrefix = isActivated ? "_on" : "";
 
         // layered artifact sprite
-        if (args.Sprite.LayerMapTryGet(ArtifactsVisualLayers.Effect, out var layer))
+        if (_sprite.LayerMapTryGet(args.Sprite.AsEntity(), ArtifactsVisualLayers.Effect, out var layer, false))
         {
             var spriteState = "ano" + spriteIndexStr;
-            args.Sprite.LayerSetState(ArtifactsVisualLayers.Base, spriteState);
-            args.Sprite.LayerSetState(layer, spriteState + "_on");
-            args.Sprite.LayerSetVisible(layer, isActivated);
+            _sprite.LayerSetRsiState(args.Sprite.AsEntity(), ArtifactsVisualLayers.Base, spriteState);
+            _sprite.LayerSetRsiState(args.Sprite.AsEntity(), layer, spriteState + "_on");
+            _sprite.LayerSetVisible(args.Sprite.AsEntity(), layer, isActivated);
         }
         // non-layered
         else
         {
             var spriteState = "ano" + spriteIndexStr + spritePrefix;
-            args.Sprite.LayerSetState(ArtifactsVisualLayers.Base, spriteState);
+            _sprite.LayerSetRsiState(args.Sprite.AsEntity(), ArtifactsVisualLayers.Base, spriteState);
         }
 
     }

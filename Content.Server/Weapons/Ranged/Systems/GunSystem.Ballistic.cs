@@ -38,7 +38,7 @@ public sealed partial class GunSystem
             DirtyField(uid, component, nameof(BallisticAmmoProviderComponent.Entities));
 
             Containers.Remove(existing, component.Container);
-			ent = existing; //Mono: Sound bugfix
+            ent = existing; //Mono: Sound bugfix
             EnsureShootable(existing);
         }
         else if (component.UnspawnedCount > 0)

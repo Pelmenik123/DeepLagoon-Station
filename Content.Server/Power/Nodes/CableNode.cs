@@ -17,14 +17,14 @@ namespace Content.Server.Power.Nodes
             if (!xform.Anchored || grid == null)
                 yield break;
 
-            var gridIndex = grid.TileIndicesFor(xform.Coordinates);
+            var gridIndex = MapSystem.TileIndicesFor(xform.GridUid!.Value, grid, xform.Coordinates);
 
             // While we go over adjacent nodes, we build a list of blocked directions due to
             // incoming or outgoing wire terminals.
             var terminalDirs = 0;
             List<(Direction, Node)> nodeDirs = new();
 
-            foreach (var (dir, node) in NodeHelpers.GetCardinalNeighborNodes(nodeQuery, grid, gridIndex))
+            foreach (var (dir, node) in NodeHelpers.GetCardinalNeighborNodes(nodeQuery, (xform.GridUid!.Value, grid), gridIndex))
             {
                 if (node is CableNode && node != this)
                 {
@@ -42,7 +42,7 @@ namespace Content.Server.Power.Nodes
                     if (dir == Direction.Invalid)
                     {
                         // On own tile, block direction it faces
-                        terminalDirs |= 1 << (int) xformQuery.GetComponent(node.Owner).LocalRotation.GetCardinalDir();
+                        terminalDirs |= 1 << (int)xformQuery.GetComponent(node.Owner).LocalRotation.GetCardinalDir();
                     }
                     else
                     {
@@ -50,7 +50,7 @@ namespace Content.Server.Power.Nodes
                         if (terminalDir.GetOpposite() == dir)
                         {
                             // Target tile has a terminal towards us, block the direction.
-                            terminalDirs |= 1 << (int) dir;
+                            terminalDirs |= 1 << (int)dir;
                             break;
                         }
                     }
@@ -60,7 +60,7 @@ namespace Content.Server.Power.Nodes
             foreach (var (dir, node) in nodeDirs)
             {
                 // If there is a wire terminal connecting across this direction, skip the node.
-                if (dir != Direction.Invalid && (terminalDirs & (1 << (int) dir)) != 0)
+                if (dir != Direction.Invalid && (terminalDirs & (1 << (int)dir)) != 0)
                     continue;
 
                 yield return node;

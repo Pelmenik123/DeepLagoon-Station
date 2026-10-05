@@ -61,7 +61,7 @@ public sealed partial class AdminNotesLine : BoxContainer
         if (iconPath is null)
         {
             SeverityRect.Visible = false;
-            Logger.WarningS("admin.notes", $"Could not find an icon for note ID {Note.Id}");
+            Logger.GetSawmill("admin.notes").Warning($"Could not find an icon for note ID {Note.Id}");
         }
         else
         {
@@ -139,7 +139,7 @@ public sealed partial class AdminNotesLine : BoxContainer
 
     private string FormatRoleBanMessage()
     {
-        var banMessage = new StringBuilder($"{Loc.GetString("admin-notes-banned-from")} {string.Join(", ", Note.BannedRoles ?? new []{"unknown"})} ");
+        var banMessage = new StringBuilder($"{Loc.GetString("admin-notes-banned-from")} {string.Join(", ", Note.BannedRoles ?? new[] { "unknown" })} ");
         return FormatBanMessageCommon(banMessage);
     }
 
@@ -188,14 +188,11 @@ public sealed partial class AdminNotesLine : BoxContainer
         Refresh();
     }
 
-    protected override void Dispose(bool disposing)
+    protected override void ExitedTree()
     {
-        base.Dispose(disposing);
+        base.ExitedTree();
 
-        if (!disposing)
-        {
-            return;
-        }
+
 
         OnClicked = null;
     }

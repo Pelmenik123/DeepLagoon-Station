@@ -1,4 +1,4 @@
-﻿using Content.Shared.Smoking;
+using Content.Shared.Smoking;
 using Robust.Client.GameObjects;
 
 namespace Content.Client.Chemistry.Visualizers;
@@ -6,8 +6,9 @@ namespace Content.Client.Chemistry.Visualizers;
 /// <summary>
 /// Ensures entities with <see cref="SmokeVisualsComponent"/> have a color corresponding with their contained reagents.
 /// </summary>
-public sealed class SmokeVisualizerSystem : VisualizerSystem<SmokeVisualsComponent>
+public sealed partial class SmokeVisualizerSystem : VisualizerSystem<SmokeVisualsComponent>
 {
+    [Dependency] private SpriteSystem _sprite = default!;
     /// <summary>
     /// Syncs the color of the smoke with the color of its contained reagents.
     /// </summary>
@@ -15,8 +16,8 @@ public sealed class SmokeVisualizerSystem : VisualizerSystem<SmokeVisualsCompone
     {
         if (args.Sprite == null)
             return;
-        if(!AppearanceSystem.TryGetData<Color>(uid, SmokeVisuals.Color, out var color))
+        if (!AppearanceSystem.TryGetData<Color>(uid, SmokeVisuals.Color, out var color))
             return;
-        args.Sprite.Color = color;
+        _sprite.SetColor(args.Sprite.AsEntity(), color);
     }
 }

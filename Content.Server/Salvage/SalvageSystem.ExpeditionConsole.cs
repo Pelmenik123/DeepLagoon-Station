@@ -34,12 +34,11 @@ namespace Content.Server.Salvage;
 
 public sealed partial class SalvageSystem
 {
-    [ValidatePrototypeId<EntityPrototype>]
     public const string CoordinatesDisk = "CoordinatesDisk";
     private const float ShuttleFTLRange = 256f;
     private const float ShuttleFTLMassThreshold = 100f;
 
-    [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
+    [Dependency] SharedPopupSystem _popupSystem = default!;
 
     private void OnSalvageClaimMessage(EntityUid uid, SalvageExpeditionConsoleComponent component, ClaimSalvageMessage args)
     {
@@ -88,7 +87,7 @@ public sealed partial class SalvageSystem
             }
 
             var xform = Transform(grid);
-            var bounds = xform.WorldMatrix.TransformBox(gridComp.LocalAABB).Enlarged(ShuttleFTLRange);
+            var bounds = EntityManager.System<SharedTransformSystem>().GetWorldMatrix(xform).TransformBox(gridComp.LocalAABB).Enlarged(ShuttleFTLRange);
             var bodyQuery = GetEntityQuery<PhysicsComponent>();
             // Keep track of docked grids to exclude them from the proximity check
             var dockedGrids = new HashSet<EntityUid>();
@@ -102,7 +101,7 @@ public sealed partial class SalvageSystem
                     continue;
 
                 // If we have a docked entity, get its grid
-                if (TryComp<TransformComponent>(dock.DockedWith.Value, out var dockedXform) && dockedXform.GridUid != null)
+                if (TryComp(dock.DockedWith.Value, out TransformComponent? dockedXform) && dockedXform.GridUid != null)
                 {
                     dockedGrids.Add(dockedXform.GridUid.Value);
 
@@ -120,7 +119,7 @@ public sealed partial class SalvageSystem
                             continue;
 
                         // If we have a docked entity and it's not our grid, add its grid to the exclusion list
-                        if (TryComp<TransformComponent>(parentDock.DockedWith.Value, out var siblingDockedXform) &&
+                        if (TryComp(parentDock.DockedWith.Value, out TransformComponent? siblingDockedXform) &&
                             siblingDockedXform.GridUid != null &&
                             siblingDockedXform.GridUid != grid)
                         {
@@ -130,16 +129,23 @@ public sealed partial class SalvageSystem
                 }
             }
 
-            foreach (var other in _mapManager.FindGridsIntersecting(xform.MapID, bounds))
+            var blocked = false;
+            _mapSystem.FindGridsIntersecting(xform.MapID, bounds, (EntityUid otherUid, MapGridComponent _) =>
             {
-                if (other.Owner == grid ||
-                    dockedGrids.Contains(other.Owner) || // Skip grids that are docked to us or to the same parent grid
-                    !bodyQuery.TryGetComponent(other.Owner, out var body) ||
+                if (otherUid == grid ||
+                    dockedGrids.Contains(otherUid) || // Skip grids that are docked to us or to the same parent grid
+                    !bodyQuery.TryGetComponent(otherUid, out var body) ||
                     body.Mass < ShuttleFTLMassThreshold)
                 {
-                    continue;
+                    return true;
                 }
 
+                blocked = true;
+                return false;
+            });
+
+            if (blocked)
+            {
                 PlayDenySound(uid, component);
                 _popupSystem.PopupEntity(Loc.GetString("shuttle-ftl-proximity"), uid, PopupType.Medium);
                 UpdateConsoles(station.Value, data);
@@ -297,6 +303,6 @@ public sealed partial class SalvageSystem
 
     private void PlayDenySound(EntityUid uid, SalvageExpeditionConsoleComponent component)
     {
-        _audio.PlayPvs(_audio.GetSound(component.ErrorSound), uid);
+        _audio.PlayPvs(_audio.ResolveSound(component.ErrorSound), uid);
     }
 }

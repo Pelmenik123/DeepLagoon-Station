@@ -20,7 +20,7 @@ namespace Content.Server.Destructible.Thresholds.Behaviors
     /// </summary>
     [Serializable]
     [DataDefinition]
-    public sealed partial class DumpRestockInventory: IThresholdBehavior
+    public sealed partial class DumpRestockInventory : IThresholdBehavior
     {
         /// <summary>
         ///     The percent of each inventory entry that will be salvaged
@@ -45,7 +45,7 @@ namespace Content.Server.Destructible.Thresholds.Behaviors
 
             foreach (var (entityId, count) in packPrototype.StartingInventory)
             {
-                var toSpawn = (int) Math.Round(count * Percent);
+                var toSpawn = (int)Math.Round(count * Percent);
 
                 if (toSpawn == 0) continue;
 
@@ -53,14 +53,14 @@ namespace Content.Server.Destructible.Thresholds.Behaviors
                 {
                     var spawned = system.EntityManager.SpawnEntity(entityId, xform.Coordinates.Offset(system.Random.NextVector2(-Offset, Offset)));
                     system.StackSystem.SetCount(spawned, toSpawn);
-                    system.EntityManager.GetComponent<TransformComponent>(spawned).LocalRotation = system.Random.NextAngle();
+                    system.EntityManager.System<SharedTransformSystem>().SetLocalRotation(spawned, system.Random.NextAngle());
                 }
                 else
                 {
                     for (var i = 0; i < toSpawn; i++)
                     {
                         var spawned = system.EntityManager.SpawnEntity(entityId, xform.Coordinates.Offset(system.Random.NextVector2(-Offset, Offset)));
-                        system.EntityManager.GetComponent<TransformComponent>(spawned).LocalRotation = system.Random.NextAngle();
+                        system.EntityManager.System<SharedTransformSystem>().SetLocalRotation(spawned, system.Random.NextAngle());
                     }
                 }
             }

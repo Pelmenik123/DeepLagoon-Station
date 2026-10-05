@@ -16,9 +16,9 @@ public sealed partial class PathfindingSystem
     {
         public static SplinePathResult NoPath = new();
 
-        public List<Vector2i> Points = new();
+        public List<Vector2i> Points = [];
 
-        public List<Vector2i> Path = new();
+        public List<Vector2i> Path = [];
         public Dictionary<Vector2i, Vector2i>? CameFrom;
     }
 
@@ -37,7 +37,7 @@ public sealed partial class PathfindingSystem
     /// <summary>
     /// Gets a spline path from start to end.
     /// </summary>
-    public SplinePathResult GetSplinePath(SplinePathArgs args, Random random)
+    public SplinePathResult GetSplinePath(SplinePathArgs args, IRobustRandom random)
     {
         var start = args.Args.Start;
         var end = args.Args.End;
@@ -85,14 +85,13 @@ public sealed partial class PathfindingSystem
 
                 var perpLine = pointBPerp - pointAPerp;
                 var perpHalfway = perpLine.Length() / 2f;
-
                 var splinePoint = (pointAPerp + perpLine.Normalized() * random.NextFloat(-args.MaxRatio, args.MaxRatio) * perpHalfway).Floored();
 
                 // We essentially take (A, B) and turn it into (A, C) & (C, B)
                 pairs[i] = (pointA, splinePoint);
                 pairs.Insert(i + 1, (splinePoint, pointB));
 
-                i+= 2;
+                i += 2;
             }
         }
 
@@ -101,9 +100,9 @@ public sealed partial class PathfindingSystem
             start
         };
 
-        foreach (var pair in pairs)
+        foreach (var (Start, End) in pairs)
         {
-            spline.Add(pair.End);
+            spline.Add(End);
         }
 
         // Now we need to pathfind between each node on the spline.
@@ -162,10 +161,10 @@ public sealed partial class PathfindingSystem
         var result = GetBreadthPath(new BreadthPathArgs()
         {
             Start = args.Start,
-            Ends = new List<Vector2i>()
-            {
+            Ends =
+            [
                 args.End,
-            },
+            ],
             TileCost = node =>
             {
                 if (!nodes.Contains(node))

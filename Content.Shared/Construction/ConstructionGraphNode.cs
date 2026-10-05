@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using Content.Shared.Construction.NodeEntities;
 using Content.Shared.Construction.Serialization;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype;
 
 namespace Content.Shared.Construction
 {
@@ -28,7 +27,7 @@ namespace Content.Shared.Construction
         [DataField("transform")]
         public IGraphTransform[] TransformLogic = Array.Empty<IGraphTransform>();
 
-        [DataField("entity", customTypeSerializer: typeof(GraphNodeEntitySerializer), serverOnly:true)]
+        [DataField("entity", customTypeSerializer: typeof(GraphNodeEntitySerializer), serverOnly: true)]
         public IGraphNodeEntity Entity { get; private set; } = new NullNodeEntity();
 
         /// <summary>

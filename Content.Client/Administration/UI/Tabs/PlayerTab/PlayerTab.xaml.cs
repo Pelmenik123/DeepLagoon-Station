@@ -15,15 +15,15 @@ namespace Content.Client.Administration.UI.Tabs.PlayerTab;
 [GenerateTypedNameReferences]
 public sealed partial class PlayerTab : Control
 {
-    [Dependency] private readonly IEntityManager _entManager = default!;
-    [Dependency] private readonly IPlayerManager _playerMan = default!;
+    [Dependency] private IEntityManager _entManager = default!;
+    [Dependency] private IPlayerManager _playerMan = default!;
 
     private const string ArrowUp = "↑";
     private const string ArrowDown = "↓";
     private readonly Color _altColor = Color.FromHex("#363636");
     private readonly Color _defaultColor = Color.FromHex("#2F2F3B");
     private readonly AdminSystem _adminSystem;
-    private IReadOnlyList<PlayerInfo> _players = new List<PlayerInfo>();
+    private IReadOnlyList<PlayerInfo> _players = [];
 
     private Header _headerClicked = Header.Username;
     private bool _ascending = true;
@@ -87,20 +87,19 @@ public sealed partial class PlayerTab : Control
         RefreshPlayerList(_players);
     }
 
-    protected override void Dispose(bool disposing)
+    protected override void ExitedTree()
     {
-        base.Dispose(disposing);
+        base.ExitedTree();
 
-        if (disposing)
-        {
-            _adminSystem.PlayerListChanged -= RefreshPlayerList;
-            _adminSystem.OverlayEnabled -= OverlayEnabled;
-            _adminSystem.OverlayDisabled -= OverlayDisabled;
 
-            OverlayButton.OnPressed -= OverlayButtonPressed;
+        _adminSystem.PlayerListChanged -= RefreshPlayerList;
+        _adminSystem.OverlayEnabled -= OverlayEnabled;
+        _adminSystem.OverlayDisabled -= OverlayDisabled;
 
-            ListHeader.OnHeaderClicked -= HeaderClicked;
-        }
+        OverlayButton.OnPressed -= OverlayButtonPressed;
+
+        ListHeader.OnHeaderClicked -= HeaderClicked;
+
     }
 
     #region ListContainer
@@ -124,7 +123,7 @@ public sealed partial class PlayerTab : Control
 
     private void GenerateButton(ListData data, ListContainerButton button)
     {
-        if (data is not PlayerListData { Info: var player})
+        if (data is not PlayerListData { Info: var player })
             return;
 
         var entry = new PlayerTabEntry(player, new StyleBoxFlat(button.Index % 2 == 0 ? _altColor : _defaultColor));
@@ -142,7 +141,7 @@ public sealed partial class PlayerTab : Control
     /// <returns>Whether <paramref name="filter"/> is contained in <paramref name="listData"/>.FilteringString.</returns>
     private bool DataFilterCondition(string filter, ListData listData)
     {
-        if (listData is not PlayerListData {Info: var info, FilteringString: var playerString})
+        if (listData is not PlayerListData { Info: var info, FilteringString: var playerString })
             return false;
 
         if (!_showDisconnected && !info.Connected)
@@ -196,7 +195,7 @@ public sealed partial class PlayerTab : Control
             Header.Character => Compare(x.CharacterName, y.CharacterName),
             Header.Job => Compare(x.StartingJob, y.StartingJob),
             Header.Antagonist => x.Antag.CompareTo(y.Antag),
-            Header.RoleType => Compare(x.RoleProto.Name , y.RoleProto.Name),
+            Header.RoleType => Compare(x.RoleProto?.Id ?? string.Empty, y.RoleProto?.Id ?? string.Empty),
             Header.Playtime => TimeSpan.Compare(x.OverallPlaytime ?? default, y.OverallPlaytime ?? default),
             Header.Balance => x.Balance.CompareTo(y.Balance), // Frontier
             _ => 1

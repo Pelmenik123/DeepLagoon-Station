@@ -17,10 +17,10 @@ namespace Content.Server._Mono.SpawnCoordinates;
 /// <summary>
 /// System that displays spawn coordinates to players when they spawn.
 /// </summary>
-public sealed class SpawnCoordinatesSystem : EntitySystem
+public sealed partial class SpawnCoordinatesSystem : EntitySystem
 {
-    [Dependency] private readonly IChatManager _chatManager = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private IChatManager _chatManager = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     public override void Initialize()
     {
@@ -56,7 +56,7 @@ public sealed class SpawnCoordinatesSystem : EntitySystem
 
     private void OnGetBriefing(Entity<JobRoleComponent> ent, ref GetBriefingEvent args)
     {
-        if(args.Mind.Comp.OwnedEntity is not { } uid)
+        if (args.Mind.Comp.OwnedEntity is not { } uid)
             return;
 
         // Get the coordinates

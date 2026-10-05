@@ -9,11 +9,11 @@ using Robust.Shared.GameObjects;
 
 namespace Content.Shared._Starlight.CollectiveMind;
 
-public sealed class CollectiveMindUpdateSystem : EntitySystem
+public sealed partial class CollectiveMindUpdateSystem : EntitySystem
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IComponentFactory _componentFactory = default!;
-    [Dependency] private readonly TagSystem _tag = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IComponentFactory _componentFactory = default!;
+    [Dependency] private TagSystem _tag = default!;
 
     private static Dictionary<string, int> _currentId = new();
 
@@ -33,14 +33,16 @@ public sealed class CollectiveMindUpdateSystem : EntitySystem
         }
     }
 
-    public bool HasCollectiveMind(Entity<CollectiveMindComponent?> ent, ProtoId<CollectiveMindPrototype> channel) {
+    public bool HasCollectiveMind(Entity<CollectiveMindComponent?> ent, ProtoId<CollectiveMindPrototype> channel)
+    {
         if (!Resolve(ent, ref ent.Comp, false))
             return false;
 
         return ent.Comp.Channels.Contains(channel);
     }
 
-    public bool AddCollectiveMind(Entity<CollectiveMindComponent?> ent, ProtoId<CollectiveMindPrototype> channel, bool setDefault = false) {
+    public bool AddCollectiveMind(Entity<CollectiveMindComponent?> ent, ProtoId<CollectiveMindPrototype> channel, bool setDefault = false)
+    {
         if (!Resolve(ent, ref ent.Comp, false))
             EnsureComp<CollectiveMindComponent>(ent, out ent.Comp);
 
@@ -52,7 +54,8 @@ public sealed class CollectiveMindUpdateSystem : EntitySystem
         return res;
     }
 
-    public bool RemoveCollectiveMind(Entity<CollectiveMindComponent?> ent, ProtoId<CollectiveMindPrototype> channel) {
+    public bool RemoveCollectiveMind(Entity<CollectiveMindComponent?> ent, ProtoId<CollectiveMindPrototype> channel)
+    {
         if (!Resolve(ent, ref ent.Comp))
             return false;
 

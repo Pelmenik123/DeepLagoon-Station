@@ -1,5 +1,6 @@
 using Content.Server.Engineering.Components;
 using Content.Shared.DoAfter;
+using Content.Shared.Engineering;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Verbs;
 using JetBrains.Annotations;
@@ -7,15 +8,17 @@ using JetBrains.Annotations;
 namespace Content.Server.Engineering.EntitySystems
 {
     [UsedImplicitly]
-    public sealed class DisassembleOnAltVerbSystem : EntitySystem
+    public sealed partial class DisassembleOnAltVerbSystem : EntitySystem
     {
-        [Dependency] private readonly SharedHandsSystem _handsSystem = default!;
+        [Dependency] private SharedHandsSystem _handsSystem = default!;
+        [Dependency] private SharedDoAfterSystem _doAfterSystem = default!;
 
         public override void Initialize()
         {
             base.Initialize();
 
             SubscribeLocalEvent<DisassembleOnAltVerbComponent, GetVerbsEvent<AlternativeVerb>>(AddDisassembleVerb);
+            SubscribeLocalEvent<DisassembleOnAltVerbComponent, DisassembleOnAltVerbDoAfterEvent>(OnDisassembleDoAfter);
         }
         private void AddDisassembleVerb(EntityUid uid, DisassembleOnAltVerbComponent component, GetVerbsEvent<AlternativeVerb> args)
         {
@@ -34,36 +37,48 @@ namespace Content.Server.Engineering.EntitySystems
             args.Verbs.Add(verb);
         }
 
-        public async void AttemptDisassemble(EntityUid uid, EntityUid user, EntityUid target, DisassembleOnAltVerbComponent? component = null)
+        public void AttemptDisassemble(EntityUid uid, EntityUid user, EntityUid target, DisassembleOnAltVerbComponent? component = null)
         {
             if (!Resolve(uid, ref component))
                 return;
             if (string.IsNullOrEmpty(component.Prototype))
                 return;
 
-            if (component.DoAfterTime > 0 && TryGet<SharedDoAfterSystem>(out var doAfterSystem))
+            if (component.DoAfterTime > 0)
             {
-                var doAfterArgs = new DoAfterArgs(EntityManager, user, component.DoAfterTime, new AwaitedDoAfterEvent(), null)
+                var doAfterArgs = new DoAfterArgs(EntityManager, user, component.DoAfterTime, new DisassembleOnAltVerbDoAfterEvent(), uid)
                 {
                     BreakOnMove = true,
                 };
-                var result = await doAfterSystem.WaitDoAfter(doAfterArgs);
 
-                if (result != DoAfterStatus.Finished)
-                    return;
+                _doAfterSystem.TryStartDoAfter(doAfterArgs);
+                return;
             }
 
-            if (component.Deleted || Deleted(uid))
+            FinishDisassemble(uid, user, component);
+        }
+
+        private void OnDisassembleDoAfter(EntityUid uid, DisassembleOnAltVerbComponent component, DisassembleOnAltVerbDoAfterEvent args)
+        {
+            if (args.Cancelled || args.Handled)
+                return;
+
+            FinishDisassemble(uid, args.User, component);
+        }
+
+        private void FinishDisassemble(EntityUid uid, EntityUid user, DisassembleOnAltVerbComponent component)
+        {
+            if (component.Deleted || Deleted(uid) || Deleted(user))
                 return;
 
             if (!TryComp(uid, out TransformComponent? transformComp))
                 return;
 
-            var entity = EntityManager.SpawnEntity(component.Prototype, transformComp.Coordinates);
+            var entity = Spawn(component.Prototype, transformComp.Coordinates);
 
             _handsSystem.TryPickup(user, entity);
 
-            EntityManager.DeleteEntity(uid);
+            Del(uid);
         }
     }
 }

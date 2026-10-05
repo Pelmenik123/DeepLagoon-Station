@@ -1,7 +1,6 @@
 using Content.Shared.Chemistry.Reagent;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
-using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.List;
 
 namespace Content.Shared.Chemistry.Dispenser
 {
@@ -11,11 +10,11 @@ namespace Content.Shared.Chemistry.Dispenser
     /// to define which reagents it's able to dispense. Based off of how vending
     /// machines define their inventory.
     /// </summary>
-    [Serializable, NetSerializable, Prototype]
+    [Prototype]
     public sealed partial class ReagentDispenserInventoryPrototype : IPrototype
     {
-        [DataField("inventory", customTypeSerializer: typeof(PrototypeIdListSerializer<EntityPrototype>))]
-        public List<string> Inventory = new();
+        [DataField("inventory")]
+        public List<EntProtoId> Inventory = [];
 
         [ViewVariables, IdDataField]
         public string ID { get; private set; } = default!;

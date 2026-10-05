@@ -11,9 +11,9 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared.Weapons.Ranged.Systems;
 
-public abstract class SharedFlyBySoundSystem : EntitySystem
+public abstract partial class SharedFlyBySoundSystem : EntitySystem
 {
-    [Dependency] private readonly FixtureSystem _fixtures = default!;
+    [Dependency] private FixtureSystem _fixtures = default!;
 
     public const string FlyByFixture = "fly-by";
 
@@ -31,7 +31,7 @@ public abstract class SharedFlyBySoundSystem : EntitySystem
 
         var shape = new PhysShapeCircle(component.Range);
 
-        _fixtures.TryCreateFixture(uid, shape, FlyByFixture, collisionLayer: (int) CollisionGroup.MobMask, hard: false, body: body);
+        _fixtures.TryCreateFixture(uid, shape, FlyByFixture, collisionLayer: (int)CollisionGroup.MobMask, hard: false, body: body);
     }
 
     private void OnShutdown(EntityUid uid, FlyBySoundComponent component, ComponentShutdown args)

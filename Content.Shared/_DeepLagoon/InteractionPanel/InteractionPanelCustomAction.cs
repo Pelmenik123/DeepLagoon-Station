@@ -68,7 +68,7 @@ public static class InteractionPanelCustomRules
 // Добавление звука: новый YAML interactionPanelSound в Resources/Prototypes/_DeepLagoon,
 // уникальный id, name/category (ключи локализации), path (/Audio/...ogg).
 // Игрок выбирает только id; произвольные пути/URL сервер не принимает.
-[Prototype("interactionPanelSound")]
+[Prototype]
 public sealed partial class InteractionPanelSoundPrototype : IPrototype
 {
     [IdDataField] public string ID { get; private set; } = default!;

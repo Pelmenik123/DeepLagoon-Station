@@ -37,6 +37,6 @@ public sealed class AdminMessageEui : BaseEui
 
     public override void Closed()
     {
-        _popup.Orphan();
+        if (!_popup.Disposed) _popup.Orphan();
     }
 }

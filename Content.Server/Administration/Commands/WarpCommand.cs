@@ -13,9 +13,9 @@ using Robust.Shared.Physics.Systems;
 namespace Content.Server.Administration.Commands
 {
     [AdminCommand(AdminFlags.Admin)]
-    public sealed class WarpCommand : IConsoleCommand
+    public sealed partial class WarpCommand : IConsoleCommand
     {
-        [Dependency] private readonly IEntityManager _entManager = default!;
+        [Dependency] private IEntityManager _entManager = default!;
 
         public string Command => "warp";
         public string Description => "Teleports you to predefined areas on the map.";
@@ -48,7 +48,7 @@ namespace Content.Server.Administration.Commands
             }
             else
             {
-                if (player.Status != SessionStatus.InGame || player.AttachedEntity is not {Valid: true} playerEntity)
+                if (player.Status != SessionStatus.InGame || player.AttachedEntity is not { Valid: true } playerEntity)
                 {
                     shell.WriteLine("You are not in-game!");
                     return;
@@ -63,8 +63,8 @@ namespace Content.Server.Administration.Commands
                         // Sort so that warp points on the same grid/map are first.
                         // So if you have two maps loaded with the same warp points,
                         // it will prefer the warp points on the map you're currently on.
-                        var aGrid = a.GetGridUid(_entManager);
-                        var bGrid = b.GetGridUid(_entManager);
+                        var aGrid = _entManager.System<SharedTransformSystem>().GetGrid(a);
+                        var bGrid = _entManager.System<SharedTransformSystem>().GetGrid(b);
 
                         if (aGrid == bGrid)
                         {
@@ -81,8 +81,8 @@ namespace Content.Server.Administration.Commands
                             return 1;
                         }
 
-                        var mapA = a.GetMapId(_entManager);
-                        var mapB = a.GetMapId(_entManager);
+                        var mapA = _entManager.System<SharedTransformSystem>().GetMapId(a);
+                        var mapB = _entManager.System<SharedTransformSystem>().GetMapId(a);
 
                         if (mapA == mapB)
                         {
@@ -119,7 +119,7 @@ namespace Content.Server.Administration.Commands
 
                 var xform = _entManager.GetComponent<TransformComponent>(playerEntity);
                 var xformSystem = _entManager.System<SharedTransformSystem>();
-                xform.Coordinates = coords;
+                xformSystem.SetCoordinates(playerEntity, coords);
                 xformSystem.AttachToGridOrMap(playerEntity, xform);
                 if (_entManager.TryGetComponent(playerEntity, out PhysicsComponent? physics))
                 {

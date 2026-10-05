@@ -4,8 +4,9 @@ using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
 
 namespace Content.Client.DamageState;
 
-public sealed class DamageStateVisualizerSystem : VisualizerSystem<DamageStateVisualsComponent>
+public sealed partial class DamageStateVisualizerSystem : VisualizerSystem<DamageStateVisualsComponent>
 {
+    [Dependency] private SpriteSystem _sprite = default!;
     protected override void OnAppearanceChange(EntityUid uid, DamageStateVisualsComponent component, ref AppearanceChangeEvent args)
     {
         var sprite = args.Sprite;
@@ -21,34 +22,34 @@ public sealed class DamageStateVisualizerSystem : VisualizerSystem<DamageStateVi
         }
 
         // Brain no worky rn so this was just easier.
-        foreach (var key in new []{ DamageStateVisualLayers.Base, DamageStateVisualLayers.BaseUnshaded })
+        foreach (var key in new[] { DamageStateVisualLayers.Base, DamageStateVisualLayers.BaseUnshaded })
         {
-            if (!sprite.LayerMapTryGet(key, out _)) continue;
+            if (!_sprite.LayerMapTryGet(sprite.AsEntity(), key, out _, false)) continue;
 
-            sprite.LayerSetVisible(key, false);
+            _sprite.LayerSetVisible(sprite.AsEntity(), key, false);
         }
 
         foreach (var (key, state) in layers)
         {
             // Inheritance moment.
-            if (!sprite.LayerMapTryGet(key, out _)) continue;
+            if (!_sprite.LayerMapTryGet(sprite.AsEntity(), key, out _, false)) continue;
 
-            sprite.LayerSetVisible(key, true);
-            sprite.LayerSetState(key, state);
+            _sprite.LayerSetVisible(sprite.AsEntity(), key, true);
+            _sprite.LayerSetRsiState(sprite.AsEntity(), key, state);
         }
 
         // So they don't draw over mobs anymore
         if (data == MobState.Dead)
         {
-            if (sprite.DrawDepth > (int) DrawDepth.DeadMobs)
+            if (sprite.DrawDepth > (int)DrawDepth.DeadMobs)
             {
                 component.OriginalDrawDepth = sprite.DrawDepth;
-                sprite.DrawDepth = (int) DrawDepth.DeadMobs;
+                _sprite.SetDrawDepth(sprite.AsEntity(), (int)DrawDepth.DeadMobs);
             }
         }
         else if (component.OriginalDrawDepth != null)
         {
-            sprite.DrawDepth = component.OriginalDrawDepth.Value;
+            _sprite.SetDrawDepth(sprite.AsEntity(), component.OriginalDrawDepth.Value);
             component.OriginalDrawDepth = null;
         }
     }

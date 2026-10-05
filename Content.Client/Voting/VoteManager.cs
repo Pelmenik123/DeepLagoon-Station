@@ -32,14 +32,14 @@ namespace Content.Client.Voting
         event Action CanCallStandardVotesChanged;
     }
 
-    public sealed class VoteManager : IVoteManager
+    public sealed partial class VoteManager : IVoteManager
     {
-        [Dependency] private readonly IAudioManager _audio = default!;
-        [Dependency] private readonly IBaseClient _client = default!;
-        [Dependency] private readonly IClientConsoleHost _console = default!;
-        [Dependency] private readonly IClientNetManager _netManager = default!;
-        [Dependency] private readonly IGameTiming _gameTiming = default!;
-        [Dependency] private readonly IResourceCache _res = default!;
+        [Dependency] private IAudioManager _audio = default!;
+        [Dependency] private IBaseClient _client = default!;
+        [Dependency] private IClientConsoleHost _console = default!;
+        [Dependency] private IClientNetManager _netManager = default!;
+        [Dependency] private IGameTiming _gameTiming = default!;
+        [Dependency] private IResourceCache _res = default!;
 
         private readonly Dictionary<StandardVoteType, TimeSpan> _standardVoteTimeouts = new();
         private readonly Dictionary<int, ActiveVote> _votes = new();
@@ -94,7 +94,7 @@ namespace Content.Client.Voting
             {
                 foreach (var popup in _votePopups.Values)
                 {
-                    popup.Orphan();
+                    if (!popup.Disposed) popup.Orphan();
                 }
             }
 
@@ -168,7 +168,7 @@ namespace Content.Client.Voting
                 if (_votePopups.TryGetValue(voteId, out var toRemove))
                 {
 
-                    toRemove.Orphan();
+                    if (!toRemove.Disposed) toRemove.Orphan();
                     _votePopups.Remove(voteId);
                 }
 
@@ -187,7 +187,7 @@ namespace Content.Client.Voting
             existingVote.DisplayVotes = message.DisplayVotes;
             existingVote.TargetEntity = message.TargetEntity;
 
-            // Logger.Debug($"{existingVote.StartTime}, {existingVote.EndTime}, {_gameTiming.RealTime}");
+            // Logger.GetSawmill("client").Debug($"{existingVote.StartTime}, {existingVote.EndTime}, {_gameTiming.RealTime}");
 
             for (var i = 0; i < message.Options.Length; i++)
             {

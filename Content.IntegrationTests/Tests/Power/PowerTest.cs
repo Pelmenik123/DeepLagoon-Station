@@ -185,7 +185,7 @@ namespace Content.IntegrationTests.Tests.Power
         {
             await using var pair = await PoolManager.GetServerClient();
             var server = pair.Server;
-            var mapManager = server.ResolveDependency<IMapManager>();
+            var mapManager = server.System<SharedMapSystem>();
             var entityManager = server.ResolveDependency<IEntityManager>();
             var mapSys = entityManager.System<SharedMapSystem>();
             const float loadPower = 200;
@@ -248,7 +248,7 @@ namespace Content.IntegrationTests.Tests.Power
         {
             await using var pair = await PoolManager.GetServerClient();
             var server = pair.Server;
-            var mapManager = server.ResolveDependency<IMapManager>();
+            var mapManager = server.System<SharedMapSystem>();
             var entityManager = server.ResolveDependency<IEntityManager>();
             var mapSys = entityManager.System<SharedMapSystem>();
             const float loadPower = 200;
@@ -308,7 +308,7 @@ namespace Content.IntegrationTests.Tests.Power
         {
             await using var pair = await PoolManager.GetServerClient();
             var server = pair.Server;
-            var mapManager = server.ResolveDependency<IMapManager>();
+            var mapManager = server.System<SharedMapSystem>();
             var entityManager = server.ResolveDependency<IEntityManager>();
             var mapSys = entityManager.System<SharedMapSystem>();
             var gameTiming = server.ResolveDependency<IGameTiming>();
@@ -395,7 +395,7 @@ namespace Content.IntegrationTests.Tests.Power
         {
             await using var pair = await PoolManager.GetServerClient();
             var server = pair.Server;
-            var mapManager = server.ResolveDependency<IMapManager>();
+            var mapManager = server.System<SharedMapSystem>();
             var entityManager = server.ResolveDependency<IEntityManager>();
             var gameTiming = server.ResolveDependency<IGameTiming>();
             var batterySys = entityManager.System<BatterySystem>();
@@ -497,7 +497,7 @@ namespace Content.IntegrationTests.Tests.Power
 
             await using var pair = await PoolManager.GetServerClient();
             var server = pair.Server;
-            var mapManager = server.ResolveDependency<IMapManager>();
+            var mapManager = server.System<SharedMapSystem>();
             var entityManager = server.ResolveDependency<IEntityManager>();
             var batterySys = entityManager.System<BatterySystem>();
             var mapSys = entityManager.System<SharedMapSystem>();
@@ -594,7 +594,7 @@ namespace Content.IntegrationTests.Tests.Power
         {
             await using var pair = await PoolManager.GetServerClient();
             var server = pair.Server;
-            var mapManager = server.ResolveDependency<IMapManager>();
+            var mapManager = server.System<SharedMapSystem>();
             var gameTiming = server.ResolveDependency<IGameTiming>();
             var entityManager = server.ResolveDependency<IEntityManager>();
             var batterySys = entityManager.System<BatterySystem>();
@@ -629,7 +629,7 @@ namespace Content.IntegrationTests.Tests.Power
             });
 
             // run for 0.5 seconds
-            var ticks = (int) Math.Round(0.5 * gameTiming.TickRate);
+            var ticks = (int)Math.Round(0.5 * gameTiming.TickRate);
             server.RunTicks(ticks);
 
             await server.WaitAssertion(() =>
@@ -651,7 +651,7 @@ namespace Content.IntegrationTests.Tests.Power
         {
             await using var pair = await PoolManager.GetServerClient();
             var server = pair.Server;
-            var mapManager = server.ResolveDependency<IMapManager>();
+            var mapManager = server.System<SharedMapSystem>();
             var entityManager = server.ResolveDependency<IEntityManager>();
             var gameTiming = server.ResolveDependency<IGameTiming>();
             var batterySys = entityManager.System<BatterySystem>();
@@ -674,7 +674,7 @@ namespace Content.IntegrationTests.Tests.Power
                 }
 
                 var terminal = entityManager.SpawnEntity("CableTerminal", grid.Owner.ToCoordinates(0, 1));
-                entityManager.GetComponent<TransformComponent>(terminal).LocalRotation = Angle.FromDegrees(180);
+                entityManager.System<SharedTransformSystem>().SetLocalRotation(terminal, Angle.FromDegrees(180));
 
                 var batteryEnt = entityManager.SpawnEntity("FullBatteryDummy", grid.Owner.ToCoordinates(0, 2));
                 var supplyEnt = entityManager.SpawnEntity("GeneratorDummy", grid.Owner.ToCoordinates(0, 0));
@@ -701,7 +701,7 @@ namespace Content.IntegrationTests.Tests.Power
             server.RunTicks(gameTiming.TickRate + gameTiming.TickRate / 2); // Mono change: add half the tick rate in extra
 
             // Exact values can/will be off by a tick, add tolerance for that.
-            var tickPeriod = (float) gameTiming.TickPeriod.TotalSeconds;
+            var tickPeriod = (float)gameTiming.TickPeriod.TotalSeconds;
             var tickDev = 400 * tickPeriod * 1.1f;
 
             await server.WaitAssertion(() =>
@@ -729,7 +729,7 @@ namespace Content.IntegrationTests.Tests.Power
         {
             await using var pair = await PoolManager.GetServerClient();
             var server = pair.Server;
-            var mapManager = server.ResolveDependency<IMapManager>();
+            var mapManager = server.System<SharedMapSystem>();
             var entityManager = server.ResolveDependency<IEntityManager>();
             var gameTiming = server.ResolveDependency<IGameTiming>();
             var batterySys = entityManager.System<BatterySystem>();
@@ -752,7 +752,7 @@ namespace Content.IntegrationTests.Tests.Power
                 }
 
                 var terminal = entityManager.SpawnEntity("CableTerminal", grid.Owner.ToCoordinates(0, 1));
-                entityManager.GetComponent<TransformComponent>(terminal).LocalRotation = Angle.FromDegrees(180);
+                entityManager.System<SharedTransformSystem>().SetLocalRotation(terminal, Angle.FromDegrees(180));
 
                 var batteryEnt = entityManager.SpawnEntity("FullBatteryDummy", grid.Owner.ToCoordinates(0, 2));
                 var supplyEnt = entityManager.SpawnEntity("GeneratorDummy", grid.Owner.ToCoordinates(0, 0));
@@ -781,7 +781,7 @@ namespace Content.IntegrationTests.Tests.Power
             server.RunTicks(gameTiming.TickRate);
 
             // Exact values can/will be off by a tick, add tolerance for that.
-            var tickPeriod = (float) gameTiming.TickPeriod.TotalSeconds;
+            var tickPeriod = (float)gameTiming.TickPeriod.TotalSeconds;
             var tickDev = 400 * tickPeriod * 1.1f;
 
             await server.WaitAssertion(() =>
@@ -807,7 +807,7 @@ namespace Content.IntegrationTests.Tests.Power
         {
             await using var pair = await PoolManager.GetServerClient();
             var server = pair.Server;
-            var mapManager = server.ResolveDependency<IMapManager>();
+            var mapManager = server.System<SharedMapSystem>();
             var entityManager = server.ResolveDependency<IEntityManager>();
             var batterySys = entityManager.System<BatterySystem>();
             var mapSys = entityManager.System<SharedMapSystem>();
@@ -837,7 +837,7 @@ namespace Content.IntegrationTests.Tests.Power
 
                 entityManager.SpawnEntity("CableTerminal", grid.Owner.ToCoordinates(0, 2));
                 var terminal = entityManager.SpawnEntity("CableTerminal", grid.Owner.ToCoordinates(0, 2));
-                entityManager.GetComponent<TransformComponent>(terminal).LocalRotation = Angle.FromDegrees(180);
+                entityManager.System<SharedTransformSystem>().SetLocalRotation(terminal, Angle.FromDegrees(180));
 
                 var batteryEnt1 = entityManager.SpawnEntity("FullBatteryDummy", grid.Owner.ToCoordinates(0, 1));
                 var batteryEnt2 = entityManager.SpawnEntity("FullBatteryDummy", grid.Owner.ToCoordinates(0, 3));
@@ -904,7 +904,7 @@ namespace Content.IntegrationTests.Tests.Power
         {
             await using var pair = await PoolManager.GetServerClient();
             var server = pair.Server;
-            var mapManager = server.ResolveDependency<IMapManager>();
+            var mapManager = server.System<SharedMapSystem>();
             var entityManager = server.ResolveDependency<IEntityManager>();
             var gameTiming = server.ResolveDependency<IGameTiming>();
             var batterySys = entityManager.System<BatterySystem>();
@@ -1003,7 +1003,7 @@ namespace Content.IntegrationTests.Tests.Power
         {
             await using var pair = await PoolManager.GetServerClient();
             var server = pair.Server;
-            var mapManager = server.ResolveDependency<IMapManager>();
+            var mapManager = server.System<SharedMapSystem>();
             var entityManager = server.ResolveDependency<IEntityManager>();
             var batterySys = entityManager.System<BatterySystem>();
             var mapSys = entityManager.System<SharedMapSystem>();
@@ -1033,7 +1033,7 @@ namespace Content.IntegrationTests.Tests.Power
 
                 entityManager.SpawnEntity("CableTerminal", grid.Owner.ToCoordinates(0, 2));
                 var terminal = entityManager.SpawnEntity("CableTerminal", grid.Owner.ToCoordinates(0, 2));
-                entityManager.GetComponent<TransformComponent>(terminal).LocalRotation = Angle.FromDegrees(180);
+                entityManager.System<SharedTransformSystem>().SetLocalRotation(terminal, Angle.FromDegrees(180));
 
                 var batteryEnt1 = entityManager.SpawnEntity("FullBatteryDummy", grid.Owner.ToCoordinates(0, 1));
                 var batteryEnt2 = entityManager.SpawnEntity("FullBatteryDummy", grid.Owner.ToCoordinates(0, 3));
@@ -1091,7 +1091,7 @@ namespace Content.IntegrationTests.Tests.Power
         {
             await using var pair = await PoolManager.GetServerClient();
             var server = pair.Server;
-            var mapManager = server.ResolveDependency<IMapManager>();
+            var mapManager = server.System<SharedMapSystem>();
             var entityManager = server.ResolveDependency<IEntityManager>();
             var batterySys = entityManager.System<BatterySystem>();
             var mapSys = entityManager.System<SharedMapSystem>();
@@ -1112,7 +1112,7 @@ namespace Content.IntegrationTests.Tests.Power
                 }
 
                 var terminal = entityManager.SpawnEntity("CableTerminal", grid.Owner.ToCoordinates(0, 1));
-                entityManager.GetComponent<TransformComponent>(terminal).LocalRotation = Angle.FromDegrees(180);
+                entityManager.System<SharedTransformSystem>().SetLocalRotation(terminal, Angle.FromDegrees(180));
 
                 var batteryEnt = entityManager.SpawnEntity("FullBatteryDummy", grid.Owner.ToCoordinates(0, 2));
                 var supplyEnt = entityManager.SpawnEntity("GeneratorDummy", grid.Owner.ToCoordinates(0, 0));
@@ -1176,7 +1176,7 @@ namespace Content.IntegrationTests.Tests.Power
         {
             await using var pair = await PoolManager.GetServerClient();
             var server = pair.Server;
-            var mapManager = server.ResolveDependency<IMapManager>();
+            var mapManager = server.System<SharedMapSystem>();
             var entityManager = server.ResolveDependency<IEntityManager>();
             var nodeContainer = entityManager.System<NodeContainerSystem>();
             var mapSys = entityManager.System<SharedMapSystem>();
@@ -1202,7 +1202,7 @@ namespace Content.IntegrationTests.Tests.Power
                 var rightEnt = entityManager.SpawnEntity("CableHV", grid.Owner.ToCoordinates(0, 3));
 
                 var terminal = entityManager.SpawnEntity("CableTerminal", grid.Owner.ToCoordinates(0, 1));
-                entityManager.GetComponent<TransformComponent>(terminal).LocalRotation = Angle.FromDegrees(180);
+                entityManager.System<SharedTransformSystem>().SetLocalRotation(terminal, Angle.FromDegrees(180));
 
                 var battery = entityManager.SpawnEntity("FullBatteryDummy", grid.Owner.ToCoordinates(0, 2));
                 var batteryNodeContainer = entityManager.GetComponent<NodeContainerComponent>(battery);
@@ -1242,7 +1242,7 @@ namespace Content.IntegrationTests.Tests.Power
         {
             await using var pair = await PoolManager.GetServerClient();
             var server = pair.Server;
-            var mapManager = server.ResolveDependency<IMapManager>();
+            var mapManager = server.System<SharedMapSystem>();
             var entityManager = server.ResolveDependency<IEntityManager>();
             var batterySys = entityManager.System<BatterySystem>();
             var mapSys = entityManager.System<SharedMapSystem>();
@@ -1298,7 +1298,7 @@ namespace Content.IntegrationTests.Tests.Power
         {
             await using var pair = await PoolManager.GetServerClient();
             var server = pair.Server;
-            var mapManager = server.ResolveDependency<IMapManager>();
+            var mapManager = server.System<SharedMapSystem>();
             var entityManager = server.ResolveDependency<IEntityManager>();
             var batterySys = entityManager.System<BatterySystem>();
             var extensionCableSystem = entityManager.System<ExtensionCableSystem>();

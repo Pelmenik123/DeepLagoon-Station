@@ -1,7 +1,6 @@
 using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
-using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.Dictionary;
 
 namespace Content.Shared.Chat.Prototypes;
 
@@ -9,7 +8,7 @@ namespace Content.Shared.Chat.Prototypes;
 ///     Sounds collection for each <see cref="EmotePrototype"/>.
 ///     Different entities may use different sounds collections.
 /// </summary>
-[Prototype, Serializable, NetSerializable]
+[Prototype]
 public sealed partial class EmoteSoundsPrototype : IPrototype
 {
     [IdDataField]
@@ -32,6 +31,6 @@ public sealed partial class EmoteSoundsPrototype : IPrototype
     /// <summary>
     ///     Collection of emote prototypes and their sounds.
     /// </summary>
-    [DataField("sounds", customTypeSerializer: typeof(PrototypeIdDictionarySerializer<SoundSpecifier, EmotePrototype>))]
-    public Dictionary<string, SoundSpecifier> Sounds = new();
+    [DataField("sounds")]
+    public Dictionary<ProtoId<EmotePrototype>, SoundSpecifier> Sounds = [];
 }

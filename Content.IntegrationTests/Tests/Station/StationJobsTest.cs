@@ -88,7 +88,7 @@ public sealed class StationJobsTest
         var server = pair.Server;
 
         var prototypeManager = server.ResolveDependency<IPrototypeManager>();
-        var fooStationProto = prototypeManager.Index<GameMapPrototype>("FooStation");
+        var fooStationProto = prototypeManager.Index<GameMapPrototype>(new ProtoId<GameMapPrototype>("FooStation"));
         var entSysMan = server.ResolveDependency<IEntityManager>().EntitySysManager;
         var stationJobs = entSysMan.GetEntitySystem<StationJobsSystem>();
         var stationSystem = entSysMan.GetEntitySystem<StationSystem>();
@@ -162,7 +162,7 @@ public sealed class StationJobsTest
         var server = pair.Server;
 
         var prototypeManager = server.ResolveDependency<IPrototypeManager>();
-        var fooStationProto = prototypeManager.Index<GameMapPrototype>("FooStation");
+        var fooStationProto = prototypeManager.Index<GameMapPrototype>(new ProtoId<GameMapPrototype>("FooStation"));
         var entSysMan = server.ResolveDependency<IEntityManager>().EntitySysManager;
         var stationJobs = entSysMan.GetEntitySystem<StationJobsSystem>();
         var stationSystem = entSysMan.GetEntitySystem<StationSystem>();
@@ -242,7 +242,7 @@ public sealed class StationJobsTest
                         if (!station.StationComponentOverrides.TryGetComponent(name, out var comp))
                             continue;
 
-                        foreach (var (job, array) in ((StationJobsComponent) comp).SetupAvailableJobs)
+                        foreach (var (job, array) in ((StationJobsComponent)comp).SetupAvailableJobs)
                         {
                             Assert.That(array.Length, Is.EqualTo(2));
                             Assert.That(array[0] is -1 or >= 0);

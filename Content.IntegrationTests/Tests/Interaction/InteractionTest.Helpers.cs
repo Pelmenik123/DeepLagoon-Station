@@ -92,7 +92,7 @@ public abstract partial class InteractionTest
         if (tickTask != null)
             await tickTask;
 
-#pragma warning disable RA0004
+#pragma warning disable RA0004 // Matches upstream SS14: the task is already completed here, so reading Result cannot deadlock.
         Assert.That(task.Result, Is.EqualTo(shouldSucceed));
 #pragma warning restore RA0004
 
@@ -103,7 +103,7 @@ public abstract partial class InteractionTest
     /// Spawn an entity entity and set it as the target.
     /// </summary>
     [MemberNotNull(nameof(Target), nameof(STarget), nameof(CTarget))]
-#pragma warning disable CS8774 // Member must have a non-null value when exiting.
+#pragma warning disable CS8774 // Matches upstream SS14: MemberNotNull cannot be proven for async methods.
     protected async Task<NetEntity> SpawnTarget(string prototype)
     {
         Target = NetEntity.Invalid;
@@ -631,7 +631,7 @@ public abstract partial class InteractionTest
 
             var xformQuery = SEntMan.GetEntityQuery<TransformComponent>();
 
-            HashSet<EntityUid> toRemove = new();
+            HashSet<EntityUid> toRemove = [];
             foreach (var ent in entities)
             {
                 var transform = xformQuery.GetComponent(ent);
@@ -805,8 +805,7 @@ public abstract partial class InteractionTest
             grid = gridEnt;
             gridUid = gridEnt;
             gridComp = gridEnt.Comp;
-            var gridXform = SEntMan.GetComponent<TransformComponent>(gridUid);
-            Transform.SetWorldPosition(gridXform, pos.Position);
+            Transform.SetWorldPosition(gridUid, pos.Position);
             MapSystem.SetTile((gridUid, gridComp), SEntMan.GetCoordinates(coords ?? TargetCoords), tile);
 
             if (!MapMan.TryFindGridAt(pos, out _, out _))
@@ -1025,7 +1024,7 @@ public abstract partial class InteractionTest
         }
 
         Assert.That(control.GetType().IsAssignableTo(typeof(TControl)));
-        return (TControl) control;
+        return (TControl)control;
     }
 
     /// <summary>
@@ -1189,8 +1188,8 @@ public abstract partial class InteractionTest
         {
             var atmosSystem = SEntMan.System<AtmosphereSystem>();
             var moles = new float[Atmospherics.AdjustedNumberOfGases];
-            moles[(int) Gas.Oxygen] = 21.824779f;
-            moles[(int) Gas.Nitrogen] = 82.10312f;
+            moles[(int)Gas.Oxygen] = 21.824779f;
+            moles[(int)Gas.Nitrogen] = 82.10312f;
             atmosSystem.SetMapAtmosphere(target, false, new GasMixture(moles, Atmospherics.T20C));
         });
     }
@@ -1277,32 +1276,99 @@ public abstract partial class InteractionTest
 
     #region Networking
 
-    protected EntityUid ToServer(NetEntity nent) => SEntMan.GetEntity(nent);
-    protected EntityUid ToClient(NetEntity nent) => CEntMan.GetEntity(nent);
-    protected EntityUid? ToServer(NetEntity? nent) => SEntMan.GetEntity(nent);
-    protected EntityUid? ToClient(NetEntity? nent) => CEntMan.GetEntity(nent);
-    protected EntityUid ToServer(EntityUid cuid) => SEntMan.GetEntity(CEntMan.GetNetEntity(cuid));
-    protected EntityUid ToClient(EntityUid cuid) => CEntMan.GetEntity(SEntMan.GetNetEntity(cuid));
-    protected EntityUid? ToServer(EntityUid? cuid) => SEntMan.GetEntity(CEntMan.GetNetEntity(cuid));
-    protected EntityUid? ToClient(EntityUid? cuid) => CEntMan.GetEntity(SEntMan.GetNetEntity(cuid));
+    protected EntityUid ToServer(NetEntity nent)
+    {
+        return SEntMan.GetEntity(nent);
+    }
 
-    protected EntityCoordinates ToServer(NetCoordinates coords) => SEntMan.GetCoordinates(coords);
-    protected EntityCoordinates ToClient(NetCoordinates coords) => CEntMan.GetCoordinates(coords);
-    protected EntityCoordinates? ToServer(NetCoordinates? coords) => SEntMan.GetCoordinates(coords);
-    protected EntityCoordinates? ToClient(NetCoordinates? coords) => CEntMan.GetCoordinates(coords);
+    protected EntityUid ToClient(NetEntity nent)
+    {
+        return CEntMan.GetEntity(nent);
+    }
+
+    protected EntityUid? ToServer(NetEntity? nent)
+    {
+        return SEntMan.GetEntity(nent);
+    }
+
+    protected EntityUid? ToClient(NetEntity? nent)
+    {
+        return CEntMan.GetEntity(nent);
+    }
+
+    protected EntityUid ToServer(EntityUid cuid)
+    {
+        return SEntMan.GetEntity(CEntMan.GetNetEntity(cuid));
+    }
+
+    protected EntityUid ToClient(EntityUid cuid)
+    {
+        return CEntMan.GetEntity(SEntMan.GetNetEntity(cuid));
+    }
+
+    protected EntityUid? ToServer(EntityUid? cuid)
+    {
+        return SEntMan.GetEntity(CEntMan.GetNetEntity(cuid));
+    }
+
+    protected EntityUid? ToClient(EntityUid? cuid)
+    {
+        return CEntMan.GetEntity(SEntMan.GetNetEntity(cuid));
+    }
+
+    protected EntityCoordinates ToServer(NetCoordinates coords)
+    {
+        return SEntMan.GetCoordinates(coords);
+    }
+
+    protected EntityCoordinates ToClient(NetCoordinates coords)
+    {
+        return CEntMan.GetCoordinates(coords);
+    }
+
+    protected EntityCoordinates? ToServer(NetCoordinates? coords)
+    {
+        return SEntMan.GetCoordinates(coords);
+    }
+
+    protected EntityCoordinates? ToClient(NetCoordinates? coords)
+    {
+        return CEntMan.GetCoordinates(coords);
+    }
 
     #endregion
 
     #region Metadata & Transforms
 
-    protected MetaDataComponent Meta(NetEntity uid) => Meta(ToServer(uid));
-    protected MetaDataComponent Meta(EntityUid uid) => SEntMan.GetComponent<MetaDataComponent>(uid);
+    protected MetaDataComponent Meta(NetEntity uid)
+    {
+        return Meta(ToServer(uid));
+    }
 
-    protected TransformComponent Xform(NetEntity uid) => Xform(ToServer(uid));
-    protected TransformComponent Xform(EntityUid uid) => SEntMan.GetComponent<TransformComponent>(uid);
+    protected MetaDataComponent Meta(EntityUid uid)
+    {
+        return SEntMan.GetComponent<MetaDataComponent>(uid);
+    }
 
-    protected EntityCoordinates Position(NetEntity uid) => Position(ToServer(uid));
-    protected EntityCoordinates Position(EntityUid uid) => Xform(uid).Coordinates;
+    protected TransformComponent Xform(NetEntity uid)
+    {
+        return Xform(ToServer(uid));
+    }
+
+    protected TransformComponent Xform(EntityUid uid)
+    {
+        return SEntMan.GetComponent<TransformComponent>(uid);
+    }
+
+    protected EntityCoordinates Position(NetEntity uid)
+    {
+        return Position(ToServer(uid));
+    }
+
+    protected EntityCoordinates Position(EntityUid uid)
+    {
+        return Xform(uid).Coordinates;
+    }
 
     #endregion
 }

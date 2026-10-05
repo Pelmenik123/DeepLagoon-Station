@@ -1,4 +1,4 @@
-﻿using Content.Shared.Examine;
+using Content.Shared.Examine;
 using Content.Shared.Eye.Blinding.Components;
 using Content.Shared.Eye.Blinding.Systems;
 using Content.Shared.IdentityManagement;
@@ -9,10 +9,10 @@ namespace Content.Shared.Traits.Assorted;
 /// <summary>
 /// This handles permanent blindness, both the examine and the actual effect.
 /// </summary>
-public sealed class PermanentBlindnessSystem : EntitySystem
+public sealed partial class PermanentBlindnessSystem : EntitySystem
 {
-    [Dependency] private readonly INetManager _net = default!;
-    [Dependency] private readonly BlindableSystem _blinding = default!;
+    [Dependency] private INetManager _net = default!;
+    [Dependency] private BlindableSystem _blinding = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -43,14 +43,14 @@ public sealed class PermanentBlindnessSystem : EntitySystem
 
     private void OnMapInit(Entity<PermanentBlindnessComponent> blindness, ref MapInitEvent args)
     {
-        if(!TryComp<BlindableComponent>(blindness.Owner, out var blindable))
+        if (!TryComp<BlindableComponent>(blindness.Owner, out var blindable))
             return;
 
         if (blindness.Comp.Blindness != 0)
             _blinding.SetMinDamage((blindness.Owner, blindable), blindness.Comp.Blindness);
         else
         {
-            var maxMagnitudeInt = (int) BlurryVisionComponent.MaxMagnitude;
+            var maxMagnitudeInt = (int)BlurryVisionComponent.MaxMagnitude;
             _blinding.SetMinDamage((blindness.Owner, blindable), maxMagnitudeInt);
         }
     }

@@ -15,13 +15,13 @@ namespace Content.Server.Anomaly.Effects;
 /// <summary>
 /// This handles <see cref="ProjectileAnomalyComponent"/> and the events from <seealso cref="AnomalySystem"/>
 /// </summary>
-public sealed class ProjectileAnomalySystem : EntitySystem
+public sealed partial class ProjectileAnomalySystem : EntitySystem
 {
-    [Dependency] private readonly TransformSystem _xform = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly IMapManager _mapManager = default!;
-    [Dependency] private readonly GunSystem _gunSystem = default!;
+    [Dependency] private TransformSystem _xform = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private SharedMapSystem _mapManager = default!;
+    [Dependency] private GunSystem _gunSystem = default!;
 
     public override void Initialize()
     {
@@ -41,7 +41,7 @@ public sealed class ProjectileAnomalySystem : EntitySystem
 
     private void ShootProjectilesAtEntities(EntityUid uid, ProjectileAnomalyComponent component, float severity)
     {
-        var projectileCount = (int) MathF.Round(MathHelper.Lerp(component.MinProjectiles, component.MaxProjectiles, severity));
+        var projectileCount = (int)MathF.Round(MathHelper.Lerp(component.MinProjectiles, component.MaxProjectiles, severity));
         var xformQuery = GetEntityQuery<TransformComponent>();
         var mobQuery = GetEntityQuery<MobStateComponent>();
         var xform = xformQuery.GetComponent(uid);
@@ -81,14 +81,14 @@ public sealed class ProjectileAnomalySystem : EntitySystem
         EntityCoordinates targetCoords,
         float severity)
     {
-        var mapPos = coords.ToMap(EntityManager, _xform);
+        var mapPos = _xform.ToMapCoordinates(coords);
 
         var spawnCoords = _mapManager.TryFindGridAt(mapPos, out var gridUid, out _)
-                ? coords.WithEntityId(gridUid, EntityManager)
-                : new(_mapManager.GetMapEntityId(mapPos.MapId), mapPos.Position);
+                ? _xform.WithEntityId(coords, gridUid)
+                : new(_mapManager.GetMap(mapPos.MapId), mapPos.Position);
 
         var ent = Spawn(component.ProjectilePrototype, spawnCoords);
-        var direction = targetCoords.ToMapPos(EntityManager, _xform) - mapPos.Position;
+        var direction = _xform.ToMapCoordinates(targetCoords).Position - mapPos.Position;
 
         if (!TryComp<ProjectileComponent>(ent, out var comp))
             return;

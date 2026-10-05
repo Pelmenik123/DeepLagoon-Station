@@ -9,9 +9,9 @@ using Robust.Shared.Utility;
 namespace Content.Server.Examine
 {
     [UsedImplicitly]
-    public sealed class ExamineSystem : ExamineSystemShared
+    public sealed partial class ExamineSystem : ExamineSystemShared
     {
-        [Dependency] private readonly VerbSystem _verbSystem = default!;
+        [Dependency] VerbSystem _verbSystem = default!;
 
         private readonly FormattedMessage _entityNotFoundMessage = new();
         private readonly FormattedMessage _entityOutOfRangeMessage = new();
@@ -50,8 +50,8 @@ namespace Content.Server.Examine
             var channel = player.Channel;
             var entity = GetEntity(request.NetEntity);
 
-            if (session.AttachedEntity is not {Valid: true} playerEnt
-                || !EntityManager.EntityExists(entity))
+            if (session.AttachedEntity is not { Valid: true } playerEnt
+                || !Exists(entity))
             {
                 RaiseNetworkEvent(new ExamineSystemMessages.ExamineInfoResponseMessage(
                     request.NetEntity, request.Id, _entityNotFoundMessage), channel);

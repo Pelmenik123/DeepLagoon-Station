@@ -134,19 +134,19 @@ public sealed class DiscordLobbyAdmissionTests
             });
             await server.WaitAssertion(() =>
             {
-                auth.SetValue(session,LoginType.LoggedIn);
-                Assert.That(linking.CanEnterRound(session),Is.True);
+                auth.SetValue(session, LoginType.LoggedIn);
+                Assert.That(linking.CanEnterRound(session), Is.True);
             });
             async Task Revoke()
             {
                 await whitelists.RemoveGlobalWhitelistAsync(session.UserId);
-                Assert.That(await database.GetWhitelistStatusAsync(session.UserId),Is.False);
+                Assert.That(await database.GetWhitelistStatusAsync(session.UserId), Is.False);
                 await linking.RefreshAdmission(session);
             }
-            await server.WaitPost(() => pending=Revoke());
-            await PoolManager.WaitUntil(server,()=>pending.IsCompleted,600);
+            await server.WaitPost(() => pending = Revoke());
+            await PoolManager.WaitUntil(server, () => pending.IsCompleted, 600);
             await pending;
-            await server.WaitAssertion(()=>Assert.That(linking.CanEnterRound(session),Is.False));
+            await server.WaitAssertion(() => Assert.That(linking.CanEnterRound(session), Is.False));
         }
         finally
         {

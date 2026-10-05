@@ -1,4 +1,4 @@
-﻿using Content.Server.Atmos.EntitySystems;
+using Content.Server.Atmos.EntitySystems;
 using Content.Server.Xenoarchaeology.XenoArtifacts.Triggers.Components;
 
 namespace Content.Server.Xenoarchaeology.XenoArtifacts.Triggers.Systems;
@@ -6,10 +6,10 @@ namespace Content.Server.Xenoarchaeology.XenoArtifacts.Triggers.Systems;
 /// <summary>
 /// This handles activation upon certain pressure thresholds.
 /// </summary>
-public sealed class ArtifactPressureTriggerSystem : EntitySystem
+public sealed partial class ArtifactPressureTriggerSystem : EntitySystem
 {
-    [Dependency] private readonly AtmosphereSystem _atmosphereSystem = default!;
-    [Dependency] private readonly ArtifactSystem _artifactSystem = default!;
+    [Dependency] private AtmosphereSystem _atmosphereSystem = default!;
+    [Dependency] private ArtifactSystem _artifactSystem = default!;
 
     public override void Update(float frameTime)
     {

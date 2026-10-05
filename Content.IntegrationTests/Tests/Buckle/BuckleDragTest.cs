@@ -21,7 +21,7 @@ public sealed class BuckleDragTest : InteractionTest
         var puller = Comp<PullerComponent>(Player);
         var pullable = Comp<PullableComponent>(urist);
 
-#pragma warning disable RA0002
+#pragma warning disable RA0002 // Matches upstream SS14: BuckleComponent.Delay is [Access]-restricted and tests intentionally set it directly.
         buckle.Delay = TimeSpan.Zero;
 #pragma warning restore RA0002
 
@@ -42,7 +42,7 @@ public sealed class BuckleDragTest : InteractionTest
         await RunTicks(5);
         Assert.That(buckle.Buckled, Is.True);
         Assert.That(buckle.BuckledTo, Is.EqualTo(STarget));
-        Assert.That(strap.BuckledEntities, Is.EquivalentTo(new[] { sUrist }));
+        Assert.That(strap.BuckledEntities, Is.EquivalentTo([sUrist]));
         Assert.That(puller.Pulling, Is.Null);
         Assert.That(pullable.Puller, Is.Null);
         Assert.That(pullable.BeingPulled, Is.False);

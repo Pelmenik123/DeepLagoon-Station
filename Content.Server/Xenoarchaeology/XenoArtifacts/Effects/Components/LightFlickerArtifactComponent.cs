@@ -1,4 +1,4 @@
-﻿namespace Content.Server.Xenoarchaeology.XenoArtifacts.Effects.Components;
+namespace Content.Server.Xenoarchaeology.XenoArtifacts.Effects.Components;
 
 /// <summary>
 /// Flickers all the lights within a certain radius.

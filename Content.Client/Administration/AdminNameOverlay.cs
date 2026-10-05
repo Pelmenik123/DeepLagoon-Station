@@ -13,9 +13,10 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client.Administration;
 
-internal sealed class AdminNameOverlay : Overlay
+internal sealed partial class AdminNameOverlay : Overlay
 {
-    [Dependency] private readonly IConfigurationManager _config = default!;
+    [Dependency] private IConfigurationManager _config = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
 
     private readonly AdminSystem _system;
     private readonly IEntityManager _entityManager;
@@ -84,18 +85,24 @@ internal sealed class AdminNameOverlay : Overlay
             var balance = playerInfo.Balance == int.MinValue ? "NO BALANCE" : BankSystemExtensions.ToCurrencyString(playerInfo.Balance); // Frontier
             if (classic && playerInfo.Antag)
             {
-                args.ScreenHandle.DrawString(_font, screenCoordinates + (lineoffset * 3), _antagLabelClassic, uiScale, _antagColorClassic); // Frontier: 2<3
+                args.ScreenHandle.DrawString(_font, screenCoordinates + lineoffset * 3, _antagLabelClassic, uiScale, _antagColorClassic); // Frontier: 2<3
             }
-            else if (!classic && _filter.Contains(playerInfo.RoleProto))
+            else if (!classic && IsFiltered(playerInfo.RoleProto))
             {
-                var label = Loc.GetString(playerInfo.RoleProto.Name).ToUpper();
-                var color = playerInfo.RoleProto.Color;
+                var roleProto = _prototypeManager.Index(playerInfo.RoleProto!.Value);
+                var label = Loc.GetString(roleProto.Name).ToUpper();
+                var color = roleProto.Color;
 
-                args.ScreenHandle.DrawString(_font, screenCoordinates + (lineoffset * 3), label, uiScale, color); // Frontier: 2<3
+                args.ScreenHandle.DrawString(_font, screenCoordinates + lineoffset * 3, label, uiScale, color); // Frontier: 2<3
             }
-            args.ScreenHandle.DrawString(_font, screenCoordinates+lineoffset, playerInfo.Username, uiScale, playerInfo.Connected ? Color.Yellow : Color.White);
+            args.ScreenHandle.DrawString(_font, screenCoordinates + lineoffset, playerInfo.Username, uiScale, playerInfo.Connected ? Color.Yellow : Color.White);
             args.ScreenHandle.DrawString(_font, screenCoordinates, playerInfo.CharacterName, uiScale, playerInfo.Connected ? Color.Aquamarine : Color.White);
             args.ScreenHandle.DrawString(_font, screenCoordinates + lineoffset * 2, $"Balance: {balance}", uiScale, playerInfo.Connected ? Color.Aquamarine : Color.White); // Frontier
         }
+    }
+
+    private bool IsFiltered(ProtoId<RoleTypePrototype>? roleProto)
+    {
+        return roleProto != null && _filter.Contains(roleProto.Value);
     }
 }

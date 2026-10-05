@@ -51,16 +51,16 @@ namespace Content.Server._NF.GameRule;
 /// <summary>
 /// This handles the dungeon and trading post spawning, as well as round end capitalism summary
 /// </summary>
-public sealed class NFAdventureRuleSystem : GameRuleSystem<NFAdventureRuleComponent>
+public sealed partial class NFAdventureRuleSystem : GameRuleSystem<NFAdventureRuleComponent>
 {
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly IPlayerManager _player = default!;
-    [Dependency] private readonly IPrototypeManager _proto = default!;
-    [Dependency] private readonly BankSystem _bank = default!;
-    [Dependency] private readonly GameTicker _ticker = default!;
-    [Dependency] private readonly PointOfInterestSystem _poi = default!;
-    [Dependency] private readonly IBaseServer _baseServer = default!;
-    [Dependency] private readonly IEntitySystemManager _entSys = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private BankSystem _bank = default!;
+    [Dependency] private GameTicker _ticker = default!;
+    [Dependency] private PointOfInterestSystem _poi = default!;
+    [Dependency] private IBaseServer _baseServer = default!;
+    [Dependency] private IEntitySystemManager _entSys = default!;
 
     private readonly HttpClient _httpClient = new();
 
@@ -123,7 +123,7 @@ public sealed class NFAdventureRuleSystem : GameRuleSystem<NFAdventureRuleCompon
             return;
 
         HandleHighestLowestEarners(allScores);
-        ReportLedger();
+        _ = ReportLedger();
     }
 
     private void GetBuiltRoundEndSummary(ref RoundEndTextAppendEvent ev, ref List<BankData> bankData)
@@ -227,7 +227,7 @@ public sealed class NFAdventureRuleSystem : GameRuleSystem<NFAdventureRuleCompon
         builder.AppendLine(highestLosses);
 
         var finalRelayText = FormattedMessage.RemoveMarkupPermissive(builder.ToString());
-        ReportRound(finalRelayText);
+        _ = ReportRound(finalRelayText);
     }
 
     private void OnPlayerSpawningEvent(PlayerSpawnCompleteEvent ev)
@@ -363,12 +363,12 @@ public sealed class NFAdventureRuleSystem : GameRuleSystem<NFAdventureRuleCompon
                     break;
                 // the remainder are done on a per-poi-per-group basis
                 default:
-                {
-                    if (!remainingUniqueProtosBySpawnGroup.ContainsKey(location.SpawnGroup))
-                        remainingUniqueProtosBySpawnGroup[location.SpawnGroup] = new();
-                    remainingUniqueProtosBySpawnGroup[location.SpawnGroup].Add(location);
-                    break;
-                }
+                    {
+                        if (!remainingUniqueProtosBySpawnGroup.ContainsKey(location.SpawnGroup))
+                            remainingUniqueProtosBySpawnGroup[location.SpawnGroup] = new();
+                        remainingUniqueProtosBySpawnGroup[location.SpawnGroup].Add(location);
+                        break;
+                    }
             }
         }
         _poi.GenerateDepots(mapUid, depotProtos, out component.CargoDepots);
@@ -385,7 +385,7 @@ public sealed class NFAdventureRuleSystem : GameRuleSystem<NFAdventureRuleCompon
 
     private async Task ReportRound(string message, int color = 0x77DDE7)
     {
-        Logger.InfoS("discord", message);
+        Log.Info(message);
         var webhookUrl = _cfg.GetCVar(NFCCVars.DiscordLeaderboardWebhook);
 
         if (webhookUrl == string.Empty)
@@ -427,7 +427,7 @@ public sealed class NFAdventureRuleSystem : GameRuleSystem<NFAdventureRuleCompon
         var ledgerPrintout = _bank.GetLedgerPrintout();
         if (string.IsNullOrEmpty(ledgerPrintout))
             return;
-        Logger.InfoS("discord", ledgerPrintout);
+        Log.Info(ledgerPrintout);
 
         var serverName = _baseServer.ServerName;
         var gameTicker = _entSys.GetEntitySystemOrNull<GameTicker>();
@@ -465,7 +465,7 @@ public sealed class NFAdventureRuleSystem : GameRuleSystem<NFAdventureRuleCompon
         var reply = await request.Content.ReadAsStringAsync();
         if (!request.IsSuccessStatusCode)
         {
-            Logger.ErrorS("mining", $"Discord returned bad status code when posting message: {request.StatusCode}\nResponse: {reply}");
+            Log.Error($"Discord returned bad status code when posting message: {request.StatusCode}\nResponse: {reply}");
         }
     }
 

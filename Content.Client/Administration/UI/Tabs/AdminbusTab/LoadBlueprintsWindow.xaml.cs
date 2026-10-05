@@ -21,11 +21,11 @@ namespace Content.Client.Administration.UI.Tabs.AdminbusTab
 
         protected override void EnteredTree()
         {
-            var mapManager = IoCManager.Resolve<IMapManager>();
+            var mapManager = IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
 
             foreach (var mapId in mapManager.GetAllMapIds())
             {
-                MapOptions.AddItem(mapId.ToString(), (int) mapId);
+                MapOptions.AddItem(mapId.ToString(), (int)mapId);
             }
 
             Reset();
@@ -65,12 +65,12 @@ namespace Content.Client.Administration.UI.Tabs.AdminbusTab
             }
 
             if (currentMap != MapId.Nullspace)
-                MapOptions.Select((int) currentMap);
+                MapOptions.Select((int)currentMap);
 
-            XCoordinate.Value = (int) position.X;
-            YCoordinate.Value = (int) position.Y;
+            XCoordinate.Value = (int)position.X;
+            YCoordinate.Value = (int)position.Y;
 
-            RotationSpin.OverrideValue(Wraparound((int) rotation.Degrees));
+            RotationSpin.OverrideValue(Wraparound((int)rotation.Degrees));
         }
 
         private void OnResetButtonPressed(BaseButton.ButtonEventArgs obj)

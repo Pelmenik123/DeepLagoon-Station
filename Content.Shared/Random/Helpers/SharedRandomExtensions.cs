@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared.Dataset;
 using Content.Shared.FixedPoint;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
 namespace Content.Shared.Random.Helpers
@@ -28,7 +29,7 @@ namespace Content.Shared.Random.Helpers
             var sum = picks.Values.Sum();
             var accumulated = 0f;
 
-            var rand = random.NextFloat() * sum;
+            var rand = (float)random.NextDouble() * sum;
 
             foreach (var (key, weight) in picks)
             {
@@ -51,7 +52,7 @@ namespace Content.Shared.Random.Helpers
             var sum = picks.Values.Sum();
             var accumulated = 0f;
 
-            var rand = random.NextFloat() * sum;
+            var rand = (float)random.NextDouble() * sum;
 
             foreach (var (key, weight) in picks)
             {
@@ -67,13 +68,26 @@ namespace Content.Shared.Random.Helpers
             throw new InvalidOperationException($"Invalid weighted pick for {prototype.ID}!");
         }
 
+        public static ProtoId<T> Pick<T>(this IWeightedRandomPrototype<T> prototype, IRobustRandom? random = null)
+            where T : class, IPrototype
+        {
+            IoCManager.Resolve(ref random);
+            return random.Pick(prototype.Weights);
+        }
+
+        public static ProtoId<T> Pick<T>(this IWeightedRandomPrototype<T> prototype, System.Random random)
+            where T : class, IPrototype
+        {
+            return Pick(prototype.Weights, random);
+        }
+
         public static T Pick<T>(this IRobustRandom random, Dictionary<T, float> weights)
-            where T: notnull
+            where T : notnull
         {
             var sum = weights.Values.Sum();
             var accumulated = 0f;
 
-            var rand = random.NextFloat() * sum;
+            var rand = (float)random.NextDouble() * sum;
 
             foreach (var (key, weight) in weights)
             {
@@ -114,7 +128,7 @@ namespace Content.Shared.Random.Helpers
             var sum = weights.Values.Sum();
             var accumulated = 0f;
 
-            var rand = random.NextFloat() * sum;
+            var rand = (float)random.NextDouble() * sum;
 
             foreach (var (key, weight) in weights)
             {
@@ -138,7 +152,7 @@ namespace Content.Shared.Random.Helpers
             var sum = randomFill.Reagents.Count;
             var accumulated = 0f;
 
-            var rand = random.NextFloat() * sum;
+            var rand = (float)random.NextDouble() * sum;
 
             foreach (var reagent in randomFill.Reagents)
             {
@@ -169,7 +183,7 @@ namespace Content.Shared.Random.Helpers
             var sum = picks.Values.Sum();
             var accumulated = 0f;
 
-            var rand = random.NextFloat() * sum;
+            var rand = (float)random.NextDouble() * sum;
 
             foreach (var (randSolution, weight) in picks)
             {

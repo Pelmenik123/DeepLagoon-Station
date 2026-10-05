@@ -15,11 +15,11 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._Goobstation.Factory.Filters;
 
-public sealed class AutomationFilterSystem : EntitySystem
+public sealed partial class AutomationFilterSystem : EntitySystem
 {
-    [Dependency] private readonly ItemSlotsSystem _slots = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly SharedStackSystem _stack = default!;
+    [Dependency] private ItemSlotsSystem _slots = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedStackSystem _stack = default!;
 
     private EntityQuery<FilterSlotComponent> _slotQuery;
     private EntityQuery<LabelComponent> _labelQuery;
@@ -152,7 +152,8 @@ public sealed class AutomationFilterSystem : EntitySystem
             NameFilterMode.Contain => name.Contains(check),
             NameFilterMode.Start => name.StartsWith(check),
             NameFilterMode.End => name.EndsWith(check),
-            NameFilterMode.Match => name == check
+            NameFilterMode.Match => name == check,
+            _ => false
         };
         // entity names usually don't change except for the end including a label
         args.CouldAllow = ent.Comp.Mode switch
@@ -227,9 +228,9 @@ public sealed class AutomationFilterSystem : EntitySystem
 
         args.Handled = true;
 
-        var gate = (int) ent.Comp.Gate;
+        var gate = (int)ent.Comp.Gate;
         gate = ++gate % GateCount;
-        ent.Comp.Gate = (LogicGate) gate;
+        ent.Comp.Gate = (LogicGate)gate;
         Dirty(ent);
 
         var msg = Loc.GetString("logic-gate-cycle", ("gate", ent.Comp.Gate.ToString().ToUpper()));
@@ -255,7 +256,8 @@ public sealed class AutomationFilterSystem : EntitySystem
             LogicGate.Xor => a != b,
             LogicGate.Nor => !(a || b),
             LogicGate.Nand => !(a && b),
-            LogicGate.Xnor => a == b
+            LogicGate.Xnor => a == b,
+            _ => false
         };
         args.CouldAllow = couldAllowA || couldAllowB; // if any subfilter could allow it, this could allow it too
     }
@@ -322,7 +324,7 @@ public sealed class AutomationFilterSystem : EntitySystem
     public bool IsAllowed(EntityUid? filter, EntityUid item, out bool couldAllow)
     {
         couldAllow = false;
-        if (filter is not {} uid)
+        if (filter is not { } uid)
             return true;
 
         var ev = new AutomationFilterEvent(item);
@@ -352,7 +354,7 @@ public sealed class AutomationFilterSystem : EntitySystem
     /// </summary>
     public int GetSplitSize(EntityUid? filter)
     {
-        if (filter is not {} uid)
+        if (filter is not { } uid)
             return 0;
 
         var ev = new AutomationFilterSplitEvent();

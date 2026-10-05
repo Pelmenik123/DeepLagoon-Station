@@ -12,8 +12,8 @@ namespace Content.Client.UserInterface.Systems.Ghost.Widgets;
 [GenerateTypedNameReferences]
 public sealed partial class GhostGui : UIWidget
 {
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
-    [Dependency] private readonly IConfigurationManager _configurationManager = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
+    [Dependency] private IConfigurationManager _configurationManager = default!;
 
     private TimeSpan? _respawnTime;
 
@@ -96,9 +96,9 @@ public sealed partial class GhostGui : UIWidget
     {
         base.Dispose(disposing);
 
-        if (disposing)
-        {
-            TargetWindow.Dispose();
-        }
+        if (!disposing)
+            return;
+
+        TargetWindow?.DisposeControl();
     }
 }

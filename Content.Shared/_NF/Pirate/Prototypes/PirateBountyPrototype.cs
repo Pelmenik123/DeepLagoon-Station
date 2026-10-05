@@ -9,7 +9,7 @@ namespace Content.Shared._NF.Pirate.Prototypes;
 /// that must be sold together in a labeled container in order
 /// to receive a reward in doubloons.
 /// </summary>
-[Prototype, Serializable, NetSerializable]
+[Prototype]
 public sealed partial class PirateBountyPrototype : IPrototype
 {
     /// <inheritdoc/>
@@ -32,7 +32,7 @@ public sealed partial class PirateBountyPrototype : IPrototype
     /// The entries that must be satisfied for the cargo bounty to be complete.
     /// </summary>
     [DataField(required: true)]
-    public List<PirateBountyItemEntry> Entries = new();
+    public List<PirateBountyItemEntry> Entries = [];
 
     /// <summary>
     /// Whether or not to spawn a chest for this item.

@@ -3,8 +3,9 @@ using Robust.Client.GameObjects;
 
 namespace Content.Client.Paper;
 
-public sealed class EnvelopeSystem : VisualizerSystem<EnvelopeComponent>
+public sealed partial class EnvelopeSystem : VisualizerSystem<EnvelopeComponent>
 {
+    [Dependency] private SpriteSystem _sprite = default!;
     public override void Initialize()
     {
         base.Initialize();
@@ -21,9 +22,9 @@ public sealed class EnvelopeSystem : VisualizerSystem<EnvelopeComponent>
         if (!Resolve(ent.Owner, ref sprite))
             return;
 
-        sprite.LayerSetVisible(EnvelopeVisualLayers.Open, ent.Comp.State == EnvelopeComponent.EnvelopeState.Open);
-        sprite.LayerSetVisible(EnvelopeVisualLayers.Sealed, ent.Comp.State == EnvelopeComponent.EnvelopeState.Sealed);
-        sprite.LayerSetVisible(EnvelopeVisualLayers.Torn, ent.Comp.State == EnvelopeComponent.EnvelopeState.Torn);
+        _sprite.LayerSetVisible(sprite.AsEntity(), EnvelopeVisualLayers.Open, ent.Comp.State == EnvelopeComponent.EnvelopeState.Open);
+        _sprite.LayerSetVisible(sprite.AsEntity(), EnvelopeVisualLayers.Sealed, ent.Comp.State == EnvelopeComponent.EnvelopeState.Sealed);
+        _sprite.LayerSetVisible(sprite.AsEntity(), EnvelopeVisualLayers.Torn, ent.Comp.State == EnvelopeComponent.EnvelopeState.Torn);
     }
 
     public enum EnvelopeVisualLayers : byte

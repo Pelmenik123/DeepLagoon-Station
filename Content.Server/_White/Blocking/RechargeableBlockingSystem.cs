@@ -17,12 +17,12 @@ using Content.Shared.PowerCell.Components;
 
 namespace Content.Server._White.Blocking;
 
-public sealed class RechargeableBlockingSystem : SharedBlockingSystem // Mono
+public sealed partial class RechargeableBlockingSystem : SharedBlockingSystem // Mono
 {
-    [Dependency] private readonly BatterySystem _battery = default!;
-    [Dependency] private readonly ItemToggleSystem _itemToggle = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly PowerCellSystem _powerCell = default!;
+    [Dependency] private BatterySystem _battery = default!;
+    [Dependency] private ItemToggleSystem _itemToggle = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private PowerCellSystem _powerCell = default!;
 
     public override void Initialize()
     {
@@ -52,7 +52,7 @@ public sealed class RechargeableBlockingSystem : SharedBlockingSystem // Mono
             || recharger is not { AutoRechargeRate: > 0, AutoRecharge: true })
             return 0;
 
-        return (int) MathF.Round((batteryComponent.MaxCharge - batteryComponent.CurrentCharge) /
+        return (int)MathF.Round((batteryComponent.MaxCharge - batteryComponent.CurrentCharge) /
                                  recharger.AutoRechargeRate);
     }
 
@@ -108,6 +108,6 @@ public sealed class RechargeableBlockingSystem : SharedBlockingSystem // Mono
 
         component.Discharged = false;
         if (TryComp(uid, out recharger))
-                recharger.AutoRechargeRate = component.ChargedRechargeRate;
+            recharger.AutoRechargeRate = component.ChargedRechargeRate;
     }
 }

@@ -19,21 +19,20 @@ namespace Content.Shared.Tools.Systems;
 
 public abstract partial class SharedToolSystem : EntitySystem
 {
-    [Dependency] private   readonly IMapManager _mapManager = default!;
-    [Dependency] private   readonly IPrototypeManager _protoMan = default!;
-    [Dependency] protected readonly ISharedAdminLogManager AdminLogger = default!;
-    [Dependency] private   readonly ITileDefinitionManager _tileDefManager = default!;
-    [Dependency] private   readonly SharedAudioSystem _audioSystem = default!;
-    [Dependency] private   readonly SharedDoAfterSystem _doAfterSystem = default!;
-    [Dependency] protected readonly SharedInteractionSystem InteractionSystem = default!;
-    [Dependency] protected readonly ItemToggleSystem ItemToggle = default!;
-    [Dependency] private   readonly SharedMapSystem _maps = default!;
-    [Dependency] private   readonly SharedPopupSystem _popup = default!;
-    [Dependency] protected readonly SharedSolutionContainerSystem SolutionContainerSystem = default!;
-    [Dependency] private   readonly SharedTransformSystem _transformSystem = default!;
-    [Dependency] private   readonly TileSystem _tiles = default!;
-    [Dependency] private   readonly TurfSystem _turfs = default!;
-    [Dependency] private   readonly UseDelaySystem _delay = default!; // Goobstation
+    [Dependency] private IPrototypeManager _protoMan = default!;
+    [Dependency] protected ISharedAdminLogManager AdminLogger = default!;
+    [Dependency] private ITileDefinitionManager _tileDefManager = default!;
+    [Dependency] private SharedAudioSystem _audioSystem = default!;
+    [Dependency] private SharedDoAfterSystem _doAfterSystem = default!;
+    [Dependency] protected SharedInteractionSystem InteractionSystem = default!;
+    [Dependency] protected ItemToggleSystem ItemToggle = default!;
+    [Dependency] private SharedMapSystem _maps = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] protected SharedSolutionContainerSystem SolutionContainerSystem = default!;
+    [Dependency] private SharedTransformSystem _transformSystem = default!;
+    [Dependency] private TileSystem _tiles = default!;
+    [Dependency] private TurfSystem _turfs = default!;
+    [Dependency] private UseDelaySystem _delay = default!; // Goobstation
 
     public const string CutQuality = "Cutting";
     public const string PulseQuality = "Pulsing";
@@ -56,10 +55,10 @@ public abstract partial class SharedToolSystem : EntitySystem
         ev.DoAfter = args.DoAfter;
 
         if (args.OriginalTarget != null)
-            RaiseLocalEvent(GetEntity(args.OriginalTarget.Value), (object) ev);
+            RaiseLocalEvent(GetEntity(args.OriginalTarget.Value), (object)ev);
         else
-            RaiseLocalEvent((object) ev);
-            
+            RaiseLocalEvent((object)ev);
+
         if (TryComp(uid, out UseDelayComponent? delay)) // Goobstation
             _delay.TryResetDelay((uid, delay));
     }
@@ -83,7 +82,7 @@ public abstract partial class SharedToolSystem : EntitySystem
         // Loop through tool qualities and add localized names to the list
         foreach (var toolQuality in ent.Comp.Qualities)
         {
-            if (_protoMan.TryIndex<ToolQualityPrototype>(toolQuality ?? string.Empty, out var protoToolQuality))
+            if (_protoMan.TryIndex(toolQuality, out var protoToolQuality))
             {
                 toolQualities.Add(Loc.GetString(protoToolQuality.Name));
             }
@@ -125,7 +124,7 @@ public abstract partial class SharedToolSystem : EntitySystem
         EntityUid user,
         EntityUid? target,
         float doAfterDelay,
-        IEnumerable<string> toolQualitiesNeeded,
+        IEnumerable<ProtoId<ToolQualityPrototype>> toolQualitiesNeeded,
         DoAfterEvent doAfterEv,
         float fuel = 0,
         ToolComponent? toolComponent = null)
@@ -163,7 +162,7 @@ public abstract partial class SharedToolSystem : EntitySystem
         EntityUid user,
         EntityUid? target,
         TimeSpan delay,
-        IEnumerable<string> toolQualitiesNeeded,
+        IEnumerable<ProtoId<ToolQualityPrototype>> toolQualitiesNeeded,
         DoAfterEvent doAfterEv,
         out DoAfterId? id,
         float fuel = 0,
@@ -210,7 +209,7 @@ public abstract partial class SharedToolSystem : EntitySystem
         EntityUid user,
         EntityUid? target,
         float doAfterDelay,
-        string toolQualityNeeded,
+        ProtoId<ToolQualityPrototype> toolQualityNeeded,
         DoAfterEvent doAfterEv,
         float fuel = 0,
         ToolComponent? toolComponent = null)
@@ -238,18 +237,18 @@ public abstract partial class SharedToolSystem : EntitySystem
     ///     Whether a tool entity has all specified qualities or not.
     /// </summary>
     [PublicAPI]
-    public bool HasAllQualities(EntityUid uid, IEnumerable<string> qualities, ToolComponent? tool = null)
+    public bool HasAllQualities(EntityUid uid, IEnumerable<ProtoId<ToolQualityPrototype>> qualities, ToolComponent? tool = null)
     {
-        return Resolve(uid, ref tool, false) && tool.Qualities.ContainsAll(qualities);
+        return Resolve(uid, ref tool, false) && tool.Qualities.IsSupersetOf(qualities);
     }
 
-    private bool CanStartToolUse(EntityUid tool, EntityUid user, EntityUid? target, float fuel, IEnumerable<string> toolQualitiesNeeded, ToolComponent? toolComponent = null)
+    private bool CanStartToolUse(EntityUid tool, EntityUid user, EntityUid? target, float fuel, IEnumerable<ProtoId<ToolQualityPrototype>> toolQualitiesNeeded, ToolComponent? toolComponent = null)
     {
         if (!Resolve(tool, ref toolComponent))
             return false;
 
         // check if the tool can do what's required
-        if (!toolComponent.Qualities.ContainsAll(toolQualitiesNeeded))
+        if (!toolComponent.Qualities.IsSupersetOf(toolQualitiesNeeded))
             return false;
 
         // check if the user allows using the tool
@@ -259,7 +258,7 @@ public abstract partial class SharedToolSystem : EntitySystem
             return false;
 
         // check if the tool allows being used
-        var beforeAttempt = new ToolUseAttemptEvent(user, fuel, tool, toolQualitiesNeeded); // Frontier: added tool, toolQualitiesNeeded
+        var beforeAttempt = new ToolUseAttemptEvent(user, fuel, tool, toolQualitiesNeeded.Select(x => x.Id)); // Frontier: added tool, toolQualitiesNeeded
         RaiseLocalEvent(tool, beforeAttempt);
         if (beforeAttempt.Cancelled)
             return false;
@@ -323,7 +322,7 @@ public abstract partial class SharedToolSystem : EntitySystem
     [Serializable, NetSerializable]
     protected sealed partial class LatticeCuttingCompleteEvent : DoAfterEvent
     {
-        [DataField(required:true)]
+        [DataField(required: true)]
         public NetCoordinates Coordinates;
 
         private LatticeCuttingCompleteEvent()

@@ -83,9 +83,6 @@ using Robust.Shared.Containers;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
-using Content.Shared.Emag.Systems;
-using Content.Server.Popups;
-using Content.Server.Traits.Assorted;
 using Robust.Shared.Serialization.Manager;
 using Content.Shared._NF.Cloning; // Frontier
 using Content.Shared._NF.Bank.Components; // Frontier
@@ -93,32 +90,32 @@ using Content.Server._NF.Traits.Assorted; // Frontier
 
 namespace Content.Server.Cloning
 {
-    public sealed class CloningSystem : EntitySystem
+    public sealed partial class CloningSystem : EntitySystem
     {
-        [Dependency] private readonly DeviceLinkSystem _signalSystem = default!;
-        [Dependency] private readonly IPlayerManager _playerManager = null!;
-        [Dependency] private readonly IPrototypeManager _prototype = default!;
-        [Dependency] private readonly EuiManager _euiManager = null!;
-        [Dependency] private readonly CloningConsoleSystem _cloningConsoleSystem = default!;
-        [Dependency] private readonly HumanoidAppearanceSystem _humanoidSystem = default!;
-        [Dependency] private readonly ContainerSystem _containerSystem = default!;
-        [Dependency] private readonly MobStateSystem _mobStateSystem = default!;
-        [Dependency] private readonly PowerReceiverSystem _powerReceiverSystem = default!;
-        [Dependency] private readonly IRobustRandom _robustRandom = default!;
-        [Dependency] private readonly AtmosphereSystem _atmosphereSystem = default!;
-        [Dependency] private readonly TransformSystem _transformSystem = default!;
-        [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-        [Dependency] private readonly PuddleSystem _puddleSystem = default!;
-        [Dependency] private readonly ChatSystem _chatSystem = default!;
-        [Dependency] private readonly SharedAudioSystem _audio = default!;
-        [Dependency] private readonly IConfigurationManager _configManager = default!;
-        [Dependency] private readonly MaterialStorageSystem _material = default!;
-        [Dependency] private readonly PopupSystem _popupSystem = default!;
-        [Dependency] private readonly SharedMindSystem _mindSystem = default!;
-        [Dependency] private readonly MetaDataSystem _metaSystem = default!;
-        [Dependency] private readonly SharedJobSystem _jobs = default!;
-        [Dependency] private readonly EmagSystem _emag = default!;
-        [Dependency] private readonly ISerializationManager _serialization = default!; // Frontier
+        [Dependency] private DeviceLinkSystem _signalSystem = default!;
+        [Dependency] private IPlayerManager _playerManager = null!;
+        [Dependency] private IPrototypeManager _prototype = default!;
+        [Dependency] private EuiManager _euiManager = null!;
+        [Dependency] private CloningConsoleSystem _cloningConsoleSystem = default!;
+        [Dependency] private HumanoidAppearanceSystem _humanoidSystem = default!;
+        [Dependency] private ContainerSystem _containerSystem = default!;
+        [Dependency] private MobStateSystem _mobStateSystem = default!;
+        [Dependency] private PowerReceiverSystem _powerReceiverSystem = default!;
+        [Dependency] private IRobustRandom _robustRandom = default!;
+        [Dependency] private AtmosphereSystem _atmosphereSystem = default!;
+        [Dependency] private TransformSystem _transformSystem = default!;
+        [Dependency] private SharedAppearanceSystem _appearance = default!;
+        [Dependency] private PuddleSystem _puddleSystem = default!;
+        [Dependency] private ChatSystem _chatSystem = default!;
+        [Dependency] private SharedAudioSystem _audio = default!;
+        [Dependency] private IConfigurationManager _configManager = default!;
+        [Dependency] private MaterialStorageSystem _material = default!;
+        [Dependency] private PopupSystem _popupSystem = default!;
+        [Dependency] private SharedMindSystem _mindSystem = default!;
+        [Dependency] private MetaDataSystem _metaSystem = default!;
+        [Dependency] private SharedJobSystem _jobs = default!;
+        [Dependency] private EmagSystem _emag = default!;
+        [Dependency] private ISerializationManager _serialization = default!; // Frontier
 
         public readonly Dictionary<MindComponent, EntityUid> ClonesWaitingForMind = new();
         public const float EasyModeCloningCost = 0.7f;
@@ -187,11 +184,11 @@ namespace Content.Server.Cloning
         private void HandleMindAdded(EntityUid uid, BeingClonedComponent clonedComponent, MindAddedMessage message)
         {
             if (clonedComponent.Parent == EntityUid.Invalid ||
-                !EntityManager.EntityExists(clonedComponent.Parent) ||
+                !Exists(clonedComponent.Parent) ||
                 !TryComp<CloningPodComponent>(clonedComponent.Parent, out var cloningPodComponent) ||
                 uid != cloningPodComponent.BodyContainer.ContainedEntity)
             {
-                EntityManager.RemoveComponent<BeingClonedComponent>(uid);
+                RemComp<BeingClonedComponent>(uid);
                 return;
             }
             UpdateStatus(clonedComponent.Parent, CloningPodStatus.Cloning, cloningPodComponent);
@@ -235,7 +232,7 @@ namespace Content.Server.Cloning
             // GoobStation: Remove this logic entirely, infinite clone army
             /*if (ClonesWaitingForMind.TryGetValue(mind, out var clone))
             {
-                if (EntityManager.EntityExists(clone) &&
+                if (Exists(clone) &&
                     !_mobStateSystem.IsDead(clone) &&
                     TryComp<MindContainerComponent>(clone, out var cloneMindComp) &&
                     (cloneMindComp.Mind == null || cloneMindComp.Mind == mindEnt))
@@ -264,10 +261,10 @@ namespace Content.Server.Cloning
             if (!TryComp<PhysicsComponent>(bodyToClone, out var physics))
                 return false;
 
-            var cloningCost = (int) Math.Round(physics.FixturesMass * clonePod.BiomassRequirementMultiplier);
+            var cloningCost = (int)Math.Round(physics.FixturesMass * clonePod.BiomassRequirementMultiplier);
 
             if (_configManager.GetCVar(CCVars.BiomassEasyMode))
-                cloningCost = (int) Math.Round(cloningCost * EasyModeCloningCost);
+                cloningCost = (int)Math.Round(cloningCost * EasyModeCloningCost);
 
             // Check if they have the uncloneable trait
             if (TryComp<UncloneableComponent>(bodyToClone, out var uncloneable))
@@ -300,7 +297,7 @@ namespace Content.Server.Cloning
             if (TryComp<DamageableComponent>(bodyToClone, out var damageable) &&
                 damageable.Damage.DamageDict.TryGetValue("Cellular", out var cellularDmg))
             {
-                var chance = Math.Clamp((float) (cellularDmg / 100), 0, 1);
+                var chance = Math.Clamp((float)(cellularDmg / 100), 0, 1);
                 chance *= failChanceModifier;
 
                 if (cellularDmg > 0 && clonePod.ConnectedConsole != null)
@@ -327,13 +324,12 @@ namespace Content.Server.Cloning
 
             // Frontier
             // Transfer of special components, e.g. small/big traits
-            foreach (var comp in EntityManager.GetComponents(bodyToClone))
+            foreach (var comp in AllComps(bodyToClone))
             {
                 if (comp is ITransferredByCloning)
                 {
                     var copy = _serialization.CreateCopy(comp, notNullableOverride: true);
-                    copy.Owner = mob;
-                    EntityManager.AddComponent(mob, copy, overwrite: true);
+                    AddComp(mob, copy, overwrite: true);
                 }
             }
 
@@ -343,7 +339,7 @@ namespace Content.Server.Cloning
             if (!ev.NameHandled)
                 _metaSystem.SetEntityName(mob, MetaData(bodyToClone).EntityName);
 
-            var cloneMindReturn = EntityManager.AddComponent<BeingClonedComponent>(mob);
+            var cloneMindReturn = AddComp<BeingClonedComponent>(mob);
             cloneMindReturn.Mind = mind;
             cloneMindReturn.Parent = uid;
             _containerSystem.Insert(mob, clonePod.BodyContainer);
@@ -438,7 +434,7 @@ namespace Content.Server.Cloning
             if (clonePod.BodyContainer.ContainedEntity is not { Valid: true } entity || clonePod.CloningProgress < clonePod.CloningTime)
                 return;
 
-            EntityManager.RemoveComponent<BeingClonedComponent>(entity);
+            RemComp<BeingClonedComponent>(entity);
             _containerSystem.Remove(entity, clonePod.BodyContainer);
             clonePod.CloningProgress = 0f;
             clonePod.UsedBiomass = 0;
@@ -475,7 +471,7 @@ namespace Content.Server.Cloning
 
             if (!_emag.CheckFlag(uid, EmagType.Interaction))
             {
-                _material.SpawnMultipleFromMaterial(_robustRandom.Next(1, (int) (clonePod.UsedBiomass / 2.5)), clonePod.RequiredMaterial, Transform(uid).Coordinates);
+                _material.SpawnMultipleFromMaterial(_robustRandom.Next(1, (int)(clonePod.UsedBiomass / 2.5)), clonePod.RequiredMaterial, Transform(uid).Coordinates);
             }
 
             clonePod.UsedBiomass = 0;

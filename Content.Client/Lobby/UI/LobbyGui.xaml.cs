@@ -10,7 +10,7 @@ namespace Content.Client.Lobby.UI
     [GenerateTypedNameReferences]
     public sealed partial class LobbyGui : UIScreen
     {
-        [Dependency] private readonly IClientConsoleHost _consoleHost = default!;
+        [Dependency] private IClientConsoleHost _consoleHost = default!;
 
         public LobbyGui()
         {
@@ -39,8 +39,8 @@ namespace Content.Client.Lobby.UI
                 case LobbyGuiState.CharacterSetup:
                     CharacterSetupState.Visible = true;
 
-                    var actualWidth = (float) UserInterfaceManager.RootControl.PixelWidth;
-                    var setupWidth = (float) LeftSide.PixelWidth;
+                    var actualWidth = (float)UserInterfaceManager.RootControl.PixelWidth;
+                    var setupWidth = (float)LeftSide.PixelWidth;
 
                     if (1 - (setupWidth / actualWidth) > 0.30)
                     {

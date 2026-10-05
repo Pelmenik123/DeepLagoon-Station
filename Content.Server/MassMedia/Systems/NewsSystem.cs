@@ -23,18 +23,18 @@ using Content.Shared.GameTicking; // Frontier
 
 namespace Content.Server.MassMedia.Systems;
 
-public sealed class NewsSystem : SharedNewsSystem
+public sealed partial class NewsSystem : SharedNewsSystem
 {
-    [Dependency] private readonly AccessReaderSystem _accessReaderSystem = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IAdminLogManager _adminLogger = default!;
-    [Dependency] private readonly UserInterfaceSystem _ui = default!;
-    [Dependency] private readonly CartridgeLoaderSystem _cartridgeLoaderSystem = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly StationSystem _station = default!;
-    [Dependency] private readonly GameTicker _ticker = default!;
-    [Dependency] private readonly IChatManager _chatManager = default!;
+    [Dependency] private AccessReaderSystem _accessReaderSystem = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IAdminLogManager _adminLogger = default!;
+    [Dependency] private UserInterfaceSystem _ui = default!;
+    [Dependency] private CartridgeLoaderSystem _cartridgeLoaderSystem = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private StationSystem _station = default!;
+    [Dependency] private GameTicker _ticker = default!;
+    [Dependency] private IChatManager _chatManager = default!;
 
     public override void Initialize()
     {
@@ -63,7 +63,7 @@ public sealed class NewsSystem : SharedNewsSystem
         SubscribeLocalEvent<NewsReaderCartridgeComponent, CartridgeMessageEvent>(OnReaderUiMessage);
         SubscribeLocalEvent<NewsReaderCartridgeComponent, CartridgeUiReadyEvent>(OnReaderUiReady);
     }
- 
+
     // Frontier: article lifecycle management
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
     {
@@ -267,7 +267,8 @@ public sealed class NewsSystem : SharedNewsSystem
 
         // Any SectorNewsComponent will have a complete article set, we ensure one exists before returning the complete set.
         var query = EntityQueryEnumerator<SectorNewsComponent>();
-        if (query.MoveNext(out var _)) {
+        if (query.MoveNext(out var _))
+        {
             articles = SectorNewsComponent.Articles;
             return true;
         }

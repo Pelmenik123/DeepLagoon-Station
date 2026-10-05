@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Content.Server.Administration;
 using Content.Shared.Administration;
 using Robust.Shared.Console;
@@ -7,7 +7,7 @@ namespace Content.Server.Xenoarchaeology.XenoArtifacts;
 
 public partial class ArtifactSystem
 {
-    [Dependency] private readonly IConsoleHost _conHost = default!;
+    [Dependency] private IConsoleHost _conHost = default!;
 
     public void InitializeCommands()
     {

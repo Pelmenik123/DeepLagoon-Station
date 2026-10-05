@@ -7,11 +7,11 @@ using Robust.Shared.Console;
 namespace Content.Server.Administration.Commands;
 
 [AdminCommand(AdminFlags.Admin)]
-public sealed class EraseCommand : LocalizedEntityCommands
+public sealed partial class EraseCommand : LocalizedEntityCommands
 {
-    [Dependency] private readonly IPlayerLocator _locator = default!;
-    [Dependency] private readonly IPlayerManager _players = default!;
-    [Dependency] private readonly AdminSystem _admin = default!;
+    [Dependency] private IPlayerLocator _locator = default!;
+    [Dependency] private IPlayerManager _players = default!;
+    AdminSystem _admin => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<AdminSystem>();
 
     public override string Command => "erase";
 

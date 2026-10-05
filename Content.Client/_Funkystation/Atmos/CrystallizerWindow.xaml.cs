@@ -18,7 +18,7 @@ namespace Content.Client._Funkystation.Atmos
     [GenerateTypedNameReferences]
     public sealed partial class CrystallizerWindow : FancyWindow
     {
-        [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+        [Dependency] private IPrototypeManager _prototypeManager = default!;
         public bool Active = true;
         private Button? _selectedButton;
         private string? _selectedButtonId;
@@ -232,7 +232,7 @@ namespace Content.Client._Funkystation.Atmos
             {
                 if (recipe.MinimumRequirements[i] > 0)
                 {
-                    var gas = (Gas) i;
+                    var gas = (Gas)i;
                     if (Atmospherics.GasNames.TryGetValue(gas, out var gasName))
                     {
                         var gasLabel = new Label { Text = $" - {gasName}: {recipe.MinimumRequirements[i]} moles" };
@@ -256,7 +256,7 @@ namespace Content.Client._Funkystation.Atmos
             {
                 if (recipe.MinimumRequirements[i] > 0)
                 {
-                    var gas = (Gas) i;
+                    var gas = (Gas)i;
                     if (Atmospherics.GasNames.TryGetValue(gas, out var gasName))
                     {
 

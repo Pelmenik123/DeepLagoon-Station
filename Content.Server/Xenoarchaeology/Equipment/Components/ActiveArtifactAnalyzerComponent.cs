@@ -1,4 +1,4 @@
-﻿using Robust.Shared.Serialization.TypeSerializers.Implementations;
+using Robust.Shared.Serialization.TypeSerializers.Implementations;
 
 namespace Content.Server.Xenoarchaeology.Equipment.Components;
 

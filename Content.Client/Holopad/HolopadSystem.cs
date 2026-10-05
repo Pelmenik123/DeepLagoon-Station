@@ -1,3 +1,4 @@
+using System.Numerics;
 using Content.Shared.Chat.TypingIndicator;
 using Content.Shared.Holopad;
 using Robust.Client.GameObjects;
@@ -9,10 +10,11 @@ using DrawDepth = Content.Shared.DrawDepth.DrawDepth;
 
 namespace Content.Client.Holopad;
 
-public sealed class HolopadSystem : SharedHolopadSystem
+public sealed partial class HolopadSystem : SharedHolopadSystem
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     public override void Initialize()
     {
@@ -30,7 +32,7 @@ public sealed class HolopadSystem : SharedHolopadSystem
 
     private void OnShaderRender(Entity<HolopadHologramComponent> entity, ref BeforePostShaderRenderEvent ev)
     {
-        if (ev.Sprite.PostShader == null)
+        if (_sprite.GetLegacyPostShader(ev.Sprite.AsEntity()) == null)
             return;
 
         UpdateHologramSprite(entity, entity.Comp.LinkedEntity);
@@ -59,7 +61,7 @@ public sealed class HolopadSystem : SharedHolopadSystem
 
         // Remove all sprite layers
         for (int i = hologramSprite.AllLayers.Count() - 1; i >= 0; i--)
-            hologramSprite.RemoveLayer(i);
+            _sprite.RemoveLayer(hologramSprite.AsEntity(), i);
 
         if (TryComp<SpriteComponent>(target, out var targetSprite))
         {
@@ -70,14 +72,14 @@ public sealed class HolopadSystem : SharedHolopadSystem
                 for (int i = 0; i < targetAvatar.LayerData.Length; i++)
                 {
                     var layer = targetAvatar.LayerData[i];
-                    hologramSprite.AddLayer(targetAvatar.LayerData[i], i);
+                    _sprite.AddLayer(hologramSprite.AsEntity(), targetAvatar.LayerData[i], i);
                 }
             }
 
             // Otherwise copy the target's current physical appearance
             else
             {
-                hologramSprite.CopyFrom(targetSprite);
+                _sprite.CopySprite(targetSprite.AsEntity(), hologramSprite.AsEntity());
             }
         }
 
@@ -91,13 +93,13 @@ public sealed class HolopadSystem : SharedHolopadSystem
             layer.RsiPath = holopadhologram.RsiPath;
             layer.State = holopadhologram.RsiState;
 
-            hologramSprite.AddLayer(layer);
+            _sprite.AddLayer(hologramSprite.AsEntity(), layer, null);
         }
 
         // Override specific values
-        hologramSprite.Color = Color.White;
-        hologramSprite.Offset = holopadhologram.Offset;
-        hologramSprite.DrawDepth = (int)DrawDepth.Mobs;
+        _sprite.SetColor(hologramSprite.AsEntity(), Color.White);
+        _sprite.SetOffset(hologramSprite.AsEntity(), holopadhologram.Offset);
+        _sprite.SetDrawDepth(hologramSprite.AsEntity(), (int)DrawDepth.Mobs);
         hologramSprite.NoRotation = true;
         hologramSprite.DirectionOverride = Direction.South;
         hologramSprite.EnableDirectionOverride = true;
@@ -105,7 +107,7 @@ public sealed class HolopadSystem : SharedHolopadSystem
         // Remove shading from all layers (except displacement maps)
         for (int i = 0; i < hologramSprite.AllLayers.Count(); i++)
         {
-            if (hologramSprite.TryGetLayer(i, out var layer) && layer.ShaderPrototype != "DisplacedStencilDraw")
+            if (_sprite.TryGetLayer(hologramSprite.AsEntity(), i, out var layer, false) && layer.ShaderPrototype != "DisplacedStencilDraw")
                 hologramSprite.LayerSetShader(i, "unshaded");
         }
 
@@ -125,7 +127,7 @@ public sealed class HolopadSystem : SharedHolopadSystem
         instance.SetParameter("texHeight", texHeight);
         instance.SetParameter("t", (float)_timing.CurTime.TotalSeconds * holopadHologram.ScrollRate);
 
-        sprite.PostShader = instance;
-        sprite.RaiseShaderEvent = true;
+        _sprite.SetLegacyPostShader(sprite.AsEntity(), instance);
+        _sprite.SetLegacyPostShaderFlags(sprite.AsEntity(), raiseShaderEvent: true);
     }
 }

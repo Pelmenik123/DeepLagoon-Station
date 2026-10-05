@@ -15,12 +15,13 @@ using Content.Server.Explosion.Components;
 using Content.Shared.Explosion.Components;
 
 namespace Content.Server._Crescent.ShipShields;
+
 public partial class ShipShieldsSystem
 {
     private const float MAX_EMP_DAMAGE = 10000f;
-    [Dependency] private readonly TriggerSystem _trigger = default!;
-    [Dependency] private readonly StationSystem _station = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] TriggerSystem _trigger = default!;
+    [Dependency] StationSystem _station = default!;
+    [Dependency] SharedAudioSystem _audio = default!;
     public void InitializeEmitters()
     {
         SubscribeLocalEvent<ShipShieldEmitterComponent, ShieldDeflectedEvent>(OnShieldDeflected);
@@ -29,7 +30,7 @@ public partial class ShipShieldsSystem
     }
 
 
-    private void OnRemoved(Entity<ShipShieldEmitterComponent> owner,ref ComponentRemove remove)
+    private void OnRemoved(Entity<ShipShieldEmitterComponent> owner, ref ComponentRemove remove)
     {
         var parent = Transform(owner.Owner).GridUid;
         if (parent is null)
@@ -52,7 +53,7 @@ public partial class ShipShieldsSystem
 
         if (TryComp<ProjectileComponent>(args.Deflected, out var proj))
         {
-            component.Damage += (float) proj.Damage.GetTotal();
+            component.Damage += (float)proj.Damage.GetTotal();
             proj.ProjectileSpent = true;
         }
         else if (TryComp<PhysicsComponent>(args.Deflected, out var phys))
@@ -74,9 +75,9 @@ public partial class ShipShieldsSystem
             return;
         }
 
-        var additionalLoad = (float) Math.Clamp(Math.Pow(component.Damage, component.DamageExp), 0f, component.MaxDraw);
+        var additionalLoad = (float)Math.Clamp(Math.Pow(component.Damage, component.DamageExp), 0f, component.MaxDraw);
         var ratio = additionalLoad / component.BaseDraw;
-        ratio = (float) Math.Ceiling(ratio * 100);
+        ratio = (float)Math.Ceiling(ratio * 100);
 
         args.PushMarkup(Loc.GetString("shield-emitter-examine-damaged", ("percent", ratio)));
     }
@@ -87,7 +88,7 @@ public partial class ShipShieldsSystem
             return;
 
         /// Raise damage to the power of the growth exponent
-        var additionalLoad = (float) Math.Clamp(Math.Pow(emitter.Damage, emitter.DamageExp), 0f, emitter.MaxDraw);
+        var additionalLoad = (float)Math.Clamp(Math.Pow(emitter.Damage, emitter.DamageExp), 0f, emitter.MaxDraw);
 
         receiver.Load = emitter.BaseDraw + additionalLoad;
     }

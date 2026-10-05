@@ -1,8 +1,7 @@
 using Content.Server.Radio.EntitySystems;
 using Content.Shared.Chat;
 using Content.Shared.Radio;
-using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype;
-using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.List;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server.Radio.Components;
 
@@ -14,12 +13,12 @@ namespace Content.Server.Radio.Components;
 public sealed partial class RadioMicrophoneComponent : Component
 {
     [ViewVariables(VVAccess.ReadWrite)]
-    [DataField("broadcastChannel", customTypeSerializer: typeof(PrototypeIdSerializer<RadioChannelPrototype>))]
-    public string BroadcastChannel = SharedChatSystem.CommonChannel;
+    [DataField("broadcastChannel")]
+    public ProtoId<RadioChannelPrototype> BroadcastChannel = SharedChatSystem.CommonChannel;
 
     [ViewVariables(VVAccess.ReadWrite)]
     [DataField("listenRange")]
-    public int ListenRange  = 4;
+    public int ListenRange = 4;
 
     [DataField("enabled")]
     public bool Enabled = false;

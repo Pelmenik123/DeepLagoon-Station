@@ -37,7 +37,7 @@ namespace Content.Client.PDA.Ringer
 
                 Timer.Spawn(333, () =>
                 {
-                    if (_menu is { Disposed: false, SetRingerButton: { Disposed: false } ringer})
+                    if (_menu is { Disposed: false, SetRingerButton: { Disposed: false } ringer })
                         ringer.Disabled = false;
                 });
             };
@@ -92,7 +92,7 @@ namespace Content.Client.PDA.Ringer
             if (!disposing)
                 return;
 
-            _menu?.Dispose();
+            _menu?.DisposeControl();
         }
     }
 }

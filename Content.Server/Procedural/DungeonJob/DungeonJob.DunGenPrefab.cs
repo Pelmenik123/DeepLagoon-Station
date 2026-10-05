@@ -14,7 +14,7 @@ public sealed partial class DungeonJob
     /// <summary>
     /// <see cref="PrefabDunGen"/>
     /// </summary>
-    private async Task<Dungeon> GeneratePrefabDunGen(Vector2i position, DungeonData data, PrefabDunGen prefab, HashSet<Vector2i> reservedTiles, Random random)
+    private async Task<Dungeon> GeneratePrefabDunGen(Vector2i position, DungeonData data, PrefabDunGen prefab, HashSet<Vector2i> reservedTiles, IRobustRandom random)
     {
         if (!data.Tiles.TryGetValue(DungeonDataKey.FallbackTile, out var tileProto) ||
             !data.Whitelists.TryGetValue(DungeonDataKey.Rooms, out var roomWhitelist))
@@ -119,7 +119,7 @@ public sealed partial class DungeonJob
                 for (var j = 0; j < 4; j++)
                 {
                     var index = (startIndex + j) % 4;
-                    var dir = (DirectionFlag) Math.Pow(2, index);
+                    var dir = (DirectionFlag)Math.Pow(2, index);
                     Vector2i aPackDimensions;
 
                     if ((dir & (DirectionFlag.East | DirectionFlag.West)) != 0x0)
@@ -173,12 +173,12 @@ public sealed partial class DungeonJob
             // Actual spawn cud here.
             // Pickout the room pack template to get the room dimensions we need.
             // TODO: Need to be able to load entities on top of other entities but das a lot of effo
-            var packCenter = (Vector2) pack.Size / 2;
+            var packCenter = (Vector2)pack.Size / 2;
 
             foreach (var roomSize in pack.Rooms)
             {
                 var roomDimensions = new Vector2i(roomSize.Width, roomSize.Height);
-                Angle roomRotation = Angle.Zero;
+                var roomRotation = Angle.Zero;
                 Matrix3x2 matty;
 
                 if (!roomProtos.TryGetValue(roomDimensions, out var roomProto))
@@ -297,7 +297,7 @@ public sealed partial class DungeonJob
         return dungeon;
     }
 
-    private void SetDungeonEntrance(Dungeon dungeon, DungeonRoom room, HashSet<Vector2i> reservedTiles, Random random)
+    private void SetDungeonEntrance(Dungeon dungeon, DungeonRoom room, HashSet<Vector2i> reservedTiles, IRobustRandom random)
     {
         // TODO: Move to dungeonsystem.
 
@@ -311,26 +311,15 @@ public sealed partial class DungeonJob
             // Pick an entrance that isn't taken.
             for (var i = 0; i < 4; i++)
             {
-                var dir = (Direction) ((i + offset) * 2 % 8);
-                Vector2i entrancePos;
-
-                switch (dir)
+                var dir = (Direction)((i + offset) * 2 % 8);
+                var entrancePos = dir switch
                 {
-                    case Direction.East:
-                        entrancePos = new Vector2i(room.Bounds.Right + 1, room.Bounds.Bottom + room.Bounds.Height / 2);
-                        break;
-                    case Direction.North:
-                        entrancePos = new Vector2i(room.Bounds.Left + room.Bounds.Width / 2, room.Bounds.Top + 1);
-                        break;
-                    case Direction.West:
-                        entrancePos = new Vector2i(room.Bounds.Left - 1, room.Bounds.Bottom + room.Bounds.Height / 2);
-                        break;
-                    case Direction.South:
-                        entrancePos = new Vector2i(room.Bounds.Left + room.Bounds.Width / 2, room.Bounds.Bottom - 1);
-                        break;
-                    default:
-                        throw new NotImplementedException();
-                }
+                    Direction.East => new Vector2i(room.Bounds.Right + 1, room.Bounds.Bottom + room.Bounds.Height / 2),
+                    Direction.North => new Vector2i(room.Bounds.Left + room.Bounds.Width / 2, room.Bounds.Top + 1),
+                    Direction.West => new Vector2i(room.Bounds.Left - 1, room.Bounds.Bottom + room.Bounds.Height / 2),
+                    Direction.South => new Vector2i(room.Bounds.Left + room.Bounds.Width / 2, room.Bounds.Bottom - 1),
+                    _ => throw new NotImplementedException(),
+                };
 
                 // Check if it's not blocked
                 var blockPos = entrancePos + dir.ToIntVec() * 2;

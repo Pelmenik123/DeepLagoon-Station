@@ -17,11 +17,11 @@ using Content.Client._Corvax.Respawn; // Frontier
 namespace Content.Client.UserInterface.Systems.Ghost;
 
 // TODO hud refactor BEFORE MERGE fix ghost gui being too far up
-public sealed class GhostUIController : UIController, IOnSystemChanged<GhostSystem>, IOnSystemChanged<RespawnSystem>
+public sealed partial class GhostUIController : UIController, IOnSystemChanged<GhostSystem>, IOnSystemChanged<RespawnSystem>
 {
-    [Dependency] private readonly IEntityNetworkManager _net = default!;
-    [Dependency] private readonly IConsoleHost _consoleHost = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
+    [Dependency] private IEntityNetworkManager _net = default!;
+    [Dependency] private IConsoleHost _consoleHost = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
 
     [UISystemDependency] private readonly GhostSystem? _system = default;
     [UISystemDependency] private readonly RespawnSystem? _respawn = default;
@@ -104,12 +104,12 @@ public sealed class GhostUIController : UIController, IOnSystemChanged<GhostSyst
     private void OnPlayerRemoved(GhostComponent component)
     {
         Gui?.Hide();
-//        UpdateRespawn(component.TimeOfDeath);
+        //        UpdateRespawn(component.TimeOfDeath);
     }
 
     private void OnPlayerUpdated(GhostComponent component)
     {
-//        UpdateRespawn(component.TimeOfDeath);
+        //        UpdateRespawn(component.TimeOfDeath);
         UpdateGui();
     }
 

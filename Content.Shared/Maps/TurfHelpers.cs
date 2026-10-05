@@ -15,25 +15,22 @@ namespace Content.Shared.Maps
         /// <summary>
         ///     Attempts to get the turf at a certain coordinates or null if no such turf is found.
         /// </summary>
-        public static TileRef? GetTileRef(this EntityCoordinates coordinates, IEntityManager? entityManager = null, IMapManager? mapManager = null)
+        public static TileRef? GetTileRef(this EntityCoordinates coordinates, IEntityManager? entityManager = null, SharedMapSystem? mapManager = null)
         {
             entityManager ??= IoCManager.Resolve<IEntityManager>();
 
             if (!coordinates.IsValid(entityManager))
                 return null;
 
-            mapManager ??= IoCManager.Resolve<IMapManager>();
-            var pos = coordinates.ToMap(entityManager, entityManager.System<SharedTransformSystem>());
-            if (!mapManager.TryFindGridAt(pos, out _, out var grid))
+            mapManager ??= IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
+            var pos = entityManager.System<SharedTransformSystem>().ToMapCoordinates(coordinates);
+            if (!mapManager.TryFindGridAt(pos, out var gridUid, out var grid))
                 return null;
 
-            if (!grid.TryGetTileRef(coordinates, out var tile))
-                return null;
-
-            return tile;
+            return mapManager.GetTileRef(gridUid, grid, coordinates);
         }
 
-        public static bool TryGetTileRef(this EntityCoordinates coordinates, [NotNullWhen(true)] out TileRef? turf, IEntityManager? entityManager = null, IMapManager? mapManager = null)
+        public static bool TryGetTileRef(this EntityCoordinates coordinates, [NotNullWhen(true)] out TileRef? turf, IEntityManager? entityManager = null, SharedMapSystem? mapManager = null)
         {
             return (turf = coordinates.GetTileRef(entityManager, mapManager)) != null;
         }
@@ -75,10 +72,9 @@ namespace Content.Shared.Maps
         ///     Helper that returns all entities in a turf.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [Obsolete("Use the lookup system")]
         public static IEnumerable<EntityUid> GetEntitiesInTile(this TileRef turf, LookupFlags flags = LookupFlags.Static, EntityLookupSystem? lookupSystem = null)
         {
-            lookupSystem ??= EntitySystem.Get<EntityLookupSystem>();
+            lookupSystem ??= IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<EntityLookupSystem>();
 
             if (!GetWorldTileBox(turf, out var worldBox))
                 return Enumerable.Empty<EntityUid>();
@@ -89,7 +85,6 @@ namespace Content.Shared.Maps
         /// <summary>
         ///     Helper that returns all entities in a turf.
         /// </summary>
-        [Obsolete("Use the lookup system")]
         public static IEnumerable<EntityUid> GetEntitiesInTile(this EntityCoordinates coordinates, LookupFlags flags = LookupFlags.Static, EntityLookupSystem? lookupSystem = null)
         {
             var turf = coordinates.GetTileRef();
@@ -103,7 +98,6 @@ namespace Content.Shared.Maps
         /// <summary>
         /// Checks if a turf has something dense on it.
         /// </summary>
-        [Obsolete("Use turf system")]
         public static bool IsBlockedTurf(this TileRef turf, bool filterMobs, EntityLookupSystem? physics = null)
         {
             CollisionGroup mask = filterMobs
@@ -116,7 +110,6 @@ namespace Content.Shared.Maps
         /// <summary>
         /// Creates a box the size of a tile, at the same position in the world as the tile.
         /// </summary>
-        [Obsolete]
         private static bool GetWorldTileBox(TileRef turf, out Box2Rotated res)
         {
             var entManager = IoCManager.Resolve<IEntityManager>();
@@ -129,7 +122,7 @@ namespace Content.Shared.Maps
                 // This is scaled to 90 % so it doesn't encompass walls on other tiles.
                 var tileBox = Box2.UnitCentered.Scale(0.9f);
                 tileBox = tileBox.Scale(tileGrid.TileSize);
-                var worldPos = tileGrid.GridTileToWorldPos(turf.GridIndices);
+                var worldPos = IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>().GridTileToWorldPos(turf.GridUid, tileGrid, turf.GridIndices);
                 tileBox = tileBox.Translated(worldPos);
                 // Now tileBox needs to be rotated to match grid rotation
                 res = new Box2Rotated(tileBox, gridRot, worldPos);

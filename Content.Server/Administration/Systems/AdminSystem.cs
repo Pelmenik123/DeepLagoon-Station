@@ -71,35 +71,35 @@ using Content.Server._NF.Bank; // Frontier
 
 namespace Content.Server.Administration.Systems;
 
-public sealed class AdminSystem : EntitySystem
+public sealed partial class AdminSystem : EntitySystem
 {
-    [Dependency] private readonly IAdminManager _adminManager = default!;
-    [Dependency] private readonly IChatManager _chat = default!;
-    [Dependency] private readonly IConfigurationManager _config = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly HandsSystem _hands = default!;
-    [Dependency] private readonly SharedJobSystem _jobs = default!;
-    [Dependency] private readonly InventorySystem _inventory = default!;
-    [Dependency] private readonly MindSystem _minds = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly PhysicsSystem _physics = default!;
-    [Dependency] private readonly PlayTimeTrackingManager _playTime = default!;
-    [Dependency] private readonly IPrototypeManager _proto = default!;
-    [Dependency] private readonly SharedRoleSystem _role = default!;
-    [Dependency] private readonly GameTicker _gameTicker = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly StationRecordsSystem _stationRecords = default!;
-    [Dependency] private readonly TransformSystem _transform = default!;
-    [Dependency] private readonly BankSystem _bank = default!; // Frontier
+    [Dependency] private IAdminManager _adminManager = default!;
+    [Dependency] private IChatManager _chat = default!;
+    [Dependency] private IConfigurationManager _config = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private HandsSystem _hands = default!;
+    [Dependency] private SharedJobSystem _jobs = default!;
+    [Dependency] private InventorySystem _inventory = default!;
+    [Dependency] private MindSystem _minds = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private PhysicsSystem _physics = default!;
+    [Dependency] private PlayTimeTrackingManager _playTime = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private SharedRoleSystem _role = default!;
+    [Dependency] private GameTicker _gameTicker = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private StationRecordsSystem _stationRecords = default!;
+    [Dependency] private TransformSystem _transform = default!;
+    [Dependency] private BankSystem _bank = default!; // Frontier
 
-    private readonly Dictionary<NetUserId, PlayerInfo> _playerList = new();
+    private readonly Dictionary<NetUserId, PlayerInfo> _playerList = [];
 
     /// <summary>
     ///     Set of players that have participated in this round.
     /// </summary>
     public IReadOnlySet<NetUserId> RoundActivePlayers => _roundActivePlayers;
 
-    private readonly HashSet<NetUserId> _roundActivePlayers = new();
+    private readonly HashSet<NetUserId> _roundActivePlayers = [];
     public readonly PanicBunkerStatus PanicBunker = new();
 
     public override void Initialize()
@@ -146,7 +146,7 @@ public sealed class AdminSystem : EntitySystem
             _playerList[id] = GetPlayerInfo(playerData, session);
         }
 
-        var updateEv = new FullPlayerListEvent() { PlayersInfo = _playerList.Values.ToList() };
+        var updateEv = new FullPlayerListEvent() { PlayersInfo = [.. _playerList.Values] };
 
         foreach (var admin in _adminManager.ActiveAdmins)
         {
@@ -253,9 +253,10 @@ public sealed class AdminSystem : EntitySystem
 
     private void SendFullPlayerList(ICommonSession playerSession)
     {
-        var ev = new FullPlayerListEvent();
-
-        ev.PlayersInfo = _playerList.Values.ToList();
+        var ev = new FullPlayerListEvent
+        {
+            PlayersInfo = [.. _playerList.Values]
+        };
 
         RaiseNetworkEvent(ev, playerSession.Channel);
     }
@@ -265,11 +266,11 @@ public sealed class AdminSystem : EntitySystem
         var name = data.UserName;
         var entityName = string.Empty;
         var identityName = string.Empty;
-        int balance = int.MinValue; // Frontier
+        var balance = int.MinValue; // Frontier
 
         if (session?.AttachedEntity != null)
         {
-            entityName = EntityManager.GetComponent<MetaDataComponent>(session.AttachedEntity.Value).EntityName;
+            entityName = MetaData(session.AttachedEntity.Value).EntityName;
             identityName = Identity.Name(session.AttachedEntity.Value, EntityManager);
 
             // Frontier
@@ -280,14 +281,15 @@ public sealed class AdminSystem : EntitySystem
 
         var antag = false;
 
-        RoleTypePrototype roleType = new();
+        // Starting role, antagonist status and role type
+        ProtoId<RoleTypePrototype>? roleType = null;
         var startingRole = string.Empty;
         if (_minds.TryGetMind(session, out var mindId, out var mindComp))
         {
             if (_proto.TryIndex(mindComp.RoleType, out var role))
                 roleType = role;
             else
-                Log.Error($"{ToPrettyString(mindId)} has invalid Role Type '{mindComp.RoleType}'. Displaying '{Loc.GetString(roleType.Name)}' instead");
+                Log.Error($"{ToPrettyString(mindId)} has invalid Role Type '{mindComp.RoleType}'. Displaying '{Loc.GetString(RoleTypePrototype.FallbackName)}' instead");
 
             antag = _role.MindIsAntagonist(mindId);
             startingRole = _jobs.MindTryGetJobName(mindId);
@@ -399,78 +401,78 @@ public sealed class AdminSystem : EntitySystem
         }
     }
 
-        /// <summary>
-        ///     Erases a player from the round.
-        ///     This removes them and any trace of them from the round, deleting their
-        ///     chat messages and showing a popup to other players.
-        ///     Their items are dropped on the ground.
-        /// </summary>
-        public void Erase(NetUserId uid)
+    /// <summary>
+    ///     Erases a player from the round.
+    ///     This removes them and any trace of them from the round, deleting their
+    ///     chat messages and showing a popup to other players.
+    ///     Their items are dropped on the ground.
+    /// </summary>
+    public void Erase(NetUserId uid)
+    {
+        _chat.DeleteMessagesBy(uid);
+
+        if (!_minds.TryGetMind(uid, out var mindId, out var mind) || mind.OwnedEntity == null || TerminatingOrDeleted(mind.OwnedEntity.Value))
+            return;
+
+        var entity = mind.OwnedEntity.Value;
+
+        if (TryComp(entity, out TransformComponent? transform))
         {
-            _chat.DeleteMessagesBy(uid);
-
-            if (!_minds.TryGetMind(uid, out var mindId, out var mind) || mind.OwnedEntity == null || TerminatingOrDeleted(mind.OwnedEntity.Value))
-                return;
-
-            var entity = mind.OwnedEntity.Value;
-
-            if (TryComp(entity, out TransformComponent? transform))
-            {
-                var coordinates = _transform.GetMoverCoordinates(entity, transform);
-                var name = Identity.Entity(entity, EntityManager);
-                _popup.PopupCoordinates(Loc.GetString("admin-erase-popup", ("user", name)), coordinates, PopupType.LargeCaution);
-                var filter = Filter.Pvs(coordinates, 1, EntityManager, _playerManager);
-                var audioParams = new AudioParams().WithVolume(3);
-                _audio.PlayStatic("/Audio/_EinsteinEngines/Misc/reducedtoatmos.ogg", filter, coordinates, true, audioParams); // Mono sound edit
-            }
-
-            foreach (var item in _inventory.GetHandOrInventoryEntities(entity))
-            {
-                if (TryComp(item, out PdaComponent? pda) &&
-                    TryComp(pda.ContainedId, out StationRecordKeyStorageComponent? keyStorage) &&
-                    keyStorage.Key is { } key &&
-                    _stationRecords.TryGetRecord(key, out GeneralStationRecord? record))
-                {
-                    if (TryComp(entity, out DnaComponent? dna) &&
-                        dna.DNA != record.DNA)
-                    {
-                        continue;
-                    }
-
-                    if (TryComp(entity, out FingerprintComponent? fingerPrint) &&
-                        fingerPrint.Fingerprint != record.Fingerprint)
-                    {
-                        continue;
-                    }
-
-                    _stationRecords.RemoveRecord(key);
-                    Del(item);
-                }
-            }
-
-            if (_inventory.TryGetContainerSlotEnumerator(entity, out var enumerator))
-            {
-                while (enumerator.NextItem(out var item, out var slot))
-                {
-                    if (_inventory.TryUnequip(entity, entity, slot.Name, true, true))
-                        _physics.ApplyAngularImpulse(item, ThrowingSystem.ThrowAngularImpulse);
-                }
-            }
-
-            if (TryComp(entity, out HandsComponent? hands))
-            {
-                foreach (var hand in _hands.EnumerateHands(entity, hands))
-                {
-                    _hands.TryDrop(entity, hand, checkActionBlocker: false, doDropInteraction: false, handsComp: hands);
-                }
-            }
-
-            _minds.WipeMind(mindId, mind);
-            QueueDel(entity);
-
-            if (_playerManager.TryGetSessionById(uid, out var session))
-                _gameTicker.SpawnObserver(session);
+            var coordinates = _transform.GetMoverCoordinates(entity, transform);
+            var name = Identity.Entity(entity, EntityManager);
+            _popup.PopupCoordinates(Loc.GetString("admin-erase-popup", ("user", name)), coordinates, PopupType.LargeCaution);
+            var filter = Filter.Pvs(coordinates, 1, EntityManager, _playerManager);
+            var audioParams = new AudioParams().WithVolume(3);
+            _audio.PlayStatic(new SoundPathSpecifier("/Audio/_EinsteinEngines/Misc/reducedtoatmos.ogg"), filter, coordinates, true, audioParams); // Mono sound edit
         }
+
+        foreach (var item in _inventory.GetHandOrInventoryEntities(entity))
+        {
+            if (TryComp(item, out PdaComponent? pda) &&
+                TryComp(pda.ContainedId, out StationRecordKeyStorageComponent? keyStorage) &&
+                keyStorage.Key is { } key &&
+                _stationRecords.TryGetRecord(key, out GeneralStationRecord? record))
+            {
+                if (TryComp(entity, out DnaComponent? dna) &&
+                    dna.DNA != record.DNA)
+                {
+                    continue;
+                }
+
+                if (TryComp(entity, out FingerprintComponent? fingerPrint) &&
+                    fingerPrint.Fingerprint != record.Fingerprint)
+                {
+                    continue;
+                }
+
+                _stationRecords.RemoveRecord(key);
+                Del(item);
+            }
+        }
+
+        if (_inventory.TryGetContainerSlotEnumerator(entity, out var enumerator))
+        {
+            while (enumerator.NextItem(out var item, out var slot))
+            {
+                if (_inventory.TryUnequip(entity, entity, slot.Name, true, true))
+                    _physics.ApplyAngularImpulse(item, ThrowingSystem.ThrowAngularImpulse);
+            }
+        }
+
+        if (TryComp(entity, out HandsComponent? hands))
+        {
+            foreach (var hand in _hands.EnumerateHands(entity, hands))
+            {
+                _hands.TryDrop(entity, hand, checkActionBlocker: false, doDropInteraction: false, handsComp: hands);
+            }
+        }
+
+        _minds.WipeMind(mindId, mind);
+        QueueDel(entity);
+
+        if (_playerManager.TryGetSessionById(uid, out var session))
+            _gameTicker.SpawnObserver(session);
+    }
 
     private void OnSessionPlayTimeUpdated(ICommonSession session)
     {

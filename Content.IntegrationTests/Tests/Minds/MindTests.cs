@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System.Linq;
 using Content.Server.Ghost.Roles;
 using Content.Server.Ghost.Roles.Components;
@@ -144,7 +144,7 @@ public sealed partial class MindTests
         await server.WaitAssertion(() =>
         {
             var damageable = entMan.GetComponent<DamageableComponent>(entity);
-            if (!protoMan.TryIndex<DamageTypePrototype>("Blunt", out var prototype))
+            if (!protoMan.TryIndex<DamageTypePrototype>(new ProtoId<DamageTypePrototype>("Blunt"), out var prototype))
             {
                 return;
             }
@@ -299,7 +299,7 @@ public sealed partial class MindTests
 
             var jobRole = "";
 
-            roleSystem.MindAddJobRole(mindId, jobPrototype:jobRole);
+            roleSystem.MindAddJobRole(mindId, jobPrototype: jobRole);
 
             Assert.Multiple(() =>
             {

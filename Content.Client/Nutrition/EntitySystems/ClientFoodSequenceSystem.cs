@@ -4,8 +4,9 @@ using Robust.Client.GameObjects;
 
 namespace Content.Client.Nutrition.EntitySystems;
 
-public sealed class ClientFoodSequenceSystem : SharedFoodSequenceSystem
+public sealed partial class ClientFoodSequenceSystem : SharedFoodSequenceSystem
 {
+    [Dependency] private SpriteSystem _sprite = default!;
     public override void Initialize()
     {
         SubscribeLocalEvent<FoodSequenceStartPointComponent, AfterAutoHandleStateEvent>(OnHandleState);
@@ -27,7 +28,7 @@ public sealed class ClientFoodSequenceSystem : SharedFoodSequenceSystem
         //Remove old layers
         foreach (var key in start.Comp.RevealedLayers)
         {
-            sprite.RemoveLayer(key);
+            _sprite.RemoveLayer(sprite.AsEntity(), key);
         }
         start.Comp.RevealedLayers.Clear();
 
@@ -41,20 +42,20 @@ public sealed class ClientFoodSequenceSystem : SharedFoodSequenceSystem
             var keyCode = $"food-layer-{counter}";
             start.Comp.RevealedLayers.Add(keyCode);
 
-            sprite.LayerMapTryGet(start.Comp.TargetLayerMap, out var index);
+            _sprite.LayerMapTryGet(sprite.AsEntity(), start.Comp.TargetLayerMap, out var index, false);
 
             if (start.Comp.InverseLayers)
                 index++;
 
-            sprite.AddBlankLayer(index);
-            sprite.LayerMapSet(keyCode, index);
-            sprite.LayerSetSprite(index, state.Sprite);
-            sprite.LayerSetScale(index, state.Scale);
+            _sprite.AddBlankLayer(sprite.AsEntityComp(), index);
+            _sprite.LayerMapSet(sprite.AsEntity(), keyCode, index);
+            _sprite.LayerSetSprite(sprite.AsEntity(), index, state.Sprite);
+            _sprite.LayerSetScale(sprite.AsEntity(), index, state.Scale);
 
             //Offset the layer
             var layerPos = start.Comp.StartPosition;
             layerPos += (start.Comp.Offset * counter) + state.LocalOffset;
-            sprite.LayerSetOffset(index, layerPos);
+            _sprite.LayerSetOffset(sprite.AsEntity(), index, layerPos);
 
             counter++;
         }

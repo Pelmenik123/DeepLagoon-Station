@@ -11,14 +11,14 @@ namespace Content.Shared._DV.Construction;
 /// <summary>
 /// Handles upgrading machines using upgrade kits.
 /// </summary>
-public sealed class UpgradeKitSystem : EntitySystem
+public sealed partial class UpgradeKitSystem : EntitySystem
 {
-    [Dependency] private readonly EntityWhitelistSystem _whitelist = default!;
-    [Dependency] private readonly INetManager _net = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly SharedWiresSystem _wires = default!;
+    [Dependency] private EntityWhitelistSystem _whitelist = default!;
+    [Dependency] private INetManager _net = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedDoAfterSystem _doAfter = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedWiresSystem _wires = default!;
 
     public override void Initialize()
     {
@@ -30,7 +30,7 @@ public sealed class UpgradeKitSystem : EntitySystem
 
     private void OnAfterInteract(Entity<UpgradeKitComponent> ent, ref AfterInteractEvent args)
     {
-        if (args.Handled || !args.CanReach || args.Target is not {} target)
+        if (args.Handled || !args.CanReach || args.Target is not { } target)
             return;
 
         args.Handled = true;
@@ -57,7 +57,7 @@ public sealed class UpgradeKitSystem : EntitySystem
         if (args.Cancelled)
             return;
 
-        if (args.Handled || args.Args.Target is not {} target)
+        if (args.Handled || args.Args.Target is not { } target)
             return;
 
         args.Handled = true;

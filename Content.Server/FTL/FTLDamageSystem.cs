@@ -11,14 +11,14 @@ namespace Content.Server.FTL;
 /// This system applies crushing damage to entities that fall into FTL maps without being on a grid
 /// after a short delay
 /// </summary>
-public sealed class FTLDamageSystem : EntitySystem
+public sealed partial class FTLDamageSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageableSystem = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private DamageableSystem _damageableSystem = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     // Dictionary to track entities that are in FTL space without a grid and their timers
     private readonly Dictionary<EntityUid, TimeSpan> _pendingCrushes = new();
-    
+
     // Time delay before applying crush damage (2.5 seconds)
     private const float CrushDelay = 2.5f;
 
@@ -33,14 +33,14 @@ public sealed class FTLDamageSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-        
+
         // Current time
         var curTime = _timing.CurTime;
         var toRemove = new List<EntityUid>();
-        
+
         // Create a copy of the entries to safely iterate over
         var pendingCopy = new Dictionary<EntityUid, TimeSpan>(_pendingCrushes);
-        
+
         // Check all pending entities
         foreach (var (entity, crushTime) in pendingCopy)
         {
@@ -50,23 +50,23 @@ public sealed class FTLDamageSystem : EntitySystem
                 toRemove.Add(entity);
                 continue;
             }
-            
+
             // Check if transform component still exists
-            if (!TryComp<TransformComponent>(entity, out var transform))
+            if (!TryComp(entity, out TransformComponent? transform))
             {
                 toRemove.Add(entity);
                 continue;
             }
-            
+
             // If the entity is now on a grid or no longer in FTL space, remove it from pending
-            if (!transform.MapUid.HasValue || 
-                !HasComp<FTLMapComponent>(transform.MapUid.Value) || 
+            if (!transform.MapUid.HasValue ||
+                !HasComp<FTLMapComponent>(transform.MapUid.Value) ||
                 transform.GridUid.HasValue)
             {
                 toRemove.Add(entity);
                 continue;
             }
-            
+
             // Check if it's time to apply crush damage
             if (curTime >= crushTime)
             {
@@ -74,7 +74,7 @@ public sealed class FTLDamageSystem : EntitySystem
                 toRemove.Add(entity);
             }
         }
-        
+
         // Remove processed entities
         foreach (var entity in toRemove)
         {
@@ -87,7 +87,7 @@ public sealed class FTLDamageSystem : EntitySystem
         // Skip if the entity is deleted or queued for deletion
         if (EntityManager.Deleted(uid) || EntityManager.IsQueuedForDeletion(uid))
             return;
-            
+
         if (!transform.MapUid.HasValue)
             return;
 

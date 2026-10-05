@@ -9,13 +9,13 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared.DeviceLinking;
 
-public abstract class SharedDeviceLinkSystem : EntitySystem
+public abstract partial class SharedDeviceLinkSystem : EntitySystem
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
-    [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private SharedPopupSystem _popupSystem = default!;
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
 
     public const string InvokedPort = "link_port";
 
@@ -34,9 +34,9 @@ public abstract class SharedDeviceLinkSystem : EntitySystem
     /// </summary>
     private void OnSourceStartup(Entity<DeviceLinkSourceComponent> source, ref ComponentStartup args)
     {
-        List<EntityUid> invalidSinks = new();
-        List<(string, string)> invalidLinks = new();
-        foreach (var (sink, links)  in source.Comp.LinkedPorts)
+        List<EntityUid> invalidSinks = [];
+        List<(string, string)> invalidLinks = [];
+        foreach (var (sink, links) in source.Comp.LinkedPorts)
         {
             if (!TryComp(sink, out DeviceLinkSinkComponent? sinkComponent))
             {
@@ -142,6 +142,11 @@ public abstract class SharedDeviceLinkSystem : EntitySystem
         }
     }
 
+    public ProtoId<SourcePortPrototype>[] GetSourcePortIds(Entity<DeviceLinkSourceComponent> source)
+    {
+        return [.. source.Comp.Ports];
+    }
+
     /// <summary>
     /// Retrieves the available ports from a source
     /// </summary>
@@ -149,7 +154,7 @@ public abstract class SharedDeviceLinkSystem : EntitySystem
     public List<SourcePortPrototype> GetSourcePorts(EntityUid sourceUid, DeviceLinkSourceComponent? sourceComponent = null)
     {
         if (!Resolve(sourceUid, ref sourceComponent))
-            return new List<SourcePortPrototype>();
+            return [];
 
         var sourcePorts = new List<SourcePortPrototype>();
         foreach (var port in sourceComponent.Ports)
@@ -160,6 +165,11 @@ public abstract class SharedDeviceLinkSystem : EntitySystem
         return sourcePorts;
     }
 
+    public ProtoId<SinkPortPrototype>[] GetSinkPortIds(Entity<DeviceLinkSinkComponent> sink)
+    {
+        return [.. sink.Comp.Ports];
+    }
+
     /// <summary>
     /// Retrieves the available ports from a sink
     /// </summary>
@@ -167,7 +177,7 @@ public abstract class SharedDeviceLinkSystem : EntitySystem
     public List<SinkPortPrototype> GetSinkPorts(EntityUid sinkUid, DeviceLinkSinkComponent? sinkComponent = null)
     {
         if (!Resolve(sinkUid, ref sinkComponent))
-            return new List<SinkPortPrototype>();
+            return [];
 
         var sinkPorts = new List<SinkPortPrototype>();
         foreach (var port in sinkComponent.Ports)
@@ -224,7 +234,7 @@ public abstract class SharedDeviceLinkSystem : EntitySystem
     public HashSet<(ProtoId<SourcePortPrototype> source, ProtoId<SinkPortPrototype> sink)> GetLinks(EntityUid sourceUid, EntityUid sinkUid, DeviceLinkSourceComponent? sourceComponent = null)
     {
         if (!Resolve(sourceUid, ref sourceComponent) || !sourceComponent.LinkedPorts.TryGetValue(sinkUid, out var links))
-            return new HashSet<(ProtoId<SourcePortPrototype>, ProtoId<SinkPortPrototype>)>();
+            return [];
 
         return links;
     }
@@ -240,7 +250,7 @@ public abstract class SharedDeviceLinkSystem : EntitySystem
         foreach (var source in sources)
         {
             if (source.DefaultLinks == null)
-                return new List<(string, string)>();
+                return [];
 
             foreach (var defaultLink in source.DefaultLinks)
             {

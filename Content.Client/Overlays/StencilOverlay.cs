@@ -17,11 +17,11 @@ namespace Content.Client.Overlays;
 /// </summary>
 public sealed partial class StencilOverlay : Overlay
 {
-    [Dependency] private readonly IClyde _clyde = default!;
-    [Dependency] private readonly IEntityManager _entManager = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IMapManager _mapManager = default!;
-    [Dependency] private readonly IPrototypeManager _protoManager = default!;
+    [Dependency] private IClyde _clyde = default!;
+    [Dependency] private IEntityManager _entManager = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    SharedMapSystem _mapManager => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
+    [Dependency] private IPrototypeManager _protoManager = default!;
     private readonly ParallaxSystem _parallax;
     private readonly SharedTransformSystem _transform;
     private readonly SharedMapSystem _map;
@@ -43,12 +43,12 @@ public sealed partial class StencilOverlay : Overlay
         _sprite = sprite;
         _weather = weather;
         IoCManager.InjectDependencies(this);
-        _shader = _protoManager.Index<ShaderPrototype>("WorldGradientCircle").InstanceUnique();
+        _shader = _protoManager.Index<ShaderPrototype>(new ProtoId<ShaderPrototype>("WorldGradientCircle")).InstanceUnique();
     }
 
     protected override void Draw(in OverlayDrawArgs args)
     {
-        var mapUid = _mapManager.GetMapEntityId(args.MapId);
+        var mapUid = _mapManager.GetMap(args.MapId);
         var invMatrix = args.Viewport.GetWorldToLocalMatrix();
 
         if (_blep?.Texture.Size != args.Viewport.Size)
@@ -78,3 +78,4 @@ public sealed partial class StencilOverlay : Overlay
         args.WorldHandle.SetTransform(Matrix3x2.Identity);
     }
 }
+

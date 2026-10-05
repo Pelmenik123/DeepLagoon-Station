@@ -11,7 +11,7 @@ public sealed partial class DungeonJob
     /// <summary>
     /// <see cref="WallMountDunGen"/>
     /// </summary>
-    private async Task PostGen(WallMountDunGen gen, DungeonData data, Dungeon dungeon, HashSet<Vector2i> reservedTiles, Random random)
+    private async Task PostGen(WallMountDunGen gen, DungeonData data, Dungeon dungeon, HashSet<Vector2i> reservedTiles, IRobustRandom random)
     {
         if (!data.Tiles.TryGetValue(DungeonDataKey.FallbackTile, out var tileProto))
         {
@@ -20,7 +20,7 @@ public sealed partial class DungeonJob
         }
 
         var tileDef = _prototype.Index(tileProto);
-        bool validProto = data.SpawnGroups.TryGetValue(DungeonDataKey.WallMounts, out var spawnProto); // Frontier: assign to validProto
+        var validProto = data.SpawnGroups.TryGetValue(DungeonDataKey.WallMounts, out var spawnProto); // Frontier: assign to validProto
         if (!validProto) // Frontier: add error handling
             _sawmill.Warning($"No wallmount spawn group for dungeon type."); // Frontier: add error handling
 
@@ -32,10 +32,9 @@ public sealed partial class DungeonJob
         foreach (var neighbor in allExterior)
         {
             // Occupado
-            if (dungeon.RoomTiles.Contains(neighbor) || checkedTiles.Contains(neighbor) || !_anchorable.TileFree(_grid, neighbor, DungeonSystem.CollisionLayer, DungeonSystem.CollisionMask))
+            if (dungeon.RoomTiles.Contains(neighbor) || checkedTiles.Contains(neighbor) || !_anchorable.TileFree(_gridUid, _grid, neighbor, DungeonSystem.CollisionLayer, DungeonSystem.CollisionMask))
                 continue;
-
-            if (!random.Prob(gen.Prob) || !checkedTiles.Add(neighbor))
+            if (random.NextDouble() >= gen.Prob || !checkedTiles.Add(neighbor))
                 continue;
 
             _maps.SetTile(_gridUid, _grid, neighbor, _tile.GetVariantTile(tileDef, random));
@@ -45,7 +44,7 @@ public sealed partial class DungeonJob
                 continue; // Frontier: error handling
             var protoNames = EntitySpawnCollection.GetSpawns(_prototype.Index(spawnProto).Entries, random);
 
-            _entManager.SpawnEntities(gridPos, protoNames);
+            SpawnEntities(gridPos, protoNames);
             count += protoNames.Count;
 
             if (count > 20)

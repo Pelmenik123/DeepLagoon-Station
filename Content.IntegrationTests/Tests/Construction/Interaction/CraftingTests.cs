@@ -92,7 +92,7 @@ public sealed class CraftingTests : InteractionTest
             Assert.That(sys.IsEntityInContainer(shard), Is.False);
         });
 
-#pragma warning disable CS4014 // Legacy construction code uses DoAfterAwait. If we await it we will be waiting forever.
+#pragma warning disable CS4014 // Upstream SS14 keeps this: legacy DoAfterAwait fires an event; awaiting it would block forever.
         await Server.WaitPost(() => SConstruction.TryStartItemConstruction(Spear, SEntMan.GetEntity(Player)));
 #pragma warning restore CS4014
         await RunTicks(1);
@@ -116,7 +116,7 @@ public sealed class CraftingTests : InteractionTest
         await AssertEntityLookup((Rod, 10), (Cable, 10), (ShardGlass, 1));
 
         // Re-attempt the do-after
-#pragma warning disable CS4014 // Legacy construction code uses DoAfterAwait. See above.
+#pragma warning disable CS4014 // Upstream SS14 keeps this: legacy DoAfterAwait fires an event; awaiting it would block forever.
         await Server.WaitPost(() => SConstruction.TryStartItemConstruction(Spear, SEntMan.GetEntity(Player)));
 #pragma warning restore CS4014
         await RunTicks(1);

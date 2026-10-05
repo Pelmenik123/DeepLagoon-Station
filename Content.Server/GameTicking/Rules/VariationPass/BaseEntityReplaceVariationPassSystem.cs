@@ -1,4 +1,4 @@
-﻿using Content.Server.GameTicking.Rules.VariationPass.Components;
+using Content.Server.GameTicking.Rules.VariationPass.Components;
 using Content.Shared.Storage;
 using Robust.Shared.Map;
 using Robust.Shared.Random;
@@ -16,8 +16,8 @@ namespace Content.Server.GameTicking.Rules.VariationPass;
 ///     See <see cref="WallReplaceVariationPassSystem"/>
 /// </summary>
 public abstract class BaseEntityReplaceVariationPassSystem<TEntComp, TGameRuleComp> : VariationPassSystem<TGameRuleComp>
-    where TEntComp: IComponent
-    where TGameRuleComp: IComponent
+    where TEntComp : IComponent
+    where TGameRuleComp : IComponent
 {
     /// <summary>
     ///     Used so we don't modify while enumerating
@@ -36,7 +36,7 @@ public abstract class BaseEntityReplaceVariationPassSystem<TEntComp, TGameRuleCo
         stopwatch.Start();
 
         var replacementMod = Random.NextGaussian(pass.EntitiesPerReplacementAverage, pass.EntitiesPerReplacementStdDev);
-        var prob = (float) Math.Clamp(1 / replacementMod, 0f, 1f);
+        var prob = (float)Math.Clamp(1 / replacementMod, 0f, 1f);
 
         if (prob == 0)
             return;
@@ -55,7 +55,7 @@ public abstract class BaseEntityReplaceVariationPassSystem<TEntComp, TGameRuleCo
         {
             var (spawn, coords, rot) = tup;
             var newEnt = Spawn(spawn, coords);
-            Transform(newEnt).LocalRotation = rot;
+            EntityManager.System<SharedTransformSystem>().SetLocalRotation(newEnt, rot);
         }
 
         Log.Debug($"Entity replacement took {stopwatch.Elapsed} with {Stations.GetTileCount(args.Station)} tiles");

@@ -6,10 +6,10 @@ using Robust.Shared.Player;
 
 namespace Content.Server.OfHolding
 {
-    public sealed class OfHoldingSystem : EntitySystem
+    public sealed partial class OfHoldingSystem : EntitySystem
     {
-        [Dependency] private readonly PopupSystem _popupSystem = default!;
-        [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
+        [Dependency] private PopupSystem _popupSystem = default!;
+        [Dependency] private ISharedAdminLogManager _adminLogger = default!;
         public override void Initialize()
         {
             base.Initialize();
@@ -29,7 +29,7 @@ namespace Content.Server.OfHolding
                     _popupSystem.PopupEntity(Loc.GetString("of-holding-warn"), uid, args.User);
                     return;
                 }
-                EntityManager.SpawnEntity("Singularity", Transform(args.User).Coordinates);
+                Spawn("Singularity", Transform(args.User).Coordinates);
                 _adminLogger.Add(LogType.Action, LogImpact.Extreme, $"{ToPrettyString(args.User):player} released a singularity by combining 2 bags of holding.");
             }
         }

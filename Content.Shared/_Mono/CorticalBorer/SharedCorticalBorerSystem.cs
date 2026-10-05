@@ -23,17 +23,17 @@ using Robust.Shared.Serialization.Manager;
 
 namespace Content.Shared._Mono.CorticalBorer;
 
-public partial class SharedCorticalBorerSystem : EntitySystem
+public abstract partial class SharedCorticalBorerSystem : EntitySystem
 {
-    [Dependency] private readonly SharedBodySystem _bodySystem = default!;
-    [Dependency] private readonly StatusEffectsSystem _statusEffects = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly ISerializationManager _serManager = default!;
-    [Dependency] private readonly DamageableSystem _damage = default!;
-    [Dependency] protected readonly SharedPopupSystem _popup = default!;
-    [Dependency] protected readonly SharedUserInterfaceSystem _ui = default!;
-    [Dependency] protected readonly SharedActionsSystem _actions = default!;
-    [Dependency] protected readonly SharedContainerSystem _container = default!;
+    [Dependency] private SharedBodySystem _bodySystem = default!;
+    [Dependency] private StatusEffectsSystem _statusEffects = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private ISerializationManager _serManager = default!;
+    [Dependency] private DamageableSystem _damage = default!;
+    [Dependency] protected SharedPopupSystem _popup = default!;
+    [Dependency] protected SharedUserInterfaceSystem _ui = default!;
+    [Dependency] protected SharedActionsSystem _actions = default!;
+    [Dependency] protected SharedContainerSystem _container = default!;
 
     public bool CanUseAbility(Entity<CorticalBorerComponent> ent, EntityUid target)
     {
@@ -73,8 +73,8 @@ public partial class SharedCorticalBorerSystem : EntitySystem
                 if (HasComp(ent, compType))
                     continue;
 
-                var newComp = (Component) _serManager.CreateCopy(compReg.Component, notNullableOverride: true);
-                EntityManager.AddComponent(ent, newComp, true);
+                var newComp = (Component)_serManager.CreateCopy(compReg.Component, notNullableOverride: true);
+                AddComp(ent, newComp, true);
             }
         }
 
@@ -102,8 +102,8 @@ public partial class SharedCorticalBorerSystem : EntitySystem
         // close all the UIs that relate to host
         if (TryComp<UserInterfaceComponent>(ent, out var uic))
         {
-            _ui.CloseUi((ent.Owner,uic), HealthAnalyzerUiKey.Key);
-            _ui.CloseUi((ent.Owner,uic), CorticalBorerDispenserUiKey.Key);
+            _ui.CloseUi((ent.Owner, uic), HealthAnalyzerUiKey.Key);
+            _ui.CloseUi((ent.Owner, uic), CorticalBorerDispenserUiKey.Key);
         }
 
         RemCompDeferred<CorticalBorerInfestedComponent>(ent.Comp.Host.Value);
@@ -117,8 +117,8 @@ public partial class SharedCorticalBorerSystem : EntitySystem
                 if (HasComp(ent, compType))
                     continue;
 
-                var newComp = (Component) _serManager.CreateCopy(compReg.Component, notNullableOverride: true);
-                EntityManager.AddComponent(ent, newComp, true);
+                var newComp = (Component)_serManager.CreateCopy(compReg.Component, notNullableOverride: true);
+                AddComp(ent, newComp, true);
             }
         }
 
@@ -136,7 +136,7 @@ public partial class SharedCorticalBorerSystem : EntitySystem
         if (ent.Comp.Host is not { } host)
             return;
 
-        if (ent.Comp.EggProto is not {} egg)
+        if (ent.Comp.EggProto is not { } egg)
             return;
 
         var coordinates = _transform.ToMapCoordinates(host.ToCoordinates());

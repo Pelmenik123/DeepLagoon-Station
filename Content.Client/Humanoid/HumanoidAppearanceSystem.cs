@@ -9,10 +9,11 @@ using Robust.Shared.Utility;
 
 namespace Content.Client.Humanoid;
 
-public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
+public sealed partial class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly MarkingManager _markingManager = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private MarkingManager _markingManager = default!;
 
     public override void Initialize()
     {
@@ -31,7 +32,7 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
         UpdateLayers(component, sprite);
         ApplyMarkingSet(component, sprite);
 
-        sprite[sprite.LayerMapReserveBlank(HumanoidVisualLayers.Eyes)].Color = component.EyeColor;
+        sprite[_sprite.LayerMapReserve(sprite.AsEntity(), HumanoidVisualLayers.Eyes)].Color = component.EyeColor;
     }
 
     private static bool IsHidden(HumanoidAppearanceComponent humanoid, HumanoidVisualLayers layer)
@@ -64,7 +65,7 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
         // TODO maybe just remove them altogether?
         foreach (var key in oldLayers)
         {
-            if (sprite.LayerMapTryGet(key, out var index))
+            if (_sprite.LayerMapTryGet(sprite.AsEntity(), key, out var index, false))
                 sprite[index].Visible = false;
         }
     }
@@ -78,7 +79,7 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
         Color? color = null,
         bool overrideSkin = false) // Shitmed Change
     {
-        var layerIndex = sprite.LayerMapReserveBlank(key);
+        var layerIndex = _sprite.LayerMapReserve(sprite.AsEntity(), key);
         var layer = sprite[layerIndex];
         layer.Visible = !IsHidden(component, key);
 
@@ -98,7 +99,7 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
             layer.Color = component.SkinColor.WithAlpha(proto.LayerAlpha);
 
         if (proto.BaseSprite != null)
-            sprite.LayerSetSprite(layerIndex, proto.BaseSprite);
+            _sprite.LayerSetSprite(sprite.AsEntity(), layerIndex, proto.BaseSprite);
     }
 
     /// <summary>
@@ -208,7 +209,7 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
         // Check to prevent sprite scale errors for old profiles
         var width = profile.Appearance.Width <= 0.005f ? 1.0f : profile.Appearance.Width;
         var height = profile.Appearance.Height <= 0.005f ? 1.0f : profile.Appearance.Height;
-        sprite.Scale = new Vector2(width, height);
+        _sprite.SetScale(sprite.AsEntity(), new Vector2(width, height));
 
         UpdateSprite(humanoid, Comp<SpriteComponent>(uid));
     }
@@ -267,13 +268,13 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
             }
 
             var layerId = $"{marking.MarkingId}-{rsi.RsiState}";
-            if (!spriteComp.LayerMapTryGet(layerId, out var index))
+            if (!_sprite.LayerMapTryGet(spriteComp.AsEntity(), layerId, out var index, false))
             {
                 continue;
             }
 
-            spriteComp.LayerMapRemove(layerId);
-            spriteComp.RemoveLayer(index);
+            _sprite.LayerMapRemove(spriteComp.AsEntity(), layerId);
+            _sprite.RemoveLayer(spriteComp.AsEntity(), index);
         }
     }
     private void ApplyMarking(MarkingPrototype markingPrototype,
@@ -282,7 +283,7 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
         HumanoidAppearanceComponent humanoid,
         SpriteComponent sprite)
     {
-        if (!sprite.LayerMapTryGet(markingPrototype.BodyPart, out int targetLayer))
+        if (!_sprite.LayerMapTryGet(sprite.AsEntity(), markingPrototype.BodyPart, out int targetLayer, false))
         {
             return;
         }
@@ -302,20 +303,20 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
 
             var layerId = $"{markingPrototype.ID}-{rsi.RsiState}";
 
-            if (!sprite.LayerMapTryGet(layerId, out _))
+            if (!_sprite.LayerMapTryGet(sprite.AsEntity(), layerId, out _, false))
             {
-                var layer = sprite.AddLayer(markingSprite, targetLayer + j + 1);
-                sprite.LayerMapSet(layerId, layer);
-                sprite.LayerSetSprite(layerId, rsi);
+                var layer = _sprite.AddLayer(sprite.AsEntity(), markingSprite, targetLayer + j + 1);
+                _sprite.LayerMapSet(sprite.AsEntity(), layerId, layer);
+                _sprite.LayerSetSprite(sprite.AsEntity(), layerId, rsi);
             }
-		    // impstation edit begin - check if there's a shader defined in the markingPrototype's shader datafield, and if there is...
-			if (markingPrototype.Shader != null)
-			{
-			// use spriteComponent's layersetshader function to set the layer's shader to that which is specified.
-				sprite.LayerSetShader(layerId, markingPrototype.Shader);
-			}
-			// impstation edit end
-            sprite.LayerSetVisible(layerId, visible);
+            // impstation edit begin - check if there's a shader defined in the markingPrototype's shader datafield, and if there is...
+            if (markingPrototype.Shader != null)
+            {
+                // use spriteComponent's layersetshader function to set the layer's shader to that which is specified.
+                sprite.LayerSetShader(layerId, markingPrototype.Shader);
+            }
+            // impstation edit end
+            _sprite.LayerSetVisible(sprite.AsEntity(), layerId, visible);
 
             if (!visible || setting == null) // this is kinda implied
             {
@@ -327,11 +328,11 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
             // So if that happens just default to white?
             if (colors != null && j < colors.Count)
             {
-                sprite.LayerSetColor(layerId, colors[j]);
+                _sprite.LayerSetColor(sprite.AsEntity(), layerId, colors[j]);
             }
             else
             {
-                sprite.LayerSetColor(layerId, Color.White);
+                _sprite.LayerSetColor(sprite.AsEntity(), layerId, Color.White);
             }
         }
     }
@@ -351,7 +352,7 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
             if (!spriteInfo.MatchSkin)
                 continue;
 
-            var index = sprite.LayerMapReserveBlank(layer);
+            var index = _sprite.LayerMapReserve(sprite.AsEntity(), layer);
             sprite[index].Color = skinColor.WithAlpha(spriteInfo.LayerAlpha);
         }
     }
@@ -367,12 +368,12 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
         base.SetLayerVisibility(uid, humanoid, layer, visible, permanent, ref dirty);
 
         var sprite = Comp<SpriteComponent>(uid);
-        if (!sprite.LayerMapTryGet(layer, out var index))
+        if (!_sprite.LayerMapTryGet(sprite.AsEntity(), layer, out var index, false))
         {
             if (!visible)
                 return;
             else
-                index = sprite.LayerMapReserveBlank(layer);
+                index = _sprite.LayerMapReserve(sprite.AsEntity(), layer);
         }
 
         var spriteLayer = sprite[index];

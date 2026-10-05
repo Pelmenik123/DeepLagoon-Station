@@ -12,13 +12,13 @@ internal static class AmbientOcclusionMobSpot
     {
         var pixels = new Rgba32[Size * Size];
         for (var y = 0; y < Size; y++)
-        for (var x = 0; x < Size; x++)
-        {
-            var delta = new Vector2((x + 0.5f) / Size * 2 - 1, (y + 0.5f) / Size * 2 - 1);
-            var falloff = Math.Max(0, 1 - delta.LengthSquared());
-            var alpha = MathF.Round(falloff * falloff * 8) / 8 * 0.22f;
-            pixels[y * Size + x].A = (byte) MathF.Round(alpha * 255);
-        }
+            for (var x = 0; x < Size; x++)
+            {
+                var delta = new Vector2((x + 0.5f) / Size * 2 - 1, (y + 0.5f) / Size * 2 - 1);
+                var falloff = Math.Max(0, 1 - delta.LengthSquared());
+                var alpha = MathF.Round(falloff * falloff * 8) / 8 * 0.22f;
+                pixels[y * Size + x].A = (byte)MathF.Round(alpha * 255);
+            }
         return pixels;
     }
 

@@ -18,7 +18,6 @@ using Content.Server.Shuttles.Components;
 using Content.Server._NF.Shuttles.Components;
 using Content.Shared._Mono;
 using Content.Shared.Atmos.Components;
-using Content.Shared.Atmos.Components;
 using Content.Shared.Audio;
 using Content.Shared.CCVar;
 using Content.Shared.Clothing;

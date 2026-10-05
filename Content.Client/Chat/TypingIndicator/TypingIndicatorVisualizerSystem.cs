@@ -1,4 +1,4 @@
-﻿using Content.Shared.Chat.TypingIndicator;
+using Content.Shared.Chat.TypingIndicator;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Shared.Prototypes;
@@ -6,10 +6,11 @@ using Content.Shared.Inventory;
 
 namespace Content.Client.Chat.TypingIndicator;
 
-public sealed class TypingIndicatorVisualizerSystem : VisualizerSystem<TypingIndicatorComponent>
+public sealed partial class TypingIndicatorVisualizerSystem : VisualizerSystem<TypingIndicatorComponent>
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly InventorySystem _inventory = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private InventorySystem _inventory = default!;
 
 
     protected override void OnAppearanceChange(EntityUid uid, TypingIndicatorComponent component, ref AppearanceChangeEvent args)
@@ -36,14 +37,14 @@ public sealed class TypingIndicatorVisualizerSystem : VisualizerSystem<TypingInd
         }
 
         AppearanceSystem.TryGetData<bool>(uid, TypingIndicatorVisuals.IsTyping, out var isTyping, args.Component);
-        var layerExists = args.Sprite.LayerMapTryGet(TypingIndicatorLayers.Base, out var layer);
+        var layerExists = _sprite.LayerMapTryGet(args.Sprite.AsEntity(), TypingIndicatorLayers.Base, out var layer, false);
         if (!layerExists)
-            layer = args.Sprite.LayerMapReserveBlank(TypingIndicatorLayers.Base);
+            layer = _sprite.LayerMapReserve(args.Sprite.AsEntity(), TypingIndicatorLayers.Base);
 
-        args.Sprite.LayerSetRSI(layer, proto.SpritePath);
-        args.Sprite.LayerSetState(layer, proto.TypingState);
+        _sprite.LayerSetRsi(args.Sprite.AsEntity(), layer, proto.SpritePath);
+        _sprite.LayerSetRsiState(args.Sprite.AsEntity(), layer, proto.TypingState);
         args.Sprite.LayerSetShader(layer, proto.Shader);
-        args.Sprite.LayerSetOffset(layer, proto.Offset);
-        args.Sprite.LayerSetVisible(layer, isTyping);
+        _sprite.LayerSetOffset(args.Sprite.AsEntity(), layer, proto.Offset);
+        _sprite.LayerSetVisible(args.Sprite.AsEntity(), layer, isTyping);
     }
 }

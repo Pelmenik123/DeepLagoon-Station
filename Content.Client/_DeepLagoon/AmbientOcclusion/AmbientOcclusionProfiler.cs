@@ -74,8 +74,8 @@ internal sealed class AmbientOcclusionProfiler(Action<string> output, double sec
         var frames = _samples.Select(x => x.FrameMs).Order().ToArray();
         var average = frames.Average();
         double Mean(Func<AmbientOcclusionFrameStats, double> selector) => _samples.Average(x => selector(x.Stats));
-        var p95 = frames[Math.Min(frames.Length - 1, (int) Math.Ceiling(frames.Length * 0.95) - 1)];
-        var p99 = frames[Math.Min(frames.Length - 1, (int) Math.Ceiling(frames.Length * 0.99) - 1)];
+        var p95 = frames[Math.Min(frames.Length - 1, (int)Math.Ceiling(frames.Length * 0.95) - 1)];
+        var p99 = frames[Math.Min(frames.Length - 1, (int)Math.Ceiling(frames.Length * 0.99) - 1)];
         output(string.Format(CultureInfo.InvariantCulture,
             "AO {0} stutter: p99={1:F3}ms, max={2:F3}ms, frames >33ms={3}, >50ms={4}; AO CPU max={5:F3}ms.",
             Mode, p99, frames[^1], frames.Count(f => f > 33), frames.Count(f => f > 50),

@@ -15,15 +15,15 @@ using Robust.Shared.Timing;
 
 namespace Content.Shared.Clumsy;
 
-public sealed class ClumsySystem : EntitySystem
+public sealed partial class ClumsySystem : EntitySystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly SharedStunSystem _stun = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private SharedStunSystem _stun = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
 
     public override void Initialize()
     {
@@ -106,8 +106,8 @@ public sealed class ClumsySystem : EntitySystem
         // If someone is putting you on the table, always get past the guard.
         // goob station fix some bonks
         if (!_cfg.GetCVar(CCVars.GameTableBonk)
-            || args.PuttingOnTable !=ent.Owner
-            || !rand.Prob(ent.Comp.ClumsyDefaultCheck))
+            || args.PuttingOnTable != ent.Owner
+            || rand.NextDouble() >= ent.Comp.ClumsyDefaultCheck)
             return;
 
         HitHeadClumsy(ent, args.BeingClimbedOn);

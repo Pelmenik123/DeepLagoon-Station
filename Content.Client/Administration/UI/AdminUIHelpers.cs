@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using Content.Client.Stylesheets;
 using Robust.Client.UserInterface.Controls;
 using Timer = Robust.Shared.Timing.Timer;

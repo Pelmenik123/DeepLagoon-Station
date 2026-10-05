@@ -5,9 +5,10 @@ using Robust.Shared.Serialization.Manager;
 
 namespace Content.Client.DisplacementMap;
 
-public sealed class DisplacementMapSystem : EntitySystem
+public sealed partial class DisplacementMapSystem : EntitySystem
 {
-    [Dependency] private readonly ISerializationManager _serialization = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private ISerializationManager _serialization = default!;
 
     public bool TryAddDisplacement(DisplacementData data, SpriteComponent sprite, int index, string key, HashSet<string> revealedLayers)
     {
@@ -24,7 +25,7 @@ public sealed class DisplacementMapSystem : EntitySystem
         //allows you not to write it every time in the YML
         foreach (var pair in data.SizeMaps)
         {
-            pair.Value.CopyToShaderParameters??= new()
+            pair.Value.CopyToShaderParameters ??= new()
             {
                 LayerKey = "dummy",
                 ParameterTexture = "displacementMap",
@@ -41,7 +42,7 @@ public sealed class DisplacementMapSystem : EntitySystem
         // We choose a displacement map from the possible ones, matching the size with the original layer size.
         // If there is no such a map, we use a standard 32 by 32 one
         var displacementDataLayer = data.SizeMaps[EyeManager.PixelsPerMeter];
-        var actualRSI = sprite.LayerGetActualRSI(index);
+        var actualRSI = _sprite.LayerGetEffectiveRsi(sprite.AsEntity(), index);
         if (actualRSI is not null)
         {
             if (actualRSI.Size.X != actualRSI.Size.Y)
@@ -55,8 +56,8 @@ public sealed class DisplacementMapSystem : EntitySystem
         var displacementLayer = _serialization.CreateCopy(displacementDataLayer, notNullableOverride: true);
         displacementLayer.CopyToShaderParameters!.LayerKey = key;
 
-        sprite.AddLayer(displacementLayer, index);
-        sprite.LayerMapSet(displacementKey, index);
+        _sprite.AddLayer(sprite.AsEntity(), displacementLayer, index);
+        _sprite.LayerMapSet(sprite.AsEntity(), displacementKey, index);
 
         revealedLayers.Add(displacementKey);
 

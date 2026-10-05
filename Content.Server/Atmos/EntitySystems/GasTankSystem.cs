@@ -23,18 +23,18 @@ using Content.Shared.CCVar;
 namespace Content.Server.Atmos.EntitySystems
 {
     [UsedImplicitly]
-    public sealed class GasTankSystem : EntitySystem
+    public sealed partial class GasTankSystem : EntitySystem
     {
-        [Dependency] private readonly AtmosphereSystem _atmosphereSystem = default!;
-        [Dependency] private readonly ExplosionSystem _explosions = default!;
-        [Dependency] private readonly InternalsSystem _internals = default!;
-        [Dependency] private readonly SharedAudioSystem _audioSys = default!;
-        [Dependency] private readonly SharedContainerSystem _containers = default!;
-        [Dependency] private readonly SharedActionsSystem _actions = default!;
-        [Dependency] private readonly UserInterfaceSystem _ui = default!;
-        [Dependency] private readonly IRobustRandom _random = default!;
-        [Dependency] private readonly ThrowingSystem _throwing = default!;
-        [Dependency] private readonly IConfigurationManager _cfg = default!;
+        [Dependency] private AtmosphereSystem _atmosphereSystem = default!;
+        [Dependency] private ExplosionSystem _explosions = default!;
+        [Dependency] private InternalsSystem _internals = default!;
+        [Dependency] private SharedAudioSystem _audioSys = default!;
+        [Dependency] private SharedContainerSystem _containers = default!;
+        [Dependency] private SharedActionsSystem _actions = default!;
+        [Dependency] private UserInterfaceSystem _ui = default!;
+        [Dependency] private IRobustRandom _random = default!;
+        [Dependency] private ThrowingSystem _throwing = default!;
+        [Dependency] private IConfigurationManager _cfg = default!;
 
         private const float TimerDelay = 0.5f;
         private float _timer = 0f;

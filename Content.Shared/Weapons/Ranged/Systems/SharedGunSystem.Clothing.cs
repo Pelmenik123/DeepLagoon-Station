@@ -7,7 +7,7 @@ namespace Content.Shared.Weapons.Ranged.Systems;
 
 public partial class SharedGunSystem
 {
-    [Dependency] private readonly InventorySystem _inventory = default!;
+    [Dependency] InventorySystem _inventory = default!;
 
     private void InitializeClothing()
     {

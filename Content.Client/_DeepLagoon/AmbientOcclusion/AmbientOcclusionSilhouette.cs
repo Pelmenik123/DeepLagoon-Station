@@ -23,7 +23,7 @@ internal static class AmbientOcclusionSilhouette
         var cardinal = Angle.Zero;
 
         // If we have a 1-directional sprite then snap it to try and always face it south if applicable.
-        if (sprite is {NoRotation: false, SnapCardinals: true})
+        if (sprite is { NoRotation: false, SnapCardinals: true })
             cardinal = angle.RoundToCardinalAngle();
 
         // worldRotation + eyeRotation should be the angle of the entity on-screen. If no-rot is enabled this is just set to zero.
@@ -94,7 +94,7 @@ internal static class AmbientOcclusionSilhouette
         var texture = state?.GetFrame(dir, layer.AnimationFrame) ?? layer.Texture ?? sprites.GetFallbackTexture();
         var transformMatrix = Matrix3x2.Multiply(layerMatrix, spriteMatrix);
         drawingHandle.SetTransform(in transformMatrix);
-        var textureSize = texture.Size / (float) EyeManager.PixelsPerMeter;
+        var textureSize = texture.Size / (float)EyeManager.PixelsPerMeter;
         drawingHandle.DrawTextureRectRegion(texture, Box2.FromDimensions(textureSize / -2, textureSize),
             tint.WithAlpha(tint.A * spriteAlpha * layer.Color.A));
     }

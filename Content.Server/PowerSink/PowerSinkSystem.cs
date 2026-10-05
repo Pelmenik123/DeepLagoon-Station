@@ -1,4 +1,4 @@
-﻿using Content.Server.Explosion.EntitySystems;
+using Content.Server.Explosion.EntitySystems;
 using Content.Server.Power.Components;
 using Content.Shared.Examine;
 using Robust.Shared.Utility;
@@ -11,7 +11,7 @@ using Content.Server.Power.EntitySystems;
 
 namespace Content.Server.PowerSink
 {
-    public sealed class PowerSinkSystem : EntitySystem
+    public sealed partial class PowerSinkSystem : EntitySystem
     {
         /// <summary>
         /// Percentage of battery full to trigger the announcement warning at.
@@ -27,12 +27,12 @@ namespace Content.Server.PowerSink
         /// <returns></returns>
         private readonly TimeSpan _explosionDelayTime = TimeSpan.FromSeconds(1.465);
 
-        [Dependency] private readonly IGameTiming _gameTiming = default!;
-        [Dependency] private readonly ChatSystem _chat = default!;
-        [Dependency] private readonly ExplosionSystem _explosionSystem = default!;
-        [Dependency] private readonly SharedAudioSystem _audio = default!;
-        [Dependency] private readonly StationSystem _station = default!;
-        [Dependency] private readonly BatterySystem _battery = default!;
+        [Dependency] private IGameTiming _gameTiming = default!;
+        [Dependency] private ChatSystem _chat = default!;
+        [Dependency] private ExplosionSystem _explosionSystem = default!;
+        [Dependency] private SharedAudioSystem _audio = default!;
+        [Dependency] private StationSystem _station = default!;
+        [Dependency] private BatterySystem _battery = default!;
 
         public override void Initialize()
         {
@@ -46,7 +46,7 @@ namespace Content.Server.PowerSink
             if (!args.IsInDetailsRange || !TryComp<PowerConsumerComponent>(uid, out var consumer))
                 return;
 
-            var drainAmount = (int) consumer.NetworkLoad.ReceivingPower / 1000;
+            var drainAmount = (int)consumer.NetworkLoad.ReceivingPower / 1000;
             args.PushMarkup(
                 Loc.GetString(
                     "powersink-examine-drain-amount",
@@ -111,7 +111,7 @@ namespace Content.Server.PowerSink
             foreach (var (entity, component) in toRemove)
             {
                 _explosionSystem.QueueExplosion(entity, "PowerSink", 2000f, 4f, 20f, canCreateVacuum: true);
-                EntityManager.RemoveComponent(entity, component);
+                RemComp(entity, component);
             }
         }
 

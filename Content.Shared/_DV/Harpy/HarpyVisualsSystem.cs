@@ -5,12 +5,12 @@ using Content.Shared._NF.Clothing.Components; // Frontier
 
 namespace Content.Shared._DV.Harpy;
 
-public sealed class HarpyVisualsSystem : EntitySystem
+public sealed partial class HarpyVisualsSystem : EntitySystem
 {
-    [Dependency] private readonly TagSystem _tagSystem = default!;
-    [Dependency] private readonly SharedHumanoidAppearanceSystem _humanoidSystem = default!;
+    [Dependency] private TagSystem _tagSystem = default!;
+    [Dependency] private SharedHumanoidAppearanceSystem _humanoidSystem = default!;
 
-    //    [ValidatePrototypeId<TagPrototype>] // Frontier
+    //     // Frontier
     //    private const string HarpyWingsTag = "HidesHarpyWings"; // Frontier
 
     public override void Initialize()

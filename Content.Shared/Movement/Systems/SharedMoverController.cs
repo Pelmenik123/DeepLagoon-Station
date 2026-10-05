@@ -51,6 +51,7 @@ using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
+using Robust.Shared.Physics.Dynamics;
 using Robust.Shared.Physics.Controllers;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Prototypes;
@@ -67,21 +68,21 @@ namespace Content.Shared.Movement.Systems;
 /// </summary>
 public abstract partial class SharedMoverController : VirtualController
 {
-    [Dependency] private   readonly IConfigurationManager _configManager = default!;
-    [Dependency] protected readonly IGameTiming Timing = default!;
-    [Dependency] private   readonly IMapManager _mapManager = default!;
-    [Dependency] private   readonly ITileDefinitionManager _tileDefinitionManager = default!;
-    [Dependency] private   readonly ActionBlockerSystem _blocker = default!;
-    [Dependency] private   readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private   readonly InventorySystem _inventory = default!;
-    [Dependency] private   readonly MobStateSystem _mobState = default!;
-    [Dependency] private   readonly SharedAudioSystem _audio = default!;
-    [Dependency] private   readonly SharedContainerSystem _container = default!;
-    [Dependency] private   readonly SharedMapSystem _mapSystem = default!;
-    [Dependency] private   readonly SharedGravitySystem _gravity = default!;
-    [Dependency] private   readonly SharedTransformSystem _transform = default!;
-    [Dependency] private   readonly TagSystem _tags = default!;
-    [Dependency] private   readonly IEntityManager _entities = default!; // Delta V-NoShoesSilentFootstepsComponent
+    [Dependency] private IConfigurationManager _configManager = default!;
+    [Dependency] protected IGameTiming Timing = default!;
+    SharedMapSystem _mapManager => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
+    [Dependency] private ITileDefinitionManager _tileDefinitionManager = default!;
+    [Dependency] ActionBlockerSystem _blocker = default!;
+    [Dependency] EntityLookupSystem _lookup = default!;
+    [Dependency] InventorySystem _inventory = default!;
+    [Dependency] MobStateSystem _mobState = default!;
+    [Dependency] SharedAudioSystem _audio = default!;
+    [Dependency] SharedContainerSystem _container = default!;
+    SharedMapSystem _mapSystem => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
+    [Dependency] SharedGravitySystem _gravity = default!;
+    [Dependency] SharedTransformSystem _transform = default!;
+    [Dependency] TagSystem _tags = default!;
+    [Dependency] private IEntityManager _entities = default!; // Delta V-NoShoesSilentFootstepsComponent
 
     protected EntityQuery<CanMoveInAirComponent> CanMoveInAirQuery;
     protected EntityQuery<FootstepModifierComponent> FootstepModifierQuery;
@@ -326,7 +327,7 @@ public abstract partial class SharedMoverController : VirtualController
             if (MapGridQuery.TryComp(xform.GridUid, out var gridComp)
                 && _mapSystem.TryGetTileRef(xform.GridUid.Value, gridComp, xform.Coordinates, out var tile)
                 && physicsComponent.BodyStatus == BodyStatus.OnGround)
-                tileDef = (ContentTileDefinition) _tileDefinitionManager[tile.Tile.TypeId];
+                tileDef = (ContentTileDefinition)_tileDefinitionManager[tile.Tile.TypeId];
 
             var walkSpeed = moveSpeedComponent?.CurrentWalkSpeed ?? MovementSpeedModifierComponent.DefaultBaseWalkSpeed;
             var sprintSpeed = moveSpeedComponent?.CurrentSprintSpeed ?? MovementSpeedModifierComponent.DefaultBaseSprintSpeed;
@@ -519,8 +520,24 @@ public abstract partial class SharedMoverController : VirtualController
     {
         var enlargedAABB = _lookup.GetWorldAABB(physicsUid, transform).Enlarged(mover.GrabRangeVV);
 
-        foreach (var otherCollider in broadPhaseSystem.GetCollidingEntities(transform.MapID, enlargedAABB))
+        var bodies = new HashSet<Entity<PhysicsComponent>>();
+        _lookup.ForEachFixtureIntersecting(
+            transform.MapID,
+            enlargedAABB,
+            ref bodies,
+            new CollectPhysicsBodiesCallback(),
+            new FixtureQueryArgs(
+                new QueryFilter
+                {
+                    LayerBits = -1L,
+                    MaskBits = -1L,
+                    Flags = QueryFlags.Dynamic | QueryFlags.Static | QueryFlags.Sensors,
+                },
+                Approximate: true));
+
+        foreach (var otherColliderEnt in bodies)
         {
+            var otherCollider = otherColliderEnt.Comp;
             if (otherCollider == collider)
                 continue; // Don't try to push off of yourself!
 
@@ -529,7 +546,7 @@ public abstract partial class SharedMoverController : VirtualController
                 !otherCollider.CanCollide ||
                 ((collider.CollisionMask & otherCollider.CollisionLayer) == 0 &&
                 (otherCollider.CollisionMask & collider.CollisionLayer) == 0) ||
-                (TryComp(otherCollider.Owner, out PullableComponent? pullable) && pullable.BeingPulled))
+                (TryComp(otherColliderEnt.Owner, out PullableComponent? pullable) && pullable.BeingPulled))
             {
                 continue;
             }
@@ -538,6 +555,15 @@ public abstract partial class SharedMoverController : VirtualController
         }
 
         return false;
+    }
+
+    private readonly struct CollectPhysicsBodiesCallback : IFixtureQueryCallback<HashSet<Entity<PhysicsComponent>>>
+    {
+        public bool Invoke(ref HashSet<Entity<PhysicsComponent>> state, in FixtureProxy fixture)
+        {
+            state.Add((fixture.Entity, fixture.Body));
+            return true;
+        }
     }
 
     protected abstract bool CanSound();
@@ -624,12 +650,12 @@ public abstract partial class SharedMoverController : VirtualController
             return sound != null;
         }
 
-        var position = grid.LocalToTile(xform.Coordinates);
+        var position = _mapSystem.LocalToTile(xform.GridUid.Value, grid, xform.Coordinates);
         var soundEv = new GetFootstepSoundEvent(uid);
 
         // If the coordinates have a FootstepModifier component
         // i.e. component that emit sound on footsteps emit that sound
-        var anchored = grid.GetAnchoredEntitiesEnumerator(position);
+        var anchored = _mapSystem.GetAnchoredEntities(xform.GridUid.Value, grid, position);
 
         while (anchored.MoveNext(out var maybeFootstep))
         {
@@ -669,9 +695,9 @@ public abstract partial class SharedMoverController : VirtualController
         // Walking on a tile.
         // Tile def might have been passed in already from previous methods, so use that
         // if we have it
-        if (tileDef == null && grid.TryGetTileRef(position, out var tileRef))
+        if (tileDef == null && _mapSystem.TryGetTileRef(xform.GridUid.Value, grid, position, out var tileRef))
         {
-            tileDef = (ContentTileDefinition) _tileDefinitionManager[tileRef.Tile.TypeId];
+            tileDef = (ContentTileDefinition)_tileDefinitionManager[tileRef.Tile.TypeId];
         }
 
         if (tileDef == null)
@@ -707,3 +733,4 @@ public abstract partial class SharedMoverController : VirtualController
             args.Modifier *= ent.Comp.BaseFriction;
     }
 }
+

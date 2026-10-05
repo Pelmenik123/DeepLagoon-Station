@@ -76,7 +76,7 @@ public sealed class EntityHealthBarOverlay : Overlay
                 continue;
 
             // we use the status icon component bounds if specified otherwise use sprite
-            var bounds = _entManager.GetComponentOrNull<StatusIconComponent>(uid)?.Bounds ?? spriteComponent.Bounds;
+            var bounds = _entManager.GetComponentOrNull<StatusIconComponent>(uid)?.Bounds ?? _entManager.System<SpriteSystem>().GetLocalBounds(spriteComponent.AsEntityComp());
             var worldPos = _transform.GetWorldPosition(xform, xformQuery);
 
             if (!bounds.Translated(worldPos).Intersects(args.WorldAABB))
@@ -106,15 +106,15 @@ public sealed class EntityHealthBarOverlay : Overlay
 
             var xProgress = (endX - startX) * deathProgress.ratio + startX;
 
-            var boxBackground = new Box2(new Vector2(startX, 0f) / EyeManager.PixelsPerMeter, new Vector2(endX, 3f) / EyeManager.PixelsPerMeter);
+            var boxBackground = Box2.FromTwoPoints(new Vector2(startX, 0f) / EyeManager.PixelsPerMeter, new Vector2(endX, 3f) / EyeManager.PixelsPerMeter);
             boxBackground = boxBackground.Translated(position);
             handle.DrawRect(boxBackground, Black.WithAlpha(192));
 
-            var boxMain = new Box2(new Vector2(startX, 0f) / EyeManager.PixelsPerMeter, new Vector2(xProgress, 3f) / EyeManager.PixelsPerMeter);
+            var boxMain = Box2.FromTwoPoints(new Vector2(startX, 0f) / EyeManager.PixelsPerMeter, new Vector2(xProgress, 3f) / EyeManager.PixelsPerMeter);
             boxMain = boxMain.Translated(position);
             handle.DrawRect(boxMain, color);
 
-            var pixelDarken = new Box2(new Vector2(startX, 2f) / EyeManager.PixelsPerMeter, new Vector2(xProgress, 3f) / EyeManager.PixelsPerMeter);
+            var pixelDarken = Box2.FromTwoPoints(new Vector2(startX, 2f) / EyeManager.PixelsPerMeter, new Vector2(xProgress, 3f) / EyeManager.PixelsPerMeter);
             pixelDarken = pixelDarken.Translated(position);
             handle.DrawRect(pixelDarken, Black.WithAlpha(128));
         }
@@ -136,7 +136,7 @@ public sealed class EntityHealthBarOverlay : Overlay
                 !_mobThresholdSystem.TryGetThresholdForState(uid, MobState.Dead, out threshold, thresholds))
                 return (1, false);
 
-            var ratio = 1 - ((FixedPoint2) (dmg.TotalDamage / threshold)).Float();
+            var ratio = 1 - ((FixedPoint2)(dmg.TotalDamage / threshold)).Float();
             return (ratio, false);
         }
 

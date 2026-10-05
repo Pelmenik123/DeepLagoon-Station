@@ -17,14 +17,14 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared.Roles;
 
-public abstract class SharedRoleSystem : EntitySystem
+public abstract partial class SharedRoleSystem : EntitySystem
 {
-    [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly SharedMindSystem _minds = default!;
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
+    [Dependency] private SharedMindSystem _minds = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
 
     private JobRequirementOverridePrototype? _requirementOverride;
 
@@ -52,7 +52,7 @@ public abstract class SharedRoleSystem : EntitySystem
             return;
         }
 
-        if (!_prototypes.TryIndex(value, out _requirementOverride ))
+        if (!_prototypes.TryIndex(value, out _requirementOverride))
             Log.Error($"Unknown JobRequirementOverridePrototype: {value}");
     }
 
@@ -153,7 +153,7 @@ public abstract class SharedRoleSystem : EntitySystem
         EnsureComp<MindRoleComponent>(mindRoleId);
         var mindRoleComp = Comp<MindRoleComponent>(mindRoleId);
 
-        mindRoleComp.Mind = (mindId,mind);
+        mindRoleComp.Mind = (mindId, mind);
         if (jobPrototype is not null)
         {
             mindRoleComp.JobPrototype = jobPrototype;
@@ -198,7 +198,7 @@ public abstract class SharedRoleSystem : EntitySystem
     /// </returns>>
     private bool MindRolesUpdate(Entity<MindComponent?> ent)
     {
-        if(!Resolve(ent.Owner, ref ent.Comp))
+        if (!Resolve(ent.Owner, ref ent.Comp))
             return false;
 
         //get the most important/latest mind role
@@ -454,7 +454,7 @@ public abstract class SharedRoleSystem : EntitySystem
         foreach (var uid in mind.MindRoles)
         {
             if (HasComp<T>(uid) && TryComp<MindRoleComponent>(uid, out var comp))
-                result = (uid,comp);
+                result = (uid, comp);
         }
         return result;
     }
@@ -551,10 +551,10 @@ public abstract class SharedRoleSystem : EntitySystem
         return CheckAntagonistStatus(mindId.Value).ExclusiveAntag;
     }
 
-   private (bool Antag, bool ExclusiveAntag) CheckAntagonistStatus(Entity<MindComponent?> mind)
-   {
-       if (!Resolve(mind.Owner, ref mind.Comp))
-           return (false, false);
+    private (bool Antag, bool ExclusiveAntag) CheckAntagonistStatus(Entity<MindComponent?> mind)
+    {
+        if (!Resolve(mind.Owner, ref mind.Comp))
+            return (false, false);
 
         var antagonist = false;
         var exclusiveAntag = false;

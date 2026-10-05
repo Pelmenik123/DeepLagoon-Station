@@ -1,4 +1,4 @@
-﻿using Content.Shared.Hands;
+using Content.Shared.Hands;
 using Content.Shared.Item;
 
 namespace Content.Client.Items.Systems;

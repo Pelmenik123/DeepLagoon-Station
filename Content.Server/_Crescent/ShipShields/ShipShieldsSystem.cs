@@ -22,6 +22,7 @@ using Content.Shared.Projectiles;
 
 
 namespace Content.Server._Crescent.ShipShields;
+
 public sealed partial class ShipShieldsSystem : EntitySystem
 {
     private const string ShipShieldPrototype = "ShipShield";
@@ -30,13 +31,13 @@ public sealed partial class ShipShieldsSystem : EntitySystem
     //private const float DeflectionSpread = 25f;
     private const float EmitterUpdateRate = 1.5f;
 
-    [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
+    [Dependency] private SharedTransformSystem _transformSystem = default!;
 
-    [Dependency] private readonly FixtureSystem _fixtureSystem = default!;
+    [Dependency] private FixtureSystem _fixtureSystem = default!;
 
-    [Dependency] private readonly PhysicsSystem _physicsSystem = default!;
+    [Dependency] private PhysicsSystem _physicsSystem = default!;
 
-    [Dependency] private readonly PvsOverrideSystem _pvsSys = default!;
+    [Dependency] private PvsOverrideSystem _pvsSys = default!;
 
     public override void Update(float frameTime)
     {
@@ -50,7 +51,7 @@ public sealed partial class ShipShieldsSystem : EntitySystem
             if (emitter.Accumulator < EmitterUpdateRate)
                 continue;
 
-            if ((float) Math.Pow(emitter.Damage, emitter.DamageExp) >= emitter.MaxDraw)
+            if ((float)Math.Pow(emitter.Damage, emitter.DamageExp) >= emitter.MaxDraw)
                 emitter.Recharging = true;
             if (!power.Powered)
                 emitter.Recharging = true;
@@ -302,7 +303,7 @@ public sealed partial class ShipShieldsSystem : EntitySystem
 
         _fixtureSystem.TryCreateFixture(uid, chain, name,
             hard: false,
-            collisionLayer: (int) CollisionGroup.BulletImpassable, // Mono - Only blocks bullets
+            collisionLayer: (int)CollisionGroup.BulletImpassable, // Mono - Only blocks bullets
             body: physics);
 
         return chain;

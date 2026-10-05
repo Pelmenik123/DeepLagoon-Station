@@ -5,8 +5,9 @@ using Robust.Shared.GameStates;
 
 namespace Content.Client.Vehicle;
 
-public sealed class VehicleSystem : SharedVehicleSystem
+public sealed partial class VehicleSystem : SharedVehicleSystem
 {
+    [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private EyeSystem _eye = default!;
 
     public override void Initialize()
@@ -60,16 +61,16 @@ public sealed class VehicleSystem : SharedVehicleSystem
         if (component.HideRider
             && Appearance.TryGetData<bool>(uid, VehicleVisuals.HideRider, out var hide, args.Component)
             && TryComp<SpriteComponent>(component.LastRider, out var riderSprite))
-            riderSprite.Visible = !hide;
+            _sprite.SetVisible(riderSprite.AsEntity(), !hide);
 
         // First check is for the sprite itself
         if (Appearance.TryGetData<int>(uid, VehicleVisuals.DrawDepth, out var drawDepth, args.Component))
-            args.Sprite.DrawDepth = drawDepth;
+            _sprite.SetDrawDepth(args.Sprite.AsEntity(), drawDepth);
 
         // Set vehicle layer to animated or not (i.e. are the wheels turning or not)
         if (component.AutoAnimate
             && Appearance.TryGetData<bool>(uid, VehicleVisuals.AutoAnimate, out var autoAnimate, args.Component))
-            args.Sprite.LayerSetAutoAnimated(VehicleVisualLayers.AutoAnimate, autoAnimate);
+            _sprite.LayerSetAutoAnimated(args.Sprite.AsEntity(), VehicleVisualLayers.AutoAnimate, autoAnimate);
     }
 }
 

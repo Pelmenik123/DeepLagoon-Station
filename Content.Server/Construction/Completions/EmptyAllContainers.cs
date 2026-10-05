@@ -38,12 +38,12 @@ namespace Content.Server.Construction.Completions
             HandsComponent? hands = null;
             var pickup = Pickup && entityManager.TryGetComponent(userUid, out hands);
 
-            foreach (var container in containerManager.GetAllContainers())
+            foreach (var container in containerSys.GetAllContainers(uid))
             {
                 foreach (var ent in containerSys.EmptyContainer(container, true, reparent: !pickup))
                 {
                     if (EmptyAtUser && userUid is not null)
-                        transformSys.DropNextTo(ent, (EntityUid) userUid);
+                        transformSys.DropNextTo(ent, (EntityUid)userUid);
 
                     if (pickup)
                         handSys.PickupOrDrop(userUid, ent, handsComp: hands);

@@ -1,4 +1,4 @@
-﻿using Content.Shared.Ghost;
+using Content.Shared.Ghost;
 using Robust.Client.GameObjects;
 using Robust.Shared.Console;
 
@@ -25,6 +25,6 @@ public sealed class GhostToggleSelfVisibility : IConsoleCommand
         if (!entityManager.TryGetComponent(attachedEntity, out SpriteComponent? spriteComponent))
             return;
 
-        spriteComponent.Visible = !spriteComponent.Visible;
+        SpriteComponentExt.Sys.SetVisible(spriteComponent.AsEntity(), !spriteComponent.Visible);
     }
 }

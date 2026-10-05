@@ -18,11 +18,11 @@ namespace Content.Client.Administration.UI.SpawnExplosion;
 [UsedImplicitly]
 public sealed partial class SpawnExplosionWindow : DefaultWindow
 {
-    [Dependency] private readonly IClientConsoleHost _conHost = default!;
-    [Dependency] private readonly IMapManager _mapManager = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IEntityManager _entMan = default!;
+    [Dependency] private IClientConsoleHost _conHost = default!;
+    SharedMapSystem _mapManager => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IEntityManager _entMan = default!;
     private readonly SharedTransformSystem _transform = default!;
 
     private readonly SpawnExplosionEui _eui;
@@ -143,3 +143,4 @@ public sealed partial class SpawnExplosionWindow : DefaultWindow
         _conHost.ExecuteCommand(cmd);
     }
 }
+

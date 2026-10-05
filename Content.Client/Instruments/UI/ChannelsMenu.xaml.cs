@@ -18,7 +18,7 @@ namespace Content.Client.Instruments.UI;
 [GenerateTypedNameReferences]
 public sealed partial class ChannelsMenu : DefaultWindow
 {
-    [Dependency] private readonly IEntityManager _entityManager = null!;
+    [Dependency] private IEntityManager _entityManager = null!;
 
     private readonly InstrumentBoundUserInterface _owner;
 

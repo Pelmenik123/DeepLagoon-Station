@@ -13,7 +13,6 @@ using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Physics.Collision.Shapes;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype;
 
 namespace Content.Shared.Blocking.Components;
 
@@ -58,8 +57,8 @@ public sealed partial class BlockingComponent : Component
     [DataField("activeBlockModifier", required: true)]
     public DamageModifierSet ActiveBlockDamageModifier = default!;
 
-    [DataField("blockingToggleAction", customTypeSerializer: typeof(PrototypeIdSerializer<EntityPrototype>))]
-    public string BlockingToggleAction = "ActionToggleBlock";
+    [DataField("blockingToggleAction")]
+    public EntProtoId BlockingToggleAction = "ActionToggleBlock";
 
     [DataField, AutoNetworkedField]
     public EntityUid? BlockingToggleActionEntity;
@@ -67,7 +66,8 @@ public sealed partial class BlockingComponent : Component
     /// <summary>
     /// The sound to be played when you get hit while actively blocking
     /// </summary>
-    [DataField("blockSound")] public SoundSpecifier BlockSound =
+    [DataField("blockSound")]
+    public SoundSpecifier BlockSound =
         new SoundPathSpecifier("/Audio/Weapons/block_metal1.ogg")
         {
             Params = AudioParams.Default.WithVariation(0.25f)

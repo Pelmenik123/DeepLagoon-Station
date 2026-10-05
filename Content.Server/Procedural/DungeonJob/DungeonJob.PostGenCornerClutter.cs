@@ -12,7 +12,7 @@ public sealed partial class DungeonJob
     /// <summary>
     /// <see cref="CornerClutterDunGen"/>
     /// </summary>
-    private async Task PostGen(CornerClutterDunGen gen, DungeonData data, Dungeon dungeon, HashSet<Vector2i> reservedTiles, Random random)
+    private async Task PostGen(CornerClutterDunGen gen, DungeonData data, Dungeon dungeon, HashSet<Vector2i> reservedTiles, IRobustRandom random)
     {
         if (!data.SpawnGroups.TryGetValue(DungeonDataKey.CornerClutter, out var corner))
         {
@@ -22,7 +22,7 @@ public sealed partial class DungeonJob
 
         foreach (var tile in dungeon.CorridorTiles)
         {
-            var blocked = _anchorable.TileFree(_grid, tile, DungeonSystem.CollisionLayer, DungeonSystem.CollisionMask);
+            var blocked = _anchorable.TileFree(_gridUid, _grid, tile, DungeonSystem.CollisionLayer, DungeonSystem.CollisionMask);
 
             if (blocked)
                 continue;
@@ -30,23 +30,22 @@ public sealed partial class DungeonJob
             // If at least 2 adjacent tiles are blocked consider it a corner
             for (var i = 0; i < 4; i++)
             {
-                var dir = (Direction) (i * 2);
+                var dir = (Direction)(i * 2);
                 blocked = HasWall(tile + dir.ToIntVec());
 
                 if (!blocked)
                     continue;
 
-                var nextDir = (Direction) ((i + 1) * 2 % 8);
+                var nextDir = (Direction)((i + 1) * 2 % 8);
                 blocked = HasWall(tile + nextDir.ToIntVec());
 
                 if (!blocked)
                     continue;
-
                 if (random.Prob(gen.Chance))
                 {
                     var coords = _maps.GridTileToLocal(_gridUid, _grid, tile);
                     var protos = EntitySpawnCollection.GetSpawns(_prototype.Index(corner).Entries, random);
-                    _entManager.SpawnEntities(coords, protos);
+                    SpawnEntities(coords, protos);
                 }
 
                 break;

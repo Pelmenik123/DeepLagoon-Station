@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Content.Client._NF.LateJoin.Controls;
 using Content.Client._NF.LateJoin.Interfaces;
 using Content.Client.GameTicking.Managers;
@@ -14,9 +14,9 @@ namespace Content.Client._NF.LateJoin.Windows;
 [GenerateTypedNameReferences]
 public sealed partial class PickerWindow : FancyWindow
 {
-    [Dependency] private readonly IEntitySystemManager _entitySystem = default!;
-    [Dependency] private readonly ILocalizationManager _loc = default!;
-    [Dependency] private readonly IConsoleHost _consoleHost = default!;
+    [Dependency] private IEntitySystemManager _entitySystem = default!;
+    [Dependency] private ILocalizationManager _loc = default!;
+    [Dependency] private IConsoleHost _consoleHost = default!;
     private readonly ClientGameTicker _gameTicker;
     private readonly ISawmill _sawmill;
 

@@ -1,4 +1,4 @@
-﻿using Content.Shared.Vapor;
+using Content.Shared.Vapor;
 using Robust.Client.Animations;
 using Robust.Client.GameObjects;
 
@@ -7,8 +7,9 @@ namespace Content.Client.Chemistry.Visualizers;
 /// <summary>
 /// Handles vapor playing the 'being sprayed' animation if necessary.
 /// </summary>
-public sealed class VaporVisualizerSystem : VisualizerSystem<VaporVisualsComponent>
+public sealed partial class VaporVisualizerSystem : VisualizerSystem<VaporVisualsComponent>
 {
+    [Dependency] private SpriteSystem _sprite = default!;
     public override void Initialize()
     {
         base.Initialize();
@@ -41,7 +42,7 @@ public sealed class VaporVisualizerSystem : VisualizerSystem<VaporVisualsCompone
             TryComp<AnimationPlayerComponent>(uid, out var animPlayer) &&
             !AnimationSystem.HasRunningAnimation(uid, animPlayer, VaporVisualsComponent.AnimationKey))
         {
-            AnimationSystem.Play(uid, animPlayer, comp.VaporFlick, VaporVisualsComponent.AnimationKey);
+            AnimationSystem.Play(uid, comp.VaporFlick, VaporVisualsComponent.AnimationKey);
         }
     }
 
@@ -52,7 +53,7 @@ public sealed class VaporVisualizerSystem : VisualizerSystem<VaporVisualsCompone
     {
         if (AppearanceSystem.TryGetData<Color>(uid, VaporVisuals.Color, out var color, args.Component) && args.Sprite != null)
         {
-            args.Sprite.Color = color;
+            _sprite.SetColor(args.Sprite.AsEntity(), color);
         }
     }
 }

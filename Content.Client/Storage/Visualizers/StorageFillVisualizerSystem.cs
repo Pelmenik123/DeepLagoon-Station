@@ -11,8 +11,9 @@ using Robust.Client.GameObjects;
 
 namespace Content.Client.Storage.Visualizers;
 
-public sealed class StorageFillVisualizerSystem : VisualizerSystem<StorageFillVisualizerComponent>
+public sealed partial class StorageFillVisualizerSystem : VisualizerSystem<StorageFillVisualizerComponent>
 {
+    [Dependency] private SpriteSystem _sprite = default!;
     protected override void OnAppearanceChange(EntityUid uid, StorageFillVisualizerComponent component, ref AppearanceChangeEvent args)
     {
         if (args.Sprite == null)
@@ -22,6 +23,6 @@ public sealed class StorageFillVisualizerSystem : VisualizerSystem<StorageFillVi
             return;
 
         var state = $"{component.FillBaseName}-{level}";
-        args.Sprite.LayerSetState(StorageFillLayers.Fill, state);
+        _sprite.LayerSetRsiState(args.Sprite.AsEntity(), StorageFillLayers.Fill, state);
     }
 }

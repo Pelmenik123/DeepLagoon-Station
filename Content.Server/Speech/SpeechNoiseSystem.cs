@@ -10,12 +10,12 @@ using Robust.Shared.Random;
 
 namespace Content.Server.Speech
 {
-    public sealed class SpeechSoundSystem : EntitySystem
+    public sealed partial class SpeechSoundSystem : EntitySystem
     {
-        [Dependency] private readonly IGameTiming _gameTiming = default!;
-        [Dependency] private readonly IPrototypeManager _protoManager = default!;
-        [Dependency] private readonly IRobustRandom _random = default!;
-        [Dependency] private readonly SharedAudioSystem _audio = default!;
+        [Dependency] private IGameTiming _gameTiming = default!;
+        [Dependency] private IPrototypeManager _protoManager = default!;
+        [Dependency] private IRobustRandom _random = default!;
+        [Dependency] private SharedAudioSystem _audio = default!;
 
         public override void Initialize()
         {
@@ -53,7 +53,7 @@ namespace Content.Server.Speech
                 contextSound = prototype.ExclaimSound;
             }
 
-            var scale = (float) _random.NextGaussian(1, prototype.Variation);
+            var scale = (float)_random.NextGaussian(1, prototype.Variation);
             contextSound.Params = ent.Comp.AudioParams.WithPitchScale(scale);
             return contextSound;
         }

@@ -22,16 +22,16 @@ using Robust.Shared.Player;
 
 namespace Content.Server.Atmos.Piping.Unary.EntitySystems;
 
-public sealed class GasCanisterSystem : EntitySystem
+public sealed partial class GasCanisterSystem : EntitySystem
 {
-    [Dependency] private readonly AtmosphereSystem _atmos = default!;
-    [Dependency] private readonly IAdminLogManager _adminLogger = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly UserInterfaceSystem _ui = default!;
-    [Dependency] private readonly NodeContainerSystem _nodeContainer = default!;
-    [Dependency] private readonly ItemSlotsSystem _slots = default!;
+    [Dependency] private AtmosphereSystem _atmos = default!;
+    [Dependency] private IAdminLogManager _adminLogger = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private UserInterfaceSystem _ui = default!;
+    [Dependency] private NodeContainerSystem _nodeContainer = default!;
+    [Dependency] private ItemSlotsSystem _slots = default!;
 
     public override void Initialize()
     {
@@ -161,7 +161,7 @@ public sealed class GasCanisterSystem : EntitySystem
         if (!_nodeContainer.TryGetNode(nodeContainer, canister.PortName, out PortablePipeNode? portNode))
             return;
 
-        if (portNode.NodeGroup is PipeNet {NodeCount: > 1} net)
+        if (portNode.NodeGroup is PipeNet { NodeCount: > 1 } net)
         {
             MixContainerWithPipeNet(canister.Air, net.Air);
         }

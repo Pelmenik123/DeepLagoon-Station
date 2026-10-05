@@ -16,14 +16,13 @@ using Robust.Shared.Timing;
 
 namespace Content.Client.NetworkConfigurator.Systems;
 
-public sealed class NetworkConfiguratorSystem : SharedNetworkConfiguratorSystem
+public sealed partial class NetworkConfiguratorSystem : SharedNetworkConfiguratorSystem
 {
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly IOverlayManager _overlay = default!;
-    [Dependency] private readonly ActionsSystem _actions = default!;
-    [Dependency] private readonly IInputManager _inputManager = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IOverlayManager _overlay = default!;
+    [Dependency] private ActionsSystem _actions = default!;
+    [Dependency] private IInputManager _inputManager = default!;
 
-    [ValidatePrototypeId<EntityPrototype>]
     private const string Action = "ActionClearNetworkLinkOverlays";
 
     public override void Initialize()
@@ -126,7 +125,7 @@ public sealed class NetworkConfiguratorSystem : SharedNetworkConfiguratorSystem
 
             _linkModeActive = _configurator.LinkModeActive;
 
-            var modeLocString = _linkModeActive??false
+            var modeLocString = _linkModeActive ?? false
                 ? "network-configurator-examine-mode-link"
                 : "network-configurator-examine-mode-list";
 
@@ -137,9 +136,9 @@ public sealed class NetworkConfiguratorSystem : SharedNetworkConfiguratorSystem
     }
 }
 
-public sealed class ClearAllNetworkLinkOverlays : IConsoleCommand
+public sealed partial class ClearAllNetworkLinkOverlays : IConsoleCommand
 {
-    [Dependency] private readonly IEntityManager _e = default!;
+    [Dependency] private IEntityManager _e = default!;
 
     public string Command => "clearnetworklinkoverlays";
     public string Description => "Clear all network link overlays.";

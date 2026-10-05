@@ -9,12 +9,12 @@ using Robust.Shared.Timing;
 
 namespace Content.Server.Speech.EntitySystems;
 
-public sealed class ParrotSpeechSystem : EntitySystem
+public sealed partial class ParrotSpeechSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
-    [Dependency] private readonly ChatSystem _chat = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private EntityWhitelistSystem _whitelistSystem = default!;
+    [Dependency] private ChatSystem _chat = default!;
 
     public override void Initialize()
     {
@@ -63,7 +63,7 @@ public sealed class ParrotSpeechSystem : EntitySystem
             // split words correctly.
             var words = args.Message.Split(" ", StringSplitOptions.RemoveEmptyEntries);
             // Prefer longer phrases
-            var phraseLength = 1 + (int) (Math.Sqrt(_random.NextDouble()) * component.MaximumPhraseLength);
+            var phraseLength = 1 + (int)(Math.Sqrt(_random.NextDouble()) * component.MaximumPhraseLength);
 
             var startIndex = _random.Next(0, Math.Max(0, words.Length - phraseLength + 1));
 

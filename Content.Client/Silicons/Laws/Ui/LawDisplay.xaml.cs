@@ -17,16 +17,16 @@ namespace Content.Client.Silicons.Laws.Ui;
 [GenerateTypedNameReferences]
 public sealed partial class LawDisplay : Control
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IChatManager _chatManager = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly EntityManager _entityManager = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IChatManager _chatManager = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private EntityManager _entityManager = default!;
 
     private static readonly TimeSpan PressCooldown = TimeSpan.FromSeconds(3);
 
     private readonly Dictionary<Button, TimeSpan> _nextAllowedPress = new();
 
-    public LawDisplay(EntityUid uid, SiliconLaw law, HashSet<string>? radioChannels)
+    public LawDisplay(EntityUid uid, SiliconLaw law, HashSet<ProtoId<RadioChannelPrototype>>? radioChannels)
     {
         RobustXamlLoader.Load(this);
         IoCManager.InjectDependencies(this);
@@ -87,7 +87,7 @@ public sealed partial class LawDisplay : Control
 
             radioChannelButton.OnPressed += _ =>
             {
-                switch (radioChannel)
+                switch ((string)radioChannel)
                 {
                     case SharedChatSystem.CommonChannel:
                         _chatManager.SendMessage($"{SharedChatSystem.RadioCommonPrefix} {lawIdentifierPlaintext}: {lawDescriptionPlaintext}", ChatSelectChannel.Radio); break;

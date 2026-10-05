@@ -16,9 +16,9 @@ using Robust.Shared.Utility;
 namespace Content.Server.Voting
 {
     [AnyCommand]
-    public sealed class CreateVoteCommand : IConsoleCommand
+    public sealed partial class CreateVoteCommand : IConsoleCommand
     {
-        [Dependency] private readonly IAdminLogManager _adminLogger = default!;
+        [Dependency] private IAdminLogManager _adminLogger = default!;
 
         public string Command => "createvote";
         public string Description => Loc.GetString("cmd-createvote-desc");
@@ -69,13 +69,13 @@ namespace Content.Server.Voting
     }
 
     [AdminCommand(AdminFlags.Moderator)]
-    public sealed class CreateCustomCommand : LocalizedEntityCommands
+    public sealed partial class CreateCustomCommand : LocalizedEntityCommands
     {
-        [Dependency] private readonly IVoteManager _voteManager = default!;
-        [Dependency] private readonly IAdminLogManager _adminLogger = default!;
-        [Dependency] private readonly IChatManager _chatManager = default!;
-        [Dependency] private readonly VoteWebhooks _voteWebhooks = default!;
-        [Dependency] private readonly IConfigurationManager _cfg = default!;
+        [Dependency] private IVoteManager _voteManager = default!;
+        [Dependency] private IAdminLogManager _adminLogger = default!;
+        [Dependency] private IChatManager _chatManager = default!;
+        [Dependency] private VoteWebhooks _voteWebhooks = default!;
+        [Dependency] private IConfigurationManager _cfg = default!;
 
         private ISawmill _sawmill = default!;
 
@@ -89,7 +89,7 @@ namespace Content.Server.Voting
 
             if (args.Length < 3 || args.Length > MaxArgCount)
             {
-                shell.WriteError(Loc.GetString("shell-need-between-arguments",("lower", 3), ("upper", 10)));
+                shell.WriteError(Loc.GetString("shell-need-between-arguments", ("lower", 3), ("upper", 10)));
                 return;
             }
 
@@ -121,14 +121,14 @@ namespace Content.Server.Voting
             {
                 if (eventArgs.Winner == null)
                 {
-                    var ties = string.Join(", ", eventArgs.Winners.Select(c => args[(int) c]));
+                    var ties = string.Join(", ", eventArgs.Winners.Select(c => args[(int)c]));
                     _adminLogger.Add(LogType.Vote, LogImpact.Medium, $"Custom vote {options.Title} finished as tie: {ties}");
                     _chatManager.DispatchServerAnnouncement(Loc.GetString("cmd-customvote-on-finished-tie", ("ties", ties)));
                 }
                 else
                 {
-                    _adminLogger.Add(LogType.Vote, LogImpact.Medium, $"Custom vote {options.Title} finished: {args[(int) eventArgs.Winner]}");
-                    _chatManager.DispatchServerAnnouncement(Loc.GetString("cmd-customvote-on-finished-win", ("winner", args[(int) eventArgs.Winner])));
+                    _adminLogger.Add(LogType.Vote, LogImpact.Medium, $"Custom vote {options.Title} finished: {args[(int)eventArgs.Winner]}");
+                    _chatManager.DispatchServerAnnouncement(Loc.GetString("cmd-customvote-on-finished-win", ("winner", args[(int)eventArgs.Winner])));
                 }
 
                 _voteWebhooks.UpdateWebhookIfConfigured(webhookState, eventArgs);
@@ -231,9 +231,9 @@ namespace Content.Server.Voting
     }
 
     [AdminCommand(AdminFlags.Moderator)]
-    public sealed class CancelVoteCommand : IConsoleCommand
+    public sealed partial class CancelVoteCommand : IConsoleCommand
     {
-        [Dependency] private readonly IAdminLogManager _adminLogger = default!;
+        [Dependency] private IAdminLogManager _adminLogger = default!;
 
         public string Command => "cancelvote";
         public string Description => Loc.GetString("cmd-cancelvote-desc");

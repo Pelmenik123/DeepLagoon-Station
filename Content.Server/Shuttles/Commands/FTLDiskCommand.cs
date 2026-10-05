@@ -18,17 +18,15 @@ namespace Content.Server.Shuttles.Commands;
 /// </summary>
 [AdminCommand(AdminFlags.Fun)]
 
-public sealed class FTLDiskCommand : LocalizedCommands
+public sealed partial class FTLDiskCommand : LocalizedCommands
 {
-    [Dependency] private readonly IEntityManager _entManager = default!;
-    [Dependency] private readonly IEntitySystemManager _entSystemManager = default!;
+    [Dependency] private IEntityManager _entManager = default!;
+    [Dependency] private IEntitySystemManager _entSystemManager = default!;
 
     public override string Command => "ftldisk";
 
-    [ValidatePrototypeId<EntityPrototype>]
     public const string CoordinatesDisk = "CoordinatesDisk";
 
-    [ValidatePrototypeId<EntityPrototype>]
     public const string DiskCase = "DiskCase";
     public override void Execute(IConsoleShell shell, string argStr, string[] args)
     {
@@ -71,7 +69,7 @@ public sealed class FTLDiskCommand : LocalizedCommands
             {
                 DebugTools.AssertNotNull(nullableDest);
 
-                dest = (EntityUid) nullableDest;
+                dest = (EntityUid)nullableDest;
 
                 // we need to go to a map, so check if the EntID is something else then try for its map
                 if (!_entManager.HasComponent<MapComponent>(dest))

@@ -18,16 +18,15 @@ namespace Content.Shared.Nyanotrasen.Item.PseudoItem;
 
 public abstract partial class SharedPseudoItemSystem : EntitySystem
 {
-    [Dependency] private readonly SharedStorageSystem _storage = default!;
-    [Dependency] private readonly SharedItemSystem _item = default!;
-    [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
-    [Dependency] private readonly TagSystem _tag = default!;
-    [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
-    [Dependency] private readonly SharedActionsSystem _actions = default!;
+    [Dependency] private SharedStorageSystem _storage = default!;
+    [Dependency] private SharedItemSystem _item = default!;
+    [Dependency] private SharedDoAfterSystem _doAfter = default!;
+    [Dependency] private TagSystem _tag = default!;
+    [Dependency] private SharedPopupSystem _popupSystem = default!;
+    [Dependency] private SharedActionsSystem _actions = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
-    [ValidatePrototypeId<TagPrototype>]
     private const string PreventTag = "PreventLabel";
-    [ValidatePrototypeId<EntityPrototype>]
     private const string SleepActionId = "ActionSleep"; // The action used for sleeping inside bags. Currently uses the default sleep action (same as beds)
 
     public override void Initialize()
@@ -82,7 +81,7 @@ public abstract partial class SharedPseudoItemSystem : EntitySystem
             return false;
 
         var itemComp = new ItemComponent
-            { Size = component.Size, Shape = component.Shape, StoredOffset = component.StoredOffset, StoredRotation = component.StoredRotation }; // Frontier: added StoredRotation
+        { Size = component.Size, Shape = component.Shape, StoredOffset = component.StoredOffset, StoredRotation = component.StoredRotation }; // Frontier: added StoredRotation
         AddComp(toInsert, itemComp);
         _item.VisualsChanged(toInsert);
 
@@ -120,7 +119,7 @@ public abstract partial class SharedPseudoItemSystem : EntitySystem
         if (args.User == args.Item)
             return;
 
-        Transform(uid).AttachToGridOrMap();
+        _transform.AttachToGridOrMap(uid);
         args.Cancel();
     }
 

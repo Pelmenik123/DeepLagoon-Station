@@ -39,7 +39,7 @@ namespace Content.MapRenderer.Painters
             var server = pair.Server;
             var client = pair.Client;
 
-            Console.WriteLine($"Loaded client and server in {(int) stopwatch.Elapsed.TotalMilliseconds} ms");
+            Console.WriteLine($"Loaded client and server in {(int)stopwatch.Elapsed.TotalMilliseconds} ms");
 
             stopwatch.Restart();
 
@@ -50,7 +50,7 @@ namespace Content.MapRenderer.Painters
             {
                 if (cEntityManager.TryGetComponent(cPlayerManager.LocalEntity, out SpriteComponent? sprite))
                 {
-                    sprite.Visible = false;
+                    cEntityManager.System<SpriteSystem>().SetVisible((cPlayerManager.LocalEntity!.Value, sprite), false);
                 }
             });
 
@@ -60,7 +60,7 @@ namespace Content.MapRenderer.Painters
             await pair.RunTicksSync(10);
             await Task.WhenAll(client.WaitIdleAsync(), server.WaitIdleAsync());
 
-            var sMapManager = server.ResolveDependency<IMapManager>();
+            var sMapManager = server.ResolveDependency<SharedMapSystem>();
 
             var tilePainter = new TilePainter(client, server);
             var entityPainter = new GridPainter(client, server);
@@ -109,8 +109,8 @@ namespace Content.MapRenderer.Painters
                 var top = bounds.Top;
                 var bottom = bounds.Bottom;
 
-                var w = (int) Math.Ceiling(right - left) * tileXSize;
-                var h = (int) Math.Ceiling(top - bottom) * tileYSize;
+                var w = (int)Math.Ceiling(right - left) * tileXSize;
+                var h = (int)Math.Ceiling(top - bottom) * tileYSize;
 
                 var gridCanvas = new Image<Rgba32>(w, h);
 

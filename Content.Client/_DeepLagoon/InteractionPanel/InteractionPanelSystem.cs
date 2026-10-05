@@ -16,12 +16,12 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._DeepLagoon.InteractionPanel;
 
-public sealed class InteractionPanelSystem : EntitySystem
+public sealed partial class InteractionPanelSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly AnimationPlayerSystem _animations = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private AnimationPlayerSystem _animations = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
     private InteractionPanelWindow? _panel;
     private bool _replacingPanel;
     private readonly Dictionary<Guid, (DefaultWindow Window, TimeSpan Expires)> _requests = new();

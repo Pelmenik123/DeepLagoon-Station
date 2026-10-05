@@ -12,11 +12,11 @@ using Content.Shared._NF.CCVar;
 
 namespace Content.Server.StationEvents.Events;
 
-public sealed class BluespaceCargoRule : StationEventSystem<BluespaceCargoRuleComponent>
+public sealed partial class BluespaceCargoRule : StationEventSystem<BluespaceCargoRuleComponent>
 {
-    [Dependency] private readonly IConfigurationManager _configuration = default!;
-    [Dependency] private readonly AtmosphereSystem _atmosphere = default!;
-    [Dependency] protected readonly IRobustRandom _random = default!;
+    [Dependency] private IConfigurationManager _configuration = default!;
+    [Dependency] private AtmosphereSystem _atmosphere = default!;
+    [Dependency] private IRobustRandom _random = default!;
 
     protected override void Added(EntityUid uid, BluespaceCargoRuleComponent component, GameRuleComponent gameRule, GameRuleAddedEvent args)
     {
@@ -57,8 +57,8 @@ public sealed class BluespaceCargoRule : StationEventSystem<BluespaceCargoRuleCo
 
         for (var i = 0; i < 25; i++)
         {
-            var randomX = _random.Next((int) gridBounds.Left, (int) gridBounds.Right);
-            var randomY = _random.Next((int) gridBounds.Bottom, (int) gridBounds.Top);
+            var randomX = _random.Next((int)gridBounds.Left, (int)gridBounds.Right);
+            var randomY = _random.Next((int)gridBounds.Bottom, (int)gridBounds.Top);
 
             var tile = new Vector2i(randomX, randomY);
 
@@ -72,13 +72,13 @@ public sealed class BluespaceCargoRule : StationEventSystem<BluespaceCargoRuleCo
             // don't spawn inside of solid objects
             var physQuery = GetEntityQuery<PhysicsComponent>();
             var valid = true;
-            foreach (var ent in gridComp.GetAnchoredEntities(tile))
+            foreach (var ent in IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>().GetAnchoredEntities(grid, gridComp, tile))
             {
                 if (!physQuery.TryGetComponent(ent, out var body))
                     continue;
                 if (body.BodyType != BodyType.Static ||
                     !body.Hard ||
-                    (body.CollisionLayer & (int) CollisionGroup.Impassable) == 0)
+                    (body.CollisionLayer & (int)CollisionGroup.Impassable) == 0)
                     continue;
 
                 valid = false;
@@ -92,7 +92,7 @@ public sealed class BluespaceCargoRule : StationEventSystem<BluespaceCargoRuleCo
                 continue;
             }
 
-            targetCoords = gridComp.GridTileToLocal(tile);
+            targetCoords = IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>().GridTileToLocal(grid, gridComp, tile);
             break;
         }
 

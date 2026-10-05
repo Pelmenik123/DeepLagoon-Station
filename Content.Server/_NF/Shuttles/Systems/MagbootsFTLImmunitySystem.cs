@@ -14,10 +14,10 @@ namespace Content.Server._NF.Shuttles.Systems;
 /// <summary>
 /// This system adds FTL knockdown immunity to entities wearing active magboots.
 /// </summary>
-public sealed class MagbootsFTLImmunitySystem : EntitySystem
+public sealed partial class MagbootsFTLImmunitySystem : EntitySystem
 {
-    [Dependency] private readonly InventorySystem _inventory = default!;
-    [Dependency] private readonly SharedContainerSystem _container = default!;
+    [Dependency] private InventorySystem _inventory = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
 
     // Track entities we've already processed to avoid redundant work
     private readonly HashSet<EntityUid> _processedEntities = new();
@@ -96,9 +96,9 @@ public sealed class MagbootsFTLImmunitySystem : EntitySystem
         foreach (var (entity, hadImmunity) in _previousImmunityState)
         {
             // If entity no longer exists or no longer should have immunity, clean it up
-            if (!EntityManager.EntityExists(entity) || (!entitiesWithImmunity.Contains(entity) && hadImmunity))
+            if (!Exists(entity) || (!entitiesWithImmunity.Contains(entity) && hadImmunity))
             {
-                if (EntityManager.EntityExists(entity))
+                if (Exists(entity))
                     RemComp<FTLKnockdownImmuneComponent>(entity);
                 toRemove.Add(entity);
             }

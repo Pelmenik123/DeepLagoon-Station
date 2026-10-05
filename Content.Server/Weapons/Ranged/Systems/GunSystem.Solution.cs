@@ -11,7 +11,7 @@ namespace Content.Server.Weapons.Ranged.Systems;
 
 public sealed partial class GunSystem
 {
-    [Dependency] private readonly SharedSolutionContainerSystem _solutionContainer = default!;
+    [Dependency] SharedSolutionContainerSystem _solutionContainer = default!;
 
     protected override void InitializeSolution()
     {
@@ -45,8 +45,8 @@ public sealed partial class GunSystem
             return;
         }
 
-        shots = (int) (solution.Volume / component.FireCost);
-        maxShots = (int) (solution.MaxVolume / component.FireCost);
+        shots = (int)(solution.Volume / component.FireCost);
+        maxShots = (int)(solution.MaxVolume / component.FireCost);
 
         component.Shots = shots;
         DirtyField(uid, component, nameof(SolutionAmmoProviderComponent.Shots));

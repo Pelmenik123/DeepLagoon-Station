@@ -26,8 +26,7 @@ namespace Content.Server.Shuttles.Systems;
 
 public sealed partial class ShuttleConsoleSystem
 {
-    [Dependency] private readonly IMapManager _mapManager = default!;
-    [Dependency] private readonly SharedShuttleSystem _sharedShuttle = default!;
+    [Dependency] SharedShuttleSystem _sharedShuttle = default!;
 
     private const float ShuttleFTLRange = 256f;
     private const float ShuttleFTLMassThreshold = 100f;
@@ -180,7 +179,7 @@ public sealed partial class ShuttleConsoleSystem
 
         // Check for nearby grids that are above the mass threshold
         var xform = Transform(shuttleUid.Value);
-        var bounds = xform.WorldMatrix.TransformBox(Comp<MapGridComponent>(shuttleUid.Value).LocalAABB).Enlarged(ShuttleFTLRange);
+        var bounds = EntityManager.System<SharedTransformSystem>().GetWorldMatrix(xform).TransformBox(Comp<MapGridComponent>(shuttleUid.Value).LocalAABB).Enlarged(ShuttleFTLRange);
         var bodyQuery = GetEntityQuery<PhysicsComponent>();
         // Keep track of docked grids to exclude them from the proximity check
         var dockedGrids = new HashSet<EntityUid>();
@@ -194,7 +193,7 @@ public sealed partial class ShuttleConsoleSystem
                 continue;
 
             // If we have a docked entity, get its grid
-            if (TryComp<TransformComponent>(dock.DockedWith.Value, out var dockedXform) && dockedXform.GridUid != null)
+            if (TryComp(dock.DockedWith.Value, out TransformComponent? dockedXform) && dockedXform.GridUid != null)
             {
                 dockedGrids.Add(dockedXform.GridUid.Value);
 
@@ -212,7 +211,7 @@ public sealed partial class ShuttleConsoleSystem
                         continue;
 
                     // If we have a docked entity and it's not our ship, add its grid to the exclusion list
-                    if (TryComp<TransformComponent>(parentDock.DockedWith.Value, out var siblingDockedXform) &&
+                    if (TryComp(parentDock.DockedWith.Value, out TransformComponent? siblingDockedXform) &&
                         siblingDockedXform.GridUid != null &&
                         siblingDockedXform.GridUid != shuttleUid.Value)
                     {
@@ -222,17 +221,24 @@ public sealed partial class ShuttleConsoleSystem
             }
         }
 
-        foreach (var other in _mapManager.FindGridsIntersecting(xform.MapID, bounds))
+        var blocked = false;
+        _mapSystem.FindGridsIntersecting(xform.MapID, bounds, (EntityUid otherUid, MapGridComponent _) =>
         {
-            if (other.Owner == shuttleUid.Value ||
-                dockedGrids.Contains(other.Owner) || // Skip grids that are docked to us or to the same parent grid
-                !bodyQuery.TryGetComponent(other.Owner, out var body) ||
+            if (otherUid == shuttleUid.Value ||
+                dockedGrids.Contains(otherUid) || // Skip grids that are docked to us or to the same parent grid
+                !bodyQuery.TryGetComponent(otherUid, out var body) ||
                 body.Mass < ShuttleFTLMassThreshold ||
-                !HasComp<StationMemberComponent>(other.Owner)) // Skip entities without a StationMember component
+                !HasComp<StationMemberComponent>(otherUid)) // Skip entities without a StationMember component
             {
-                continue;
+                return true;
             }
 
+            blocked = true;
+            return false;
+        });
+
+        if (blocked)
+        {
             _popup.PopupEntity(Loc.GetString("shuttle-ftl-proximity"), ent.Owner, PopupType.Medium);
             UpdateConsoles(shuttleUid.Value);
             return;
@@ -295,3 +301,4 @@ public sealed partial class ShuttleConsoleSystem
         UpdateState(uid, ref dockState);
     }
 }
+

@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Content.Client.UserInterface.Controls;
 using Content.Shared.DeviceLinking;
 using Content.Shared.DeviceNetwork;
@@ -7,6 +7,7 @@ using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.XAML;
+using Robust.Shared.IoC;
 using Robust.Shared.Prototypes;
 
 namespace Content.Client.NetworkConfigurator;
@@ -16,11 +17,13 @@ public sealed partial class NetworkConfiguratorLinkMenu : FancyWindow
 {
     private const string PanelBgColor = "#202023";
 
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+
     private readonly LinksRender _links;
 
-    private readonly List<SourcePortPrototype> _sources = new();
+    private readonly List<SourcePortPrototype> _sources = [];
 
-    private readonly List<SinkPortPrototype> _sinks = new();
+    private readonly List<SinkPortPrototype> _sinks = [];
 
     private (ButtonPosition position, string id, int index)? _selectedButton;
 
@@ -32,6 +35,7 @@ public sealed partial class NetworkConfiguratorLinkMenu : FancyWindow
 
     public NetworkConfiguratorLinkMenu()
     {
+        IoCManager.InjectDependencies(this);
         RobustXamlLoader.Load(this);
 
         var footerStyleBox = new StyleBoxFlat()
@@ -46,8 +50,10 @@ public sealed partial class NetworkConfiguratorLinkMenu : FancyWindow
         ButtonClear.AddStyleClass("ButtonColorRed");
         ButtonLinkDefault.Disabled = true;
 
-        _links = new LinksRender(ButtonContainerLeft, ButtonContainerRight);
-        _links.VerticalExpand = true;
+        _links = new LinksRender(ButtonContainerLeft, ButtonContainerRight)
+        {
+            VerticalExpand = true
+        };
         MiddleContainer.AddChild(_links);
 
         ButtonOk.OnPressed += _ => Close();
@@ -61,19 +67,20 @@ public sealed partial class NetworkConfiguratorLinkMenu : FancyWindow
         ButtonContainerRight.RemoveAllChildren();
 
         _sources.Clear();
-        _sources.AddRange(linkState.Sources);
+        _sources.AddRange(linkState.Sources.Select(s => _prototypeManager.Index(s)));
         _links.SourceButtons.Clear();
         var i = 0;
         foreach (var source in _sources)
         {
-            var button = CreateButton(ButtonPosition.Left, source.Name, source.Description, source.ID, i);
+            var name = linkState.SourcePortNames?.GetValueOrDefault(source.ID) ?? source.Name;
+            var button = CreateButton(ButtonPosition.Left, name, source.Description, source.ID, i);
             ButtonContainerLeft.AddChild(button);
             _links.SourceButtons.Add(source.ID, button);
             i++;
         }
 
         _sinks.Clear();
-        _sinks.AddRange(linkState.Sinks);
+        _sinks.AddRange(linkState.Sinks.Select(s => _prototypeManager.Index(s)));
         _links.SinkButtons.Clear();
         i = 0;
         foreach (var sink in _sinks)
@@ -159,19 +166,13 @@ public sealed partial class NetworkConfiguratorLinkMenu : FancyWindow
     ///  Draws lines between linked ports using bezier curve calculated with polynomial coefficients
     ///  See: https://youtu.be/jvPPXbo87ds?t=351
     /// </summary>
-    private sealed class LinksRender : Control
+    private sealed class LinksRender(BoxContainer leftButtonContainer, BoxContainer rightButtonContainer) : Control
     {
-        public readonly List<(ProtoId<SourcePortPrototype>, ProtoId<SinkPortPrototype>)> Links = new();
-        public readonly Dictionary<string, Button> SourceButtons = new();
-        public readonly Dictionary<string, Button> SinkButtons = new();
-        private readonly BoxContainer _leftButtonContainer;
-        private readonly BoxContainer _rightButtonContainer;
-
-        public LinksRender(BoxContainer leftButtonContainer, BoxContainer rightButtonContainer)
-        {
-            _leftButtonContainer = leftButtonContainer;
-            _rightButtonContainer = rightButtonContainer;
-        }
+        public readonly List<(ProtoId<SourcePortPrototype>, ProtoId<SinkPortPrototype>)> Links = [];
+        public readonly Dictionary<string, Button> SourceButtons = [];
+        public readonly Dictionary<string, Button> SinkButtons = [];
+        private readonly BoxContainer _leftButtonContainer = leftButtonContainer;
+        private readonly BoxContainer _rightButtonContainer = rightButtonContainer;
 
         protected override void Draw(DrawingHandleScreen handle)
         {

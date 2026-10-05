@@ -39,7 +39,7 @@ namespace Content.IntegrationTests.Tests.Destructible
             await server.WaitAssertion(() =>
             {
                 var coordinates = sEntityManager.GetComponent<TransformComponent>(sDestructibleEntity).Coordinates;
-                var bruteDamageGroup = sPrototypeManager.Index<DamageGroupPrototype>("TestBrute");
+                var bruteDamageGroup = sPrototypeManager.Index<DamageGroupPrototype>(new ProtoId<DamageGroupPrototype>("TestBrute"));
                 DamageSpecifier bruteDamage = new(bruteDamageGroup, 50);
 
 #pragma warning disable NUnit2045 // Interdependent assertions.
@@ -59,7 +59,7 @@ namespace Content.IntegrationTests.Tests.Destructible
                     Assert.That(threshold.Behaviors, Has.Count.EqualTo(3));
                 });
 
-                var spawnEntitiesBehavior = (SpawnEntitiesBehavior) threshold.Behaviors.Single(b => b is SpawnEntitiesBehavior);
+                var spawnEntitiesBehavior = (SpawnEntitiesBehavior)threshold.Behaviors.Single(b => b is SpawnEntitiesBehavior);
 
                 Assert.Multiple(() =>
                 {

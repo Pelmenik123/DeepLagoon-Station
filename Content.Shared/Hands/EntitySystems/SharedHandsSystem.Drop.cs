@@ -11,7 +11,7 @@ namespace Content.Shared.Hands.EntitySystems;
 
 public abstract partial class SharedHandsSystem
 {
-    [Dependency] private readonly TagSystem _tagSystem = default!;
+    [Dependency] TagSystem _tagSystem = default!;
     private void InitializeDrop()
     {
         SubscribeLocalEvent<HandsComponent, EntRemovedFromContainerMessage>(HandleEntityRemoved);
@@ -59,7 +59,7 @@ public abstract partial class SharedHandsSystem
     /// </summary>
     public bool CanDropHeld(EntityUid uid, Hand hand, bool checkActionBlocker = true)
     {
-        if (hand.Container?.ContainedEntity is not {} held)
+        if (hand.Container?.ContainedEntity is not { } held)
             return false;
 
         if (!ContainerSystem.CanRemove(held, hand.Container))
@@ -127,7 +127,8 @@ public abstract partial class SharedHandsSystem
         var isInContainer = ContainerSystem.IsEntityOrParentInContainer(uid, xform: userXform);
 
         // if the user is in a container, drop the item inside the container
-        if (isInContainer) {
+        if (isInContainer)
+        {
             TransformSystem.DropNextTo((entity, itemXform), (uid, userXform));
             return true;
         }

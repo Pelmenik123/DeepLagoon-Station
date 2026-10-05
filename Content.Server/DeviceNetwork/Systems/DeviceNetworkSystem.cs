@@ -16,13 +16,13 @@ namespace Content.Server.DeviceNetwork.Systems
     ///     Device networking allows machines and devices to communicate with each other while adhering to restrictions like range or being connected to the same powernet.
     /// </summary>
     [UsedImplicitly]
-    public sealed class DeviceNetworkSystem : SharedDeviceNetworkSystem
+    public sealed partial class DeviceNetworkSystem : SharedDeviceNetworkSystem
     {
-        [Dependency] private readonly IRobustRandom _random = default!;
-        [Dependency] private readonly IPrototypeManager _protoMan = default!;
-        [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
-        [Dependency] private readonly DeviceListSystem _deviceLists = default!;
-        [Dependency] private readonly NetworkConfiguratorSystem _configurator = default!;
+        [Dependency] private IRobustRandom _random = default!;
+        [Dependency] private IPrototypeManager _protoMan = default!;
+        [Dependency] private SharedTransformSystem _transformSystem = default!;
+        [Dependency] private DeviceListSystem _deviceLists = default!;
+        [Dependency] private NetworkConfiguratorSystem _configurator = default!;
 
         private readonly Dictionary<int, DeviceNet> _networks = new(4);
         private readonly Queue<DeviceNetworkPacketEvent> _queueA = new();
@@ -147,7 +147,7 @@ namespace Content.Server.DeviceNetwork.Systems
                 _configurator.OnDeviceShutdown(list, (uid, component));
             }
 
-            GetNetwork(component.DeviceNetId).Remove(component);
+            GetNetwork(component.DeviceNetId).Remove(new Entity<DeviceNetworkComponent>(uid, component));
         }
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace Content.Server.DeviceNetwork.Systems
             if (!Resolve(uid, ref device, false))
                 return false;
 
-            return GetNetwork(device.DeviceNetId).Add(device);
+            return GetNetwork(device.DeviceNetId).Add(new Entity<DeviceNetworkComponent>(uid, device));
         }
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace Content.Server.DeviceNetwork.Systems
             if (preventAutoConnect)
                 device.AutoConnect = false;
 
-            return GetNetwork(device.DeviceNetId).Remove(device);
+            return GetNetwork(device.DeviceNetId).Remove(new Entity<DeviceNetworkComponent>(uid, device));
         }
 
         /// <summary>
@@ -189,7 +189,7 @@ namespace Content.Server.DeviceNetwork.Systems
             if (!_networks.TryGetValue(device.DeviceNetId, out var deviceNet))
                 return false;
 
-            return deviceNet.Devices.ContainsValue(device);
+            return deviceNet.Devices.ContainsValue(new Device(new Entity<DeviceNetworkComponent>(uid, device)));
         }
 
         /// <summary>
@@ -211,9 +211,9 @@ namespace Content.Server.DeviceNetwork.Systems
             if (device.ReceiveFrequency == frequency) return;
 
             var deviceNet = GetNetwork(device.DeviceNetId);
-            deviceNet.Remove(device);
+            deviceNet.Remove(new Entity<DeviceNetworkComponent>(uid, device));
             device.ReceiveFrequency = frequency;
-            deviceNet.Add(device);
+            deviceNet.Add(new Entity<DeviceNetworkComponent>(uid, device));
         }
 
         public void SetTransmitFrequency(EntityUid uid, uint? frequency, DeviceNetworkComponent? device = null)
@@ -230,9 +230,9 @@ namespace Content.Server.DeviceNetwork.Systems
             if (device.ReceiveAll == receiveAll) return;
 
             var deviceNet = GetNetwork(device.DeviceNetId);
-            deviceNet.Remove(device);
+            deviceNet.Remove(new Entity<DeviceNetworkComponent>(uid, device));
             device.ReceiveAll = receiveAll;
-            deviceNet.Add(device);
+            deviceNet.Add(new Entity<DeviceNetworkComponent>(uid, device));
         }
 
         public void SetAddress(EntityUid uid, string address, DeviceNetworkComponent? device = null)
@@ -243,10 +243,10 @@ namespace Content.Server.DeviceNetwork.Systems
             if (device.Address == address && device.CustomAddress) return;
 
             var deviceNet = GetNetwork(device.DeviceNetId);
-            deviceNet.Remove(device);
+            deviceNet.Remove(new Entity<DeviceNetworkComponent>(uid, device));
             device.CustomAddress = true;
             device.Address = address;
-            deviceNet.Add(device);
+            deviceNet.Add(new Entity<DeviceNetworkComponent>(uid, device));
         }
 
         public void RandomizeAddress(EntityUid uid, DeviceNetworkComponent? device = null)
@@ -254,17 +254,19 @@ namespace Content.Server.DeviceNetwork.Systems
             if (!Resolve(uid, ref device, false))
                 return;
             var deviceNet = GetNetwork(device.DeviceNetId);
-            deviceNet.Remove(device);
+            deviceNet.Remove(new Entity<DeviceNetworkComponent>(uid, device));
             device.CustomAddress = false;
             device.Address = "";
-            deviceNet.Add(device);
+            deviceNet.Add(new Entity<DeviceNetworkComponent>(uid, device));
         }
 
         /// <summary>
         ///     Try to find a device on a network using its address.
         /// </summary>
-        private bool TryGetDevice(int netId, string address, [NotNullWhen(true)] out DeviceNetworkComponent? device) =>
-            GetNetwork(netId).Devices.TryGetValue(address, out device);
+        private bool TryGetDevice(int netId, string address, [NotNullWhen(true)] out Device device)
+        {
+            return GetNetwork(netId).Devices.TryGetValue(address, out device);
+        }
 
         private void SendPacket(DeviceNetworkPacketEvent packet)
         {
@@ -274,10 +276,10 @@ namespace Content.Server.DeviceNetwork.Systems
                 // Broadcast to all listening devices
                 if (network.ListeningDevices.TryGetValue(packet.Frequency, out var devices) && CheckRecipientsList(packet, ref devices))
                 {
-                    var deviceCopy = ArrayPool<DeviceNetworkComponent>.Shared.Rent(devices.Count);
+                    var deviceCopy = ArrayPool<Device>.Shared.Rent(devices.Count);
                     devices.CopyTo(deviceCopy);
                     SendToConnections(deviceCopy.AsSpan(0, devices.Count), packet);
-                    ArrayPool<DeviceNetworkComponent>.Shared.Return(deviceCopy);
+                    ArrayPool<Device>.Shared.Return(deviceCopy);
                 }
             }
             else
@@ -295,17 +297,14 @@ namespace Content.Server.DeviceNetwork.Systems
                     totalDevices += 1;
                     hasTargetedDevice = true;
                 }
-                var deviceCopy = ArrayPool<DeviceNetworkComponent>.Shared.Rent(totalDevices);
-                if (devices != null)
-                {
-                    devices.CopyTo(deviceCopy);
-                }
+                var deviceCopy = ArrayPool<Device>.Shared.Rent(totalDevices);
+                devices?.CopyTo(deviceCopy);
                 if (hasTargetedDevice)
                 {
-                    deviceCopy[totalDevices - 1] = device!;
+                    deviceCopy[totalDevices - 1] = device;
                 }
                 SendToConnections(deviceCopy.AsSpan(0, totalDevices), packet);
-                ArrayPool<DeviceNetworkComponent>.Shared.Return(deviceCopy);
+                ArrayPool<Device>.Shared.Return(deviceCopy);
             }
         }
 
@@ -314,13 +313,12 @@ namespace Content.Server.DeviceNetwork.Systems
         /// The recipients is set to the modified recipient list.
         /// </summary>
         /// <returns>false if the broadcast was canceled</returns>
-        private bool CheckRecipientsList(DeviceNetworkPacketEvent packet, ref HashSet<DeviceNetworkComponent> recipients)
+        private bool CheckRecipientsList(DeviceNetworkPacketEvent packet, ref HashSet<Device> recipients)
         {
             if (!_networks.ContainsKey(packet.NetId) || !_networks[packet.NetId].Devices.ContainsKey(packet.SenderAddress))
                 return false;
 
-            var sender = _networks[packet.NetId].Devices[packet.SenderAddress];
-            if (!sender.SendBroadcastAttemptEvent)
+            if (!TryComp(packet.Sender, out DeviceNetworkComponent? sender) || !sender.SendBroadcastAttemptEvent)
                 return true;
 
             var beforeBroadcastAttemptEvent = new BeforeBroadcastAttemptEvent(recipients);
@@ -333,7 +331,7 @@ namespace Content.Server.DeviceNetwork.Systems
             return true;
         }
 
-        private void SendToConnections(ReadOnlySpan<DeviceNetworkComponent> connections, DeviceNetworkPacketEvent packet)
+        private void SendToConnections(ReadOnlySpan<Device> connections, DeviceNetworkPacketEvent packet)
         {
             if (Deleted(packet.Sender))
             {
@@ -349,7 +347,11 @@ namespace Content.Server.DeviceNetwork.Systems
                 if (connection.Owner == packet.Sender)
                     continue;
 
-                BeforePacketSentEvent beforeEv = new(packet.Sender, xform, senderPos, connection.NetIdEnum.ToString());
+                var networkId = TryComp(connection.Owner, out DeviceNetworkComponent? deviceComp)
+                    ? deviceComp.NetIdEnum.ToString()
+                    : string.Empty;
+
+                BeforePacketSentEvent beforeEv = new(packet.Sender, xform, senderPos, networkId);
                 RaiseLocalEvent(connection.Owner, beforeEv, false);
 
                 if (!beforeEv.Cancelled)

@@ -25,11 +25,9 @@ namespace Content.Server.Station.Systems;
 [PublicAPI]
 public sealed partial class StationJobsSystem : EntitySystem
 {
-    [Dependency] private readonly IConfigurationManager _configurationManager = default!;
-    [Dependency] private readonly IPlayerManager _player = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly GameTicker _gameTicker = default!;
-    [Dependency] private readonly IEntityManager _entityManager = default!;
+    [Dependency] private IConfigurationManager _configurationManager = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private GameTicker _gameTicker = default!;
 
     /// <summary>
     /// The maximum number of slots allowed for any job.
@@ -64,7 +62,7 @@ public sealed partial class StationJobsSystem : EntitySystem
         if (_availableJobsDirty)
         {
             _cachedAvailableJobs = GenerateJobsAvailableEvent();
-            RaiseNetworkEvent(_cachedAvailableJobs, Filter.Empty().AddPlayers(_player.Sessions));
+            RaiseNetworkEvent(_cachedAvailableJobs, Filter.Empty().AddPlayers(_playerManager.Sessions));
             _availableJobsDirty = false;
         }
     }
@@ -81,7 +79,7 @@ public sealed partial class StationJobsSystem : EntitySystem
 
         stationJobs.JobList = stationJobs.SetupAvailableJobs.ToDictionary(
             x => x.Key,
-            x=> (int?)(x.Value[1] < 0 ? null : x.Value[1]));
+            x => (int?)(x.Value[1] < 0 ? null : x.Value[1]));
 
         stationJobs.TotalJobs = stationJobs.JobList.Values.Select(x => x ?? 0).Sum();
 
@@ -184,7 +182,7 @@ public sealed partial class StationJobsSystem : EntitySystem
                 return true;
             case true:
                 // Job is unlimited so just say we adjusted it and do nothing.
-                if (available is not {} avail)
+                if (available is not { } avail)
                     return true;
 
                 // Would remove more jobs than we have available.
@@ -257,7 +255,7 @@ public sealed partial class StationJobsSystem : EntitySystem
 
         // Enforce the MaxJobSlots limit
         var clampedAmount = Math.Min(amount, MaxJobSlots);
-        
+
         var jobList = stationJobs.JobList;
 
         switch (jobList.ContainsKey(jobPrototypeId))
@@ -422,7 +420,7 @@ public sealed partial class StationJobsSystem : EntitySystem
 
         return stationJobs.SetupAvailableJobs.ToDictionary(
             x => x.Key,
-            x=> (int?)(x.Value[0] < 0 ? null : x.Value[0]));
+            x => (int?)(x.Value[0] < 0 ? null : x.Value[0]));
     }
 
     /// <summary>

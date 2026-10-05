@@ -1,4 +1,4 @@
-﻿using Content.Server.Kitchen.Components;
+using Content.Server.Kitchen.Components;
 using Content.Server.Nyanotrasen.Kitchen.Components;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Database;
@@ -82,8 +82,7 @@ public sealed partial class DeepFryerSystem
     {
         var user = args.Actor;
 
-        if (user == null ||
-            !TryComp<HandsComponent>(user, out var handsComponent) ||
+        if (!TryComp<HandsComponent>(user, out var handsComponent) ||
             handsComponent.ActiveHandEntity == null)
             return;
 

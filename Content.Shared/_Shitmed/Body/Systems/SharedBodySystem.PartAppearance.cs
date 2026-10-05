@@ -11,11 +11,11 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
 namespace Content.Shared.Body.Systems;
+
 public partial class SharedBodySystem
 {
-    [Dependency] private readonly SharedHumanoidAppearanceSystem _humanoid = default!;
-    [Dependency] private readonly MarkingManager _markingManager = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+    [Dependency] SharedHumanoidAppearanceSystem _humanoid = default!;
+    [Dependency] private MarkingManager _markingManager = default!;
     private void InitializePartAppearances()
     {
         base.Initialize();
@@ -83,8 +83,8 @@ public partial class SharedBodySystem
 
     private string? CreateIdFromPart(HumanoidAppearanceComponent bodyAppearance, HumanoidVisualLayers part)
     {
-        var speciesProto = _prototypeManager.Index(bodyAppearance.Species);
-        var baseSprites = _prototypeManager.Index<HumanoidSpeciesBaseSpritesPrototype>(speciesProto.SpriteSet);
+        var speciesProto = Prototypes.Index(bodyAppearance.Species);
+        var baseSprites = Prototypes.Index<HumanoidSpeciesBaseSpritesPrototype>(speciesProto.SpriteSet);
 
         if (!baseSprites.Sprites.ContainsKey(part))
             return null;
@@ -126,7 +126,7 @@ public partial class SharedBodySystem
             partAppearance.Comp.Markings[targetLayer].Add(marking);
         }
         //else
-            //RemovePartMarkings(uid, component, bodyAppearance);
+        //RemovePartMarkings(uid, component, bodyAppearance);
     }
 
     private void HandleState(EntityUid uid, BodyPartAppearanceComponent component, ref AfterAutoHandleStateEvent args) =>

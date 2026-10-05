@@ -9,11 +9,11 @@ using Robust.Client.Player;
 
 namespace Content.Client.Chat
 {
-    public sealed class CollectiveMindSystem : EntitySystem
+    public sealed partial class CollectiveMindSystem : EntitySystem
     {
-        [Dependency] private readonly IChatManager _chatManager = default!;
-        [Dependency] private readonly IPlayerManager _playerManager = default!;
-        [Dependency] private readonly CollectiveMindUpdateSystem _collectiveSystem = default!;
+        [Dependency] private IChatManager _chatManager = default!;
+        [Dependency] private IPlayerManager _playerManager = default!;
+        [Dependency] private CollectiveMindUpdateSystem _collectiveSystem = default!;
 
         public override void Initialize()
         {
@@ -22,7 +22,7 @@ namespace Content.Client.Chat
             SubscribeLocalEvent<CollectiveMindComponent, ComponentRemove>(OnRemove);
         }
 
-        public bool IsCollectiveMind => CompOrNull<CollectiveMindComponent>(_playerManager.LocalPlayer?.ControlledEntity) != null;
+        public bool IsCollectiveMind => CompOrNull<CollectiveMindComponent>(_playerManager.LocalSession?.AttachedEntity) != null;
 
         private void OnInit(EntityUid uid, CollectiveMindComponent component, ComponentInit args)
         {

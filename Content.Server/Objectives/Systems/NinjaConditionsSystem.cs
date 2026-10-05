@@ -12,12 +12,12 @@ namespace Content.Server.Objectives.Systems;
 /// Handles the objective conditions that hard depend on ninja.
 /// Survive is handled by <see cref="SurviveConditionSystem"/> since it works without being a ninja.
 /// </summary>
-public sealed class NinjaConditionsSystem : EntitySystem
+public sealed partial class NinjaConditionsSystem : EntitySystem
 {
-    [Dependency] private readonly MetaDataSystem _metaData = default!;
-    [Dependency] private readonly NumberObjectiveSystem _number = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly SharedRoleSystem _roles = default!;
+    [Dependency] private MetaDataSystem _metaData = default!;
+    [Dependency] private NumberObjectiveSystem _number = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private SharedRoleSystem _roles = default!;
 
     public override void Initialize()
     {
@@ -42,7 +42,7 @@ public sealed class NinjaConditionsSystem : EntitySystem
         if (target == 0)
             return 1f;
 
-        return MathF.Min(comp.DoorsJacked / (float) target, 1f);
+        return MathF.Min(comp.DoorsJacked / (float)target, 1f);
     }
 
     // spider charge
@@ -98,6 +98,6 @@ public sealed class NinjaConditionsSystem : EntitySystem
         if (target == 0)
             return 1f;
 
-        return MathF.Min(comp.DownloadedNodes.Count / (float) target, 1f);
+        return MathF.Min(comp.DownloadedNodes.Count / (float)target, 1f);
     }
 }

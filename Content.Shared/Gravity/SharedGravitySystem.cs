@@ -11,10 +11,9 @@ namespace Content.Shared.Gravity
 {
     public abstract partial class SharedGravitySystem : EntitySystem
     {
-        [Dependency] protected readonly IGameTiming Timing = default!;
-        [Dependency] private readonly AlertsSystem _alerts = default!;
+        [Dependency] protected IGameTiming Timing = default!;
+        [Dependency] private AlertsSystem _alerts = default!;
 
-        [ValidatePrototypeId<AlertPrototype>]
         public const string WeightlessAlert = "Weightless";
 
         private EntityQuery<GravityComponent> _gravityQuery;
@@ -91,22 +90,22 @@ namespace Content.Shared.Gravity
             if (args.Current is not GravityComponentState state)
                 return;
 
-            if (component.EnabledVV == state.Enabled)
+            if (component.Enabled == state.Enabled)
                 return;
-            component.EnabledVV = state.Enabled;
-            var ev = new GravityChangedEvent(uid, component.EnabledVV);
+            component.Enabled = state.Enabled;
+            var ev = new GravityChangedEvent(uid, component.Enabled);
             RaiseLocalEvent(uid, ref ev, true);
         }
 
         private void OnGetState(EntityUid uid, GravityComponent component, ref ComponentGetState args)
         {
-            args.State = new GravityComponentState(component.EnabledVV);
+            args.State = new GravityComponentState(component.Enabled);
         }
 
         private void OnGravityChange(ref GravityChangedEvent ev)
         {
             var alerts = AllEntityQuery<AlertsComponent, TransformComponent>();
-            while(alerts.MoveNext(out var uid, out _, out var xform))
+            while (alerts.MoveNext(out var uid, out _, out var xform))
             {
                 if (xform.GridUid != ev.ChangedGridIndex)
                     continue;
@@ -148,24 +147,19 @@ namespace Content.Shared.Gravity
 
         private void OnGridInit(GridInitializeEvent ev)
         {
-            EntityManager.EnsureComponent<GravityComponent>(ev.EntityUid);
+            EnsureComp<GravityComponent>(ev.EntityUid);
         }
 
         [Serializable, NetSerializable]
-        private sealed class GravityComponentState : ComponentState
+        private sealed class GravityComponentState(bool enabled) : ComponentState
         {
-            public bool Enabled { get; }
-
-            public GravityComponentState(bool enabled)
-            {
-                Enabled = enabled;
-            }
+            public bool Enabled { get; } = enabled;
         }
     }
 
     [ByRefEvent]
     public record struct IsWeightlessEvent(EntityUid Entity, bool IsWeightless = false, bool Handled = false) : IInventoryRelayEvent
     {
-        SlotFlags IInventoryRelayEvent.TargetSlots => ~SlotFlags.POCKET;
+        readonly SlotFlags IInventoryRelayEvent.TargetSlots => ~SlotFlags.POCKET;
     }
 }

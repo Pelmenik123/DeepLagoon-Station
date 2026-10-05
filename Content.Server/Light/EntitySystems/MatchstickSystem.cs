@@ -1,3 +1,4 @@
+using Robust.Shared.Timing;
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.Light.Components;
 using Content.Shared.Audio;
@@ -12,14 +13,14 @@ using Robust.Shared.Player;
 
 namespace Content.Server.Light.EntitySystems
 {
-    public sealed class MatchstickSystem : EntitySystem
+    public sealed partial class MatchstickSystem : EntitySystem
     {
-        [Dependency] private readonly AtmosphereSystem _atmosphereSystem = default!;
-        [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-        [Dependency] private readonly SharedAudioSystem _audio = default!;
-        [Dependency] private readonly SharedItemSystem _item = default!;
-        [Dependency] private readonly SharedPointLightSystem _lights = default!;
-        [Dependency] private readonly TransformSystem _transformSystem = default!;
+        [Dependency] private AtmosphereSystem _atmosphereSystem = default!;
+        [Dependency] private SharedAppearanceSystem _appearance = default!;
+        [Dependency] private SharedAudioSystem _audio = default!;
+        [Dependency] private SharedItemSystem _item = default!;
+        [Dependency] private SharedPointLightSystem _lights = default!;
+        [Dependency] private TransformSystem _transformSystem = default!;
 
         private readonly HashSet<Entity<MatchstickComponent>> _litMatches = new();
 
@@ -47,7 +48,7 @@ namespace Content.Server.Light.EntitySystems
 
                 var xform = Transform(match);
 
-                if (xform.GridUid is not {} gridUid)
+                if (xform.GridUid is not { } gridUid)
                     return;
 
                 var position = _transformSystem.GetGridOrMapTilePosition(match, xform);
@@ -86,7 +87,7 @@ namespace Content.Server.Light.EntitySystems
             // Change state
             SetState(matchstick, component, SmokableState.Lit);
             _litMatches.Add(matchstick);
-            matchstick.Owner.SpawnTimer(component.Duration * 1000, delegate
+            Timer.Spawn(TimeSpan.FromSeconds(component.Duration), delegate
             {
                 SetState(matchstick, component, SmokableState.Burnt);
                 _litMatches.Remove(matchstick);
@@ -102,7 +103,7 @@ namespace Content.Server.Light.EntitySystems
                 _lights.SetEnabled(uid, component.CurrentState == SmokableState.Lit, pointLightComponent);
             }
 
-            if (EntityManager.TryGetComponent(uid, out ItemComponent? item))
+            if (TryComp(uid, out ItemComponent? item))
             {
                 switch (component.CurrentState)
                 {
@@ -115,7 +116,7 @@ namespace Content.Server.Light.EntitySystems
                 }
             }
 
-            if (EntityManager.TryGetComponent(uid, out AppearanceComponent? appearance))
+            if (TryComp(uid, out AppearanceComponent? appearance))
             {
                 _appearance.SetData(uid, SmokingVisuals.Smoking, component.CurrentState, appearance);
             }

@@ -26,31 +26,35 @@ using Content.Server.Engineering.Components;
 using Content.Server.Stack;
 using Content.Shared.Coordinates.Helpers;
 using Content.Shared.DoAfter;
+using Content.Shared.Engineering;
 using Content.Shared.Interaction;
 using Content.Shared.Maps;
 using Content.Shared.Physics;
 using Content.Shared.Stacks;
 using JetBrains.Annotations;
+using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 
 namespace Content.Server.Engineering.EntitySystems
 {
     [UsedImplicitly]
-    public sealed class SpawnAfterInteractSystem : EntitySystem
+    public sealed partial class SpawnAfterInteractSystem : EntitySystem
     {
-        [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
-        [Dependency] private readonly StackSystem _stackSystem = default!;
-        [Dependency] private readonly TurfSystem _turfSystem = default!;
-        [Dependency] private readonly SharedTransformSystem _transform = default!;
+        [Dependency] private SharedDoAfterSystem _doAfterSystem = default!;
+        [Dependency] private StackSystem _stackSystem = default!;
+        [Dependency] private TurfSystem _turfSystem = default!;
+        [Dependency] private SharedTransformSystem _transform = default!;
+        [Dependency] private SharedMapSystem _map = default!;
 
         public override void Initialize()
         {
             base.Initialize();
 
             SubscribeLocalEvent<SpawnAfterInteractComponent, AfterInteractEvent>(HandleAfterInteract);
+            SubscribeLocalEvent<SpawnAfterInteractComponent, SpawnAfterInteractDoAfterEvent>(OnSpawnAfterInteractDoAfter);
         }
 
-        private async void HandleAfterInteract(EntityUid uid, SpawnAfterInteractComponent component, AfterInteractEvent args)
+        private void HandleAfterInteract(EntityUid uid, SpawnAfterInteractComponent component, AfterInteractEvent args)
         {
             if (!args.CanReach && !component.IgnoreDistance)
                 return;
@@ -58,7 +62,8 @@ namespace Content.Server.Engineering.EntitySystems
                 return;
             if (!TryComp<MapGridComponent>(_transform.GetGrid(args.ClickLocation), out var grid))
                 return;
-            if (!grid.TryGetTileRef(args.ClickLocation, out var tileRef))
+            var gridUid = _transform.GetGrid(args.ClickLocation)!.Value;
+            if (!_map.TryGetTileRef(gridUid, grid, args.ClickLocation, out var tileRef))
                 return;
 
             bool IsTileClear()
@@ -71,26 +76,48 @@ namespace Content.Server.Engineering.EntitySystems
 
             if (component.DoAfterTime > 0)
             {
-                var doAfterArgs = new DoAfterArgs(EntityManager, args.User, component.DoAfterTime, new AwaitedDoAfterEvent(), null)
+                var doAfterArgs = new DoAfterArgs(EntityManager, args.User, component.DoAfterTime, new SpawnAfterInteractDoAfterEvent(EntityManager, args.ClickLocation), uid)
                 {
                     BreakOnMove = true,
                 };
-                var result = await _doAfterSystem.WaitDoAfter(doAfterArgs);
 
-                if (result != DoAfterStatus.Finished)
-                    return;
+                _doAfterSystem.TryStartDoAfter(doAfterArgs);
+                return;
             }
 
-            if (component.Deleted || !IsTileClear())
+            FinishSpawn(uid, component, args.User, args.ClickLocation);
+        }
+
+        private void OnSpawnAfterInteractDoAfter(EntityUid uid, SpawnAfterInteractComponent component, SpawnAfterInteractDoAfterEvent args)
+        {
+            if (args.Cancelled || args.Handled)
                 return;
 
-            if (EntityManager.TryGetComponent(uid, out StackComponent? stackComp)
+            FinishSpawn(uid, component, args.User, GetCoordinates(args.ClickLocation));
+        }
+
+        private void FinishSpawn(EntityUid uid, SpawnAfterInteractComponent component, EntityUid user, EntityCoordinates clickLocation)
+        {
+            if (component.Deleted || Deleted(uid) || Deleted(user))
+                return;
+
+            if (!TryComp<MapGridComponent>(_transform.GetGrid(clickLocation), out var grid))
+                return;
+
+            var gridUid = _transform.GetGrid(clickLocation)!.Value;
+            if (!_map.TryGetTileRef(gridUid, grid, clickLocation, out var tileRef))
+                return;
+
+            if (tileRef.Tile.IsEmpty || _turfSystem.IsTileBlocked(tileRef, CollisionGroup.MobMask))
+                return;
+
+            if (TryComp(uid, out StackComponent? stackComp)
                 && component.RemoveOnInteract && !_stackSystem.Use(uid, 1, stackComp))
             {
                 return;
             }
 
-            EntityManager.SpawnEntity(component.Prototype, args.ClickLocation.SnapToGrid(grid));
+            Spawn(component.Prototype, clickLocation.SnapToGrid(grid));
 
             if (component.RemoveOnInteract && stackComp == null)
                 QueueDel(uid); // Frontier: TryQueueDel<QueueDel

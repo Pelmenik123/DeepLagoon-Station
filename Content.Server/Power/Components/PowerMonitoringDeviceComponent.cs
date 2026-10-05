@@ -41,7 +41,7 @@ public sealed partial class PowerMonitoringDeviceComponent : Component
     /// <summary>
     ///     Indicates whether the entity is/should be part of a collection
     /// </summary>
-    public bool IsCollectionMasterOrChild { get { return CollectionName != string.Empty; } }
+    public bool IsCollectionMasterOrChild => CollectionName != string.Empty;
 
     /// <summary>
     ///     Specifies the uid of the master that represents this entity
@@ -53,12 +53,15 @@ public sealed partial class PowerMonitoringDeviceComponent : Component
     public EntityUid CollectionMaster;
 
     /// <summary>
-    ///     Indicates if this entity represents a group of entities
+    ///     Indicates if the given entity represents a group of entities
     /// </summary>
     /// <remarks>
     ///     Used when grouping multiple entities into a single power monitoring console entry
     /// </remarks>
-    public bool IsCollectionMaster { get { return Owner == CollectionMaster; } }
+    public bool IsCollectionMaster(EntityUid owner)
+    {
+        return owner == CollectionMaster;
+    }
 
     /// <summary>
     ///     A list of other entities that are to be represented by this entity
@@ -67,7 +70,7 @@ public sealed partial class PowerMonitoringDeviceComponent : Component
     ///     Used when grouping multiple entities into a single power monitoring console entry
     /// </remarks>
     [ViewVariables]
-    public Dictionary<EntityUid, PowerMonitoringDeviceComponent> ChildDevices = new();
+    public Dictionary<EntityUid, PowerMonitoringDeviceComponent> ChildDevices = [];
 
     /// <summary>
     /// Path to the .rsi folder

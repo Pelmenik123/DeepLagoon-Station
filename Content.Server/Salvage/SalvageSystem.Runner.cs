@@ -26,8 +26,8 @@ public sealed partial class SalvageSystem
      * Handles actively running a salvage expedition.
      */
 
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly GameTicker _gameTicker = default!;
+    [Dependency] MobStateSystem _mobState = default!;
+    [Dependency] private GameTicker _gameTicker = default!;
     private void InitializeRunner()
     {
         SubscribeLocalEvent<FTLRequestEvent>(OnFTLRequest);
@@ -79,7 +79,7 @@ public sealed partial class SalvageSystem
             ChatChannel.Radio,
             text,
             text,
-            _mapManager.GetMapEntityId(mapId),
+            _mapSystem.GetMap(mapId),
             false,
             true,
             null);
@@ -130,7 +130,7 @@ public sealed partial class SalvageSystem
     {
         // Started a mining mission so work out exempt entities
         if (TryComp<SalvageMiningExpeditionComponent>(
-                _mapManager.GetMapEntityId(ev.TargetCoordinates.ToMap(EntityManager, _transform).MapId),
+                _mapSystem.GetMap(_transform.ToMapCoordinates(ev.TargetCoordinates).MapId),
                 out var mining))
         {
             var ents = new List<EntityUid>();
@@ -196,11 +196,11 @@ public sealed partial class SalvageSystem
             // Auto-FTL out any shuttles
             else if (remaining < TimeSpan.FromSeconds(_shuttle.DefaultStartupTime) + TimeSpan.FromSeconds(0.5))
             {
-                var ftlTime = (float) remaining.TotalSeconds;
+                var ftlTime = (float)remaining.TotalSeconds;
 
                 if (remaining < TimeSpan.FromSeconds(_shuttle.DefaultStartupTime))
                 {
-                    ftlTime = MathF.Max(0, (float) remaining.TotalSeconds - 0.5f);
+                    ftlTime = MathF.Max(0, (float)remaining.TotalSeconds - 0.5f);
                 }
 
                 ftlTime = MathF.Min(ftlTime, _shuttle.DefaultStartupTime);
@@ -231,7 +231,7 @@ public sealed partial class SalvageSystem
 
                             // Get a list of all grid positions on the destination map
                             List<Vector2> gridCoords = new();
-                            var gridQuery = EntityManager.AllEntityQueryEnumerator<MapGridComponent, TransformComponent>();
+                            var gridQuery = AllEntityQuery<MapGridComponent, TransformComponent>();
                             while (gridQuery.MoveNext(out var _, out _, out var xform))
                             {
                                 if (xform.MapID == mapId)

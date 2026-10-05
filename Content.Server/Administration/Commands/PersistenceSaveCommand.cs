@@ -9,11 +9,11 @@ using Robust.Shared.Utility;
 namespace Content.Server.Administration.Commands;
 
 [AdminCommand(AdminFlags.Server)]
-public sealed class PersistenceSave : IConsoleCommand
+public sealed partial class PersistenceSave : IConsoleCommand
 {
-    [Dependency] private readonly IConfigurationManager _config = default!;
-    [Dependency] private readonly IEntitySystemManager _system = default!;
-    [Dependency] private readonly IMapManager _map = default!;
+    [Dependency] private IConfigurationManager _config = default!;
+    [Dependency] private IEntitySystemManager _system = default!;
+    SharedMapSystem _map => IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SharedMapSystem>();
 
     public string Command => "persistencesave";
     public string Description => "Saves server data to a persistence file to be loaded later.";
@@ -52,3 +52,4 @@ public sealed class PersistenceSave : IConsoleCommand
         shell.WriteLine(Loc.GetString("cmd-savemap-success"));
     }
 }
+

@@ -53,14 +53,14 @@ namespace Content.Server.Cargo.Systems;
 /// <summary>
 /// This handles calculating the price of items, and implements two basic methods of pricing materials.
 /// </summary>
-public sealed class PricingSystem : EntitySystem
+public sealed partial class PricingSystem : EntitySystem
 {
-    [Dependency] private readonly IConsoleHost _consoleHost = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly BodySystem _bodySystem = default!;
-    [Dependency] private readonly MobStateSystem _mobStateSystem = default!;
-    [Dependency] private readonly SharedSolutionContainerSystem _solutionContainerSystem = default!;
-    [Dependency] private readonly VendingMachinePurchaseSystem _vendingPurchase = default!; // Mono
+    [Dependency] private IConsoleHost _consoleHost = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private BodySystem _bodySystem = default!;
+    [Dependency] private MobStateSystem _mobStateSystem = default!;
+    [Dependency] private SharedSolutionContainerSystem _solutionContainerSystem = default!;
+    [Dependency] private VendingMachinePurchaseSystem _vendingPurchase = default!; // Mono
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -131,7 +131,7 @@ public sealed class PricingSystem : EntitySystem
         var totalPartsPresent = partList.Sum(_ => 1);
         var totalParts = partList.Count;
 
-        var partRatio = totalPartsPresent / (double) totalParts;
+        var partRatio = totalPartsPresent / (double)totalParts;
         var partPenalty = component.Price * (1 - partRatio) * component.MissingBodyPartPenalty;
 
         args.Price += (component.Price - partPenalty) * (_mobStateSystem.IsAlive(uid, state) ? 1.0 : component.DeathPenalty) * (HasComp<LabGrownComponent>(uid) ? 1.0 : component.LabGrownPenalty); // Frontier - LabGrown
@@ -153,7 +153,7 @@ public sealed class PricingSystem : EntitySystem
                     continue;
 
                 // TODO check ReagentData for price information?
-                price += (float) quantity * reagentProto.PricePerUnit;
+                price += (float)quantity * reagentProto.PricePerUnit;
             }
         }
 
@@ -172,7 +172,7 @@ public sealed class PricingSystem : EntitySystem
                     continue;
 
                 // TODO check ReagentData for price information?
-                price += (float) quantity * reagentProto.PricePerUnit;
+                price += (float)quantity * reagentProto.PricePerUnit;
             }
         }
 
@@ -409,12 +409,12 @@ public sealed class PricingSystem : EntitySystem
         if (prototype.Components.ContainsKey(Factory.GetComponentName<MaterialComponent>()) &&
             prototype.Components.TryGetValue(Factory.GetComponentName<PhysicalCompositionComponent>(), out var composition))
         {
-            var compositionComp = (PhysicalCompositionComponent) composition.Component;
+            var compositionComp = (PhysicalCompositionComponent)composition.Component;
             var matPrice = GetMaterialPrice(compositionComp);
 
             if (prototype.Components.TryGetValue(Factory.GetComponentName<StackComponent>(), out var stackProto))
             {
-                matPrice *= ((StackComponent) stackProto.Component).Count;
+                matPrice *= ((StackComponent)stackProto.Component).Count;
             }
 
             price += matPrice;
@@ -441,7 +441,7 @@ public sealed class PricingSystem : EntitySystem
 
         if (prototype.Components.TryGetValue(Factory.GetComponentName<SolutionContainerManagerComponent>(), out var solManager))
         {
-            var solComp = (SolutionContainerManagerComponent) solManager.Component;
+            var solComp = (SolutionContainerManagerComponent)solManager.Component;
             price += GetSolutionPrice(solComp);
         }
 
@@ -470,8 +470,8 @@ public sealed class PricingSystem : EntitySystem
             prototype.Components.TryGetValue(Factory.GetComponentName<StackComponent>(), out var stackProto) &&
             !prototype.Components.ContainsKey(Factory.GetComponentName<MaterialComponent>()))
         {
-            var stackPrice = (StackPriceComponent) stackpriceProto.Component;
-            var stack = (StackComponent) stackProto.Component;
+            var stackPrice = (StackPriceComponent)stackpriceProto.Component;
+            var stack = (StackComponent)stackProto.Component;
             price += stack.Count * stackPrice.Price;
         }
 
@@ -516,7 +516,7 @@ public sealed class PricingSystem : EntitySystem
 
         if (prototype.Components.TryGetValue(Factory.GetComponentName<StaticPriceComponent>(), out var staticProto))
         {
-            var staticPrice = (StaticPriceComponent) staticProto.Component;
+            var staticPrice = (StaticPriceComponent)staticProto.Component;
             price += staticPrice.Price;
         }
 
@@ -532,13 +532,13 @@ public sealed class PricingSystem : EntitySystem
         // Prefer static price to stack price component, take the first positive value read.
         if (prototype.Components.TryGetValue(Factory.GetComponentName(typeof(StaticPriceComponent)), out var staticProto))
         {
-            var staticComp = (StaticPriceComponent) staticProto.Component;
+            var staticComp = (StaticPriceComponent)staticProto.Component;
             if (staticComp.VendPrice > 0.0)
                 price += staticComp.VendPrice;
         }
         if (price == 0.0 && prototype.Components.TryGetValue(Factory.GetComponentName(typeof(StackPriceComponent)), out var stackProto))
         {
-            var stackComp = (StackPriceComponent) stackProto.Component;
+            var stackComp = (StackPriceComponent)stackProto.Component;
             if (stackComp.VendPrice > 0.0)
                 price += stackComp.VendPrice;
         }

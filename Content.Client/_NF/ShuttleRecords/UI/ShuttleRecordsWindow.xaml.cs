@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Content.Client.Stylesheets;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._NF.ShuttleRecords;
@@ -12,9 +12,9 @@ namespace Content.Client._NF.ShuttleRecords.UI;
 [GenerateTypedNameReferences]
 public sealed partial class ShuttleRecordsWindow : FancyWindow
 {
-    [Dependency] private readonly ILocalizationManager _loc = default!;
-    [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
+    [Dependency] private ILocalizationManager _loc = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
 
     public Action<ShuttleRecord>? OnCopyDeed;
     public ShuttleRecord? SelectedShuttleRecord;

@@ -1,4 +1,4 @@
-﻿using Content.Server.ParticleAccelerator.Components;
+using Content.Server.ParticleAccelerator.Components;
 using Content.Server.Power.EntitySystems;
 
 namespace Content.Server.ParticleAccelerator.EntitySystems;

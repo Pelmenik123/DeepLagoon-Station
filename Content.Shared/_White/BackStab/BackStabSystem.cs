@@ -1,4 +1,5 @@
 using Content.Shared.Damage;
+using System.Numerics;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Popups;
@@ -11,14 +12,14 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._White.BackStab;
 
-public sealed class BackStabSystem : EntitySystem
+public sealed partial class BackStabSystem : EntitySystem
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly INetManager _net = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly StandingStateSystem _standing = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private INetManager _net = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private StandingStateSystem _standing = default!;
 
     public static readonly SoundSpecifier BackstabSound =
         new SoundPathSpecifier("/Audio/_Goobstation/Weapons/Effects/guillotine.ogg");
@@ -44,7 +45,7 @@ public sealed class BackStabSystem : EntitySystem
 
         var damage = total * ent.Comp.DamageMultiplier;
 
-        args.BonusDamage += new DamageSpecifier(_prototypeManager.Index<DamageTypePrototype>("Slash"), damage - total);
+        args.BonusDamage += new DamageSpecifier(_prototypeManager.Index<DamageTypePrototype>(new ProtoId<DamageTypePrototype>("Slash")), damage - total);
     }
 
     public bool TryBackstab(EntityUid target,
@@ -67,7 +68,7 @@ public sealed class BackStabSystem : EntitySystem
         var userXform = Transform(user);
         var v1 = -_transform.GetWorldRotation(xform).ToWorldVec();
         var v2 = _transform.GetWorldPosition(userXform) - _transform.GetWorldPosition(xform);
-        var angle = Vector3.CalculateAngle(new Vector3(v1), new Vector3(v2));
+        var angle = MathF.Acos(float.Clamp(Vector2.Dot(Vector2.Normalize(v1), Vector2.Normalize(v2)), -1f, 1f));
 
         if (angle > tolerance.Theta)
             return false;

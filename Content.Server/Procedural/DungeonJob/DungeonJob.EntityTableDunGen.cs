@@ -7,6 +7,7 @@ using Content.Shared.Physics;
 using Content.Shared.Procedural;
 using Content.Shared.Procedural.DungeonLayers;
 using Robust.Shared.Collections;
+using Robust.Shared.Random;
 
 namespace Content.Server.Procedural.DungeonJob;
 
@@ -15,7 +16,7 @@ public sealed partial class DungeonJob
     private async Task PostGen(
         EntityTableDunGen gen,
         Dungeon dungeon,
-        Random random)
+        IRobustRandom random)
     {
         var availableRooms = new ValueList<DungeonRoom>();
         availableRooms.AddRange(dungeon.Rooms);
@@ -30,10 +31,10 @@ public sealed partial class DungeonJob
             {
                 var tile = availableTiles.RemoveSwap(random.Next(availableTiles.Count));
 
-                if (!_anchorable.TileFree(_grid,
+                if (!_anchorable.TileFree(_gridUid, _grid,
                         tile,
-                        (int) CollisionGroup.MachineLayer,
-                        (int) CollisionGroup.MachineLayer))
+                        (int)CollisionGroup.MachineLayer,
+                        (int)CollisionGroup.MachineLayer))
                 {
                     continue;
                 }

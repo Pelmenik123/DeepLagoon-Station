@@ -6,11 +6,12 @@ using Robust.Shared.Timing;
 using System.Linq;
 
 namespace Content.Shared._Shitmed.BodyEffects;
-public partial class BodyPartEffectSystem : EntitySystem
+
+public sealed partial class BodyPartEffectSystem : EntitySystem
 {
-    [Dependency] private readonly IComponentFactory _compFactory = default!;
-    [Dependency] private readonly ISerializationManager _serManager = default!;
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
+    [Dependency] private IComponentFactory _compFactory = default!;
+    [Dependency] private ISerializationManager _serManager = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
     public override void Initialize()
     {
         base.Initialize();
@@ -72,8 +73,8 @@ public partial class BodyPartEffectSystem : EntitySystem
             if (HasComp(body, compType))
                 continue;
 
-            var newComp = (Component) _serManager.CreateCopy(comp.Component, notNullableOverride: true);
-            EntityManager.AddComponent(body, newComp, true);
+            var newComp = (Component)_serManager.CreateCopy(comp.Component, notNullableOverride: true);
+            AddComp(body, newComp, true);
 
             effectComp.Active[key] = comp;
         }

@@ -14,7 +14,9 @@ namespace Content.Server.Atmos.Components
             set
             {
                 Type = value;
+#pragma warning disable CS0618 // Matches upstream SS14: VV-only member has no EntityUid parameter.
                 IoCManager.Resolve<IEntityManager>().System<AtmosPlaqueSystem>().UpdateSign(Owner, this);
+#pragma warning restore CS0618
             }
         }
     }

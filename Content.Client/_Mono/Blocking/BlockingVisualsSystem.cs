@@ -10,9 +10,10 @@ using Robust.Client.Graphics;
 
 namespace Content.Client._Mono.Blocking;
 
-public sealed class BlockingVisualsSystem : SharedBlockingSystem
+public sealed partial class BlockingVisualsSystem : SharedBlockingSystem
 {
-    [Dependency] private readonly IPrototypeManager _protoMan = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IPrototypeManager _protoMan = default!;
 
     private ShaderInstance _shader = default!;
 
@@ -20,7 +21,7 @@ public sealed class BlockingVisualsSystem : SharedBlockingSystem
     {
         base.Initialize();
 
-        _shader = _protoMan.Index<ShaderPrototype>("ShieldingOutline").InstanceUnique();
+        _shader = _protoMan.Index<ShaderPrototype>(new ProtoId<ShaderPrototype>("ShieldingOutline")).InstanceUnique();
 
         SubscribeLocalEvent<BlockingVisualsComponent, ComponentStartup>(OnStartup);
         SubscribeLocalEvent<BlockingVisualsComponent, ComponentShutdown>(OnShutdown);
@@ -40,9 +41,7 @@ public sealed class BlockingVisualsSystem : SharedBlockingSystem
         if (!Resolve(uid, ref component, ref sprite, false))
             return;
 
-        sprite.PostShader = enabled ? _shader : null;
-        sprite.GetScreenTexture = enabled;
-        sprite.RaiseShaderEvent = enabled;
+        _sprite.SetLegacyPostShader(sprite.AsEntity(), enabled ? _shader : null, getScreenTexture: enabled, raiseShaderEvent: enabled);
     }
     private void OnStartup(EntityUid uid, BlockingVisualsComponent component, ComponentStartup args)
     {

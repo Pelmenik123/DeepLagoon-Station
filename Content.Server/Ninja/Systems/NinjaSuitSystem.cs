@@ -14,13 +14,13 @@ namespace Content.Server.Ninja.Systems;
 /// <summary>
 /// Handles power cell upgrading and actions.
 /// </summary>
-public sealed class NinjaSuitSystem : SharedNinjaSuitSystem
+public sealed partial class NinjaSuitSystem : SharedNinjaSuitSystem
 {
-    [Dependency] private readonly EmpSystem _emp = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly SpaceNinjaSystem _ninja = default!;
-    [Dependency] private readonly PowerCellSystem _powerCell = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private EmpSystem _emp = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private SpaceNinjaSystem _ninja = default!;
+    [Dependency] private PowerCellSystem _powerCell = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     // How much the cell score should be increased per 1 AutoRechargeRate.
     private const int AutoRechargeValue = 100;
@@ -44,7 +44,7 @@ public sealed class NinjaSuitSystem : SharedNinjaSuitSystem
         // raise event to let ninja components get starting battery
         _ninja.GetNinjaBattery(user.Owner, out var uid, out var _);
 
-        if (uid is not {} battery_uid)
+        if (uid is not { } battery_uid)
             return;
 
         var ev = new NinjaBatteryChangedEvent(battery_uid, ent.Owner);
@@ -74,7 +74,7 @@ public sealed class NinjaSuitSystem : SharedNinjaSuitSystem
         var user = Transform(uid).ParentUid;
 
         // can only upgrade power cell, not swap to recharge instantly otherwise ninja could just swap batteries with flashlights in maints for easy power
-        if (GetCellScore(inserting.Owner, inserting) <= GetCellScore(battery.Owner, battery))
+        if (GetCellScore(args.EntityUid, inserting) <= GetCellScore(batteryUid!.Value, battery))
         {
             args.Cancel();
             Popup.PopupEntity(Loc.GetString("ninja-cell-downgrade"), user, user);
@@ -96,7 +96,7 @@ public sealed class NinjaSuitSystem : SharedNinjaSuitSystem
         // if a cell is able to automatically recharge, boost the score drastically depending on the recharge rate,
         // this is to ensure a ninja can still upgrade to a micro reactor cell even if they already have a medium or high.
         if (TryComp<BatterySelfRechargerComponent>(uid, out var selfcomp) && selfcomp.AutoRecharge)
-            return battcomp.MaxCharge + (selfcomp.AutoRechargeRate*AutoRechargeValue);
+            return battcomp.MaxCharge + selfcomp.AutoRechargeRate * AutoRechargeValue;
         return battcomp.MaxCharge;
     }
 

@@ -18,16 +18,16 @@ using Content.Server._EinsteinEngines.Silicon;
 
 namespace Content.Server._EinsteinEngines.Power;
 
-public sealed class BatteryDrinkerSystem : EntitySystem
+public sealed partial class BatteryDrinkerSystem : EntitySystem
 {
-    [Dependency] private readonly ItemSlotsSystem _slots = default!;
-    [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly BatterySystem _battery = default!;
-    [Dependency] private readonly SiliconChargeSystem _silicon = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly PowerCellSystem _powerCell = default!;
-    [Dependency] private readonly SharedContainerSystem _container = default!;
+    [Dependency] private ItemSlotsSystem _slots = default!;
+    [Dependency] private SharedDoAfterSystem _doAfter = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private BatterySystem _battery = default!;
+    [Dependency] private SiliconChargeSystem _silicon = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private PowerCellSystem _powerCell = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
 
     public override void Initialize()
     {
@@ -110,16 +110,13 @@ public sealed class BatteryDrinkerSystem : EntitySystem
 
         DebugTools.AssertNotNull(drinkerBattery);
 
-        if (drinkerBattery == null)
-            return;
-
         var amountToDrink = drinkerComp.DrinkMultiplier * 1000;
 
         amountToDrink = MathF.Min(amountToDrink, sourceBattery.CurrentCharge);
         amountToDrink = MathF.Min(amountToDrink, drinkerBatteryComponent!.MaxCharge - drinkerBatteryComponent.CurrentCharge);
 
         if (sourceComp != null && sourceComp.MaxAmount > 0)
-            amountToDrink = MathF.Min(amountToDrink, (float) sourceComp.MaxAmount);
+            amountToDrink = MathF.Min(amountToDrink, (float)sourceComp.MaxAmount);
 
         if (amountToDrink <= 0)
         {
@@ -135,7 +132,8 @@ public sealed class BatteryDrinkerSystem : EntitySystem
             _battery.SetCharge(source, 0);
         }
 
-        if (sourceComp != null && sourceComp.DrinkSound != null){
+        if (sourceComp != null && sourceComp.DrinkSound != null)
+        {
             _popup.PopupEntity(Loc.GetString("ipc-recharge-tip"), drinker, drinker, PopupType.SmallCaution);
             _audio.PlayPvs(sourceComp.DrinkSound, source);
             Spawn("EffectSparks", Transform(source).Coordinates);

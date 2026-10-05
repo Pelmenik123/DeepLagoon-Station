@@ -38,7 +38,7 @@ public sealed class FluidSpill
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
-        var mapManager = server.ResolveDependency<IMapManager>();
+        var mapManager = server.System<SharedMapSystem>();
         var entityManager = server.ResolveDependency<IEntityManager>();
         var puddleSystem = server.System<PuddleSystem>();
         var mapSystem = server.System<SharedMapSystem>();
@@ -82,7 +82,7 @@ public sealed class FluidSpill
 #pragma warning restore NUnit2045
         });
 
-        var sTimeToWait = (int) Math.Ceiling(2f * gameTiming.TickRate);
+        var sTimeToWait = (int)Math.Ceiling(2f * gameTiming.TickRate);
         await server.WaitRunTicks(sTimeToWait);
 
         await server.WaitAssertion(() =>

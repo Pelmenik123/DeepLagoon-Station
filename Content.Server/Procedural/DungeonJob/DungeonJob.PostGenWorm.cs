@@ -14,7 +14,7 @@ public sealed partial class DungeonJob
     /// <summary>
     /// <see cref="WormCorridorDunGen"/>
     /// </summary>
-    private async Task PostGen(WormCorridorDunGen gen, DungeonData data, Dungeon dungeon, HashSet<Vector2i> reservedTiles, Random random)
+    private async Task PostGen(WormCorridorDunGen gen, DungeonData data, Dungeon dungeon, HashSet<Vector2i> reservedTiles, IRobustRandom random)
     {
         if (!data.Tiles.TryGetValue(DungeonDataKey.FallbackTile, out var tileProto) || !_prototype.TryIndex(tileProto, out var tileDef))
         {
@@ -86,7 +86,7 @@ public sealed partial class DungeonJob
 
         // Now to ensure they all connect we'll pathfind each network to one another
         // Simple BFS pathfinder
-        var main = networks[0];
+        var (Start, Network) = networks[0];
 
         var frontier = new PriorityQueue<Vector2i, float>();
         var cameFrom = new Dictionary<Vector2i, Vector2i>();
@@ -103,8 +103,7 @@ public sealed partial class DungeonJob
                 cameFrom.Clear();
                 frontier.Clear();
                 costSoFar.Clear();
-
-                var targetNode = random.Pick(main.Network);
+                var targetNode = random.Pick(Network);
 
                 var other = networks[i];
                 var startNode = other.Network.First();
@@ -121,19 +120,19 @@ public sealed partial class DungeonJob
                     count++;
 
                     // Found
-                    if (main.Network.Contains(node))
+                    if (Network.Contains(node))
                     {
                         // found, rebuild
                         frontier.Clear();
-                        main.Network.Add(node);
-                        main.Network.UnionWith(other.Network);
+                        Network.Add(node);
+                        Network.UnionWith(other.Network);
                         var target = node;
 
                         // Rebuild
                         while (cameFrom.TryGetValue(target, out var source))
                         {
                             target = source;
-                            main.Network.Add(target);
+                            Network.Add(target);
                         }
 
                         networks.RemoveSwap(i);
@@ -175,8 +174,8 @@ public sealed partial class DungeonJob
             }
         }
 
-        WidenCorridor(dungeon, gen.Width, main.Network);
-        dungeon.CorridorTiles.UnionWith(main.Network);
+        WidenCorridor(dungeon, gen.Width, Network);
+        dungeon.CorridorTiles.UnionWith(Network);
         BuildCorridorExterior(dungeon);
         dungeon.RefreshAllTiles();
 

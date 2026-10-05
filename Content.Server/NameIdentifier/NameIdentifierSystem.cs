@@ -1,4 +1,4 @@
-﻿using Content.Shared.GameTicking;
+using Content.Shared.GameTicking;
 using Content.Shared.NameIdentifier;
 using Robust.Shared.Collections;
 using Robust.Shared.Prototypes;
@@ -9,11 +9,11 @@ namespace Content.Server.NameIdentifier;
 /// <summary>
 ///     Handles unique name identifiers for entities e.g. `monkey (MK-912)`
 /// </summary>
-public sealed class NameIdentifierSystem : EntitySystem
+public sealed partial class NameIdentifierSystem : EntitySystem
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IRobustRandom _robustRandom = default!;
-    [Dependency] private readonly MetaDataSystem _metaData = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IRobustRandom _robustRandom = default!;
+    [Dependency] private MetaDataSystem _metaData = default!;
 
     /// <summary>
     /// Free IDs available per <see cref="NameIdentifierGroupPrototype"/>.
@@ -175,13 +175,13 @@ public sealed class NameIdentifierSystem : EntitySystem
 
         foreach (var proto in set.Modified.Values)
         {
-            var name_proto = (NameIdentifierGroupPrototype) proto;
+            var name_proto = (NameIdentifierGroupPrototype)proto;
 
             // Only bother adding new ones.
             if (CurrentIds.ContainsKey(proto.ID))
                 continue;
 
-            var ids  = GetOrCreateIdList(name_proto);
+            var ids = GetOrCreateIdList(name_proto);
             FillGroup(name_proto, ids);
         }
     }

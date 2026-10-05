@@ -9,10 +9,11 @@ namespace Content.Client._EstacaoPirata.Cards.Deck;
 /// <summary>
 /// This handles...
 /// </summary>
-public sealed class CardDeckSystem : EntitySystem
+public sealed partial class CardDeckSystem : EntitySystem
 {
+    [Dependency] private SpriteSystem _sprite = default!;
     private readonly Dictionary<Entity<CardDeckComponent>, int> _notInitialized = [];
-    [Dependency] private readonly CardSpriteSystem _cardSpriteSystem = default!;
+    [Dependency] private CardSpriteSystem _cardSpriteSystem = default!;
 
 
     /// <inheritdoc/>
@@ -64,7 +65,7 @@ public sealed class CardDeckSystem : EntitySystem
     {
         layer = null;
         if (!TryComp(card, out SpriteComponent? cardSprite)
-            || !cardSprite.TryGetLayer(0, out var l))
+            || !_sprite.TryGetLayer(cardSprite.AsEntity(), 0, out var l, false))
             return false;
 
         layer = l;
@@ -92,9 +93,9 @@ public sealed class CardDeckSystem : EntitySystem
             comp.CardLimit,
             (_, cardIndex, layerIndex) =>
             {
-                sprite.LayerSetRotation(layerIndex, Angle.FromDegrees(90));
-                sprite.LayerSetOffset(layerIndex, new Vector2(0, (comp.YOffset * cardIndex)));
-                sprite.LayerSetScale(layerIndex, new Vector2(comp.Scale, comp.Scale));
+                _sprite.LayerSetRotation(sprite.AsEntity(), layerIndex, Angle.FromDegrees(90));
+                _sprite.LayerSetOffset(sprite.AsEntity(), layerIndex, new Vector2(0, (comp.YOffset * cardIndex)));
+                _sprite.LayerSetScale(sprite.AsEntity(), layerIndex, new Vector2(comp.Scale, comp.Scale));
                 return true;
             }
         );

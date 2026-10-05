@@ -1,4 +1,4 @@
-﻿using Content.Shared.Damage;
+using Content.Shared.Damage;
 using Content.Shared.Whitelist;
 
 namespace Content.Server.Xenoarchaeology.XenoArtifacts.Effects.Components;

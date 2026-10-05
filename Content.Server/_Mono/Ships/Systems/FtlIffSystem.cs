@@ -8,10 +8,10 @@ namespace Content.Server._Mono.Ships.Systems;
 /// <summary>
 /// Manages IFF flags for ships during FTL travel.
 /// </summary>
-public sealed class FtlIffSystem : EntitySystem
+public sealed partial class FtlIffSystem : EntitySystem
 {
-    [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly ShuttleSystem _shuttleSystem = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
+    [Dependency] private ShuttleSystem _shuttleSystem = default!;
 
     public override void Initialize()
     {

@@ -19,8 +19,8 @@ namespace Content.Client.Humanoid;
 [GenerateTypedNameReferences]
 public sealed partial class SingleMarkingPicker : BoxContainer
 {
-    [Dependency] private readonly MarkingManager _markingManager = default!;
-    [Dependency] private readonly IEntityManager _entityManager = default!;
+    [Dependency] private MarkingManager _markingManager = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
 
 
     /// <summary>
@@ -240,7 +240,7 @@ public sealed partial class SingleMarkingPicker : BoxContainer
 
         var marking = _markings[Slot];
 
-        ColorSelectorContainer.DisposeAllChildren();
+        ColorSelectorContainer.RemoveAllChildren();
         ColorSelectorContainer.RemoveAllChildren();
 
         if (marking.MarkingColors.Count != proto.Sprites.Count)
@@ -307,7 +307,7 @@ public sealed partial class SingleMarkingPicker : BoxContainer
         Search.Visible = Slot >= 0;
         AddButton.HorizontalExpand = Slot < 0;
         RemoveButton.HorizontalExpand = Slot < 0;
-        AddButton.Disabled = PointsLeft == 0 && _totalPoints > -1 ;
+        AddButton.Disabled = PointsLeft == 0 && _totalPoints > -1;
         RemoveButton.Disabled = PointsUsed == 0;
         SlotSelector.Clear();
 

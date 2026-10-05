@@ -21,7 +21,7 @@ namespace Content.Shared.Construction.Conditions
             // get blueprint and user position
             var transformSystem = entManager.System<SharedTransformSystem>();
             var userWorldPosition = transformSystem.GetWorldPosition(user);
-            var objWorldPosition = location.ToMap(entManager, transformSystem).Position;
+            var objWorldPosition = transformSystem.ToMapCoordinates(location).Position;
 
             // find direction from user to blueprint
             var userToObject = (objWorldPosition - userWorldPosition);
@@ -36,7 +36,7 @@ namespace Content.Shared.Construction.Conditions
 
             // now we need to check that user actually tries to build wallmount on a wall
             var physics = entManager.System<SharedPhysicsSystem>();
-            var rUserToObj = new CollisionRay(userWorldPosition, userToObject.Normalized(), (int) CollisionGroup.Impassable);
+            var rUserToObj = new CollisionRay(userWorldPosition, userToObject.Normalized(), (int)CollisionGroup.Impassable);
             var length = userToObject.Length();
 
             var tagSystem = entManager.System<TagSystem>();
@@ -51,7 +51,7 @@ namespace Content.Shared.Construction.Conditions
 
             // get this wall entity
             // check that we didn't try to build wallmount that facing another adjacent wall
-            var rAdjWall = new CollisionRay(objWorldPosition, directionWithOffset.Normalized(), (int) CollisionGroup.Impassable);
+            var rAdjWall = new CollisionRay(objWorldPosition, directionWithOffset.Normalized(), (int)CollisionGroup.Impassable);
             var adjWallRaycastResults = physics.IntersectRayWithPredicate(entManager.GetComponent<TransformComponent>(user).MapID, rAdjWall, maxLength: 0.5f,
                predicate: e => e == targetWall.Value.HitEntity || !tagSystem.HasTag(e, "Wall"));
 

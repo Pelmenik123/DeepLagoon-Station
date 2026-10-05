@@ -24,12 +24,12 @@ using Robust.Shared.Timing;
 namespace Content.Server.Advertise.EntitySystems;
 
 // Mono - update delay replaced with priority queue
-public sealed class AdvertiseSystem : EntitySystem
+public sealed partial class AdvertiseSystem : EntitySystem
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
-    [Dependency] private readonly ChatSystem _chat = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
+    [Dependency] private ChatSystem _chat = default!;
 
     // Mono
     private PriorityQueue<EntityUid, TimeSpan> _advertQueue = new();
@@ -111,7 +111,7 @@ public sealed class AdvertiseSystem : EntitySystem
             // failsafe - something went wrong (evil admeme setting advertise delay to negative?) but don't freeze the server
             if (i > _advertQueue.Count)
                 break;
-                                                                                                     // seems like it has changed
+            // seems like it has changed
             if (TerminatingOrDeleted(uid) || !TryComp<AdvertiseComponent>(uid, out var advertise) || advertise.NextAdvertisementTime != time)
             {
                 _advertQueue.Dequeue();

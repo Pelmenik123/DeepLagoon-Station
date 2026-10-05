@@ -56,7 +56,7 @@ public sealed class BodyPrototypeSerializer : ITypeReader<BodyPrototype, Mapping
                     continue;
                 }
 
-                if (!prototypes.TryIndex(organ.Value, out EntityPrototype? organPrototype))
+                if (!prototypes.TryIndex(organ.Value, out var organPrototype))
                 {
                     nodes.Add(new ErrorNode(value, $"No organ entity prototype found with id {organ.Value}"));
                     continue;
@@ -101,10 +101,10 @@ public sealed class BodyPrototypeSerializer : ITypeReader<BodyPrototype, Mapping
                     continue;
                 }
 
-                var result = ValidateSlot(slot, dependencies);
-                nodes.Add(result.Node);
+                var (Node, Connections) = ValidateSlot(slot, dependencies);
+                nodes.Add(Node);
 
-                foreach (var connection in result.Connections)
+                foreach (var connection in Connections)
                 {
                     if (!slots.TryGet(connection, out MappingDataNode? _))
                         nodes.Add(new ErrorNode(slots, $"No slot found with id {connection}"));
@@ -128,7 +128,7 @@ public sealed class BodyPrototypeSerializer : ITypeReader<BodyPrototype, Mapping
 
         foreach (var (slotId, valueNode) in slotNodes)
         {
-            var slot = (MappingDataNode) valueNode;
+            var slot = (MappingDataNode)valueNode;
 
             string? part = null;
             if (slot.TryGet<ValueDataNode>("part", out var value))
@@ -139,7 +139,7 @@ public sealed class BodyPrototypeSerializer : ITypeReader<BodyPrototype, Mapping
             HashSet<string>? connections = null;
             if (slot.TryGet("connections", out SequenceDataNode? slotConnectionsNode))
             {
-                connections = new HashSet<string>();
+                connections = [];
 
                 foreach (var connection in slotConnectionsNode.Cast<ValueDataNode>())
                 {
@@ -150,11 +150,11 @@ public sealed class BodyPrototypeSerializer : ITypeReader<BodyPrototype, Mapping
             Dictionary<string, string>? organs = null;
             if (slot.TryGet("organs", out MappingDataNode? slotOrgansNode))
             {
-                organs = new Dictionary<string, string>();
+                organs = [];
 
                 foreach (var (organKey, organValueNode) in slotOrgansNode)
                 {
-                    organs.Add(organKey, ((ValueDataNode) organValueNode).Value);
+                    organs.Add(organKey, ((ValueDataNode)organValueNode).Value);
                 }
             }
 
@@ -169,7 +169,7 @@ public sealed class BodyPrototypeSerializer : ITypeReader<BodyPrototype, Mapping
             foreach (var connection in connections)
             {
                 var other = allConnections[connection];
-                other.Connections ??= new HashSet<string>();
+                other.Connections ??= [];
                 other.Connections.Add(slotId);
                 allConnections[connection] = other;
             }
@@ -179,10 +179,13 @@ public sealed class BodyPrototypeSerializer : ITypeReader<BodyPrototype, Mapping
 
         foreach (var (slotId, (part, connections, organs)) in allConnections)
         {
-            var slot = new BodyPrototypeSlot(part, connections ?? new HashSet<string>(), organs ?? new Dictionary<string, string>());
+            var slot = new BodyPrototypeSlot(part, connections ?? [], organs ?? []);
             slots.Add(slotId, slot);
         }
 
+        // RA0039: this serializer is the prototype manager's construction path, so it must build the prototype directly.
+#pragma warning disable RA0039 // Prototype serializers must construct prototypes while loading; no IPrototypeManager instance exists at this point.
         return new BodyPrototype(id, name, root, slots);
+#pragma warning restore RA0039
     }
 }

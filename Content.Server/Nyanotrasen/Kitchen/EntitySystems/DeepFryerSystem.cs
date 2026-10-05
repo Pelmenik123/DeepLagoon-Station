@@ -60,27 +60,27 @@ namespace Content.Server.Nyanotrasen.Kitchen.EntitySystems;
 
 public sealed partial class DeepFryerSystem : SharedDeepfryerSystem
 {
-    [Dependency] private readonly DamageableSystem _damageableSystem = default!;
-    [Dependency] private readonly DoAfterSystem _doAfterSystem = default!;
-    [Dependency] private readonly IAdminLogManager _adminLogManager = default!;
-    [Dependency] private readonly IGameTiming _gameTimingSystem = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly PopupSystem _popupSystem = default!;
-    [Dependency] private readonly PowerReceiverSystem _powerReceiverSystem = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearanceSystem = default!;
-    [Dependency] private readonly SharedAudioSystem _audioSystem = default!;
-    [Dependency] private readonly SharedContainerSystem _containerSystem = default!;
-    [Dependency] private readonly SharedHandsSystem _handsSystem = default!;
-    [Dependency] private readonly MobStateSystem _mobStateSystem = default!;
-    [Dependency] private readonly SolutionContainerSystem _solutionContainerSystem = default!;
-    [Dependency] private readonly SolutionTransferSystem _solutionTransferSystem = default!;
-    [Dependency] private readonly PuddleSystem _puddleSystem = default!;
-    [Dependency] private readonly TemperatureSystem _temperature = default!;
-    [Dependency] private readonly UserInterfaceSystem _uiSystem = default!;
-    [Dependency] private readonly AmbientSoundSystem _ambientSoundSystem = default!;
-    [Dependency] private readonly MetaDataSystem _metaDataSystem = default!;
-    [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
+    [Dependency] private DamageableSystem _damageableSystem = default!;
+    [Dependency] private DoAfterSystem _doAfterSystem = default!;
+    [Dependency] private IAdminLogManager _adminLogManager = default!;
+    [Dependency] private IGameTiming _gameTimingSystem = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private PopupSystem _popupSystem = default!;
+    [Dependency] private PowerReceiverSystem _powerReceiverSystem = default!;
+    [Dependency] private SharedAppearanceSystem _appearanceSystem = default!;
+    [Dependency] private SharedAudioSystem _audioSystem = default!;
+    [Dependency] private SharedContainerSystem _containerSystem = default!;
+    [Dependency] private SharedHandsSystem _handsSystem = default!;
+    [Dependency] private MobStateSystem _mobStateSystem = default!;
+    [Dependency] private SharedSolutionContainerSystem _solutionContainerSystem = default!;
+    [Dependency] private SolutionTransferSystem _solutionTransferSystem = default!;
+    [Dependency] private PuddleSystem _puddleSystem = default!;
+    [Dependency] private TemperatureSystem _temperature = default!;
+    [Dependency] private UserInterfaceSystem _uiSystem = default!;
+    [Dependency] private AmbientSoundSystem _ambientSoundSystem = default!;
+    [Dependency] private MetaDataSystem _metaDataSystem = default!;
+    [Dependency] private EntityWhitelistSystem _whitelistSystem = default!;
 
     private static readonly string CookingDamageType = "Heat";
     private static readonly float CookingDamageAmount = 10.0f;
@@ -131,7 +131,7 @@ public sealed partial class DeepFryerSystem : SharedDeepfryerSystem
             GetOilLevel(uid, component),
             GetOilPurity(uid, component),
             component.FryingOilThreshold,
-            EntityManager.GetNetEntityArray(component.Storage.ContainedEntities.ToArray()));
+            GetNetEntityArray(component.Storage.ContainedEntities.ToArray()));
 
         _uiSystem.SetUiState(uid, DeepFryerUiKey.Key, state);
     }
@@ -217,7 +217,7 @@ public sealed partial class DeepFryerSystem : SharedDeepfryerSystem
         {
             foreach (var (_, solution) in solutions.Solutions)
             {
-                if(_solutionContainerSystem.TryGetSolution(item, solution.Name, out var solutionRef))
+                if (_solutionContainerSystem.TryGetSolution(item, solution.Name, out var solutionRef))
                     _solutionContainerSystem.SetTemperature(solutionRef!.Value, component.PoweredTemperature);
             }
         }
@@ -264,7 +264,7 @@ public sealed partial class DeepFryerSystem : SharedDeepfryerSystem
         if (crispinessLevels.Levels.Count <= 0)
             return;
 
-        int crispiness = int.Max(0, component.Crispiness);
+        var crispiness = int.Max(0, component.Crispiness);
         {
             string name;
             if (crispiness < crispinessLevels.Levels.Count)
@@ -432,8 +432,8 @@ public sealed partial class DeepFryerSystem : SharedDeepfryerSystem
             _sawmill.Warning(
                 $"{ToPrettyString(uid)} did not have a {component.StorageName} container. It has been created.");
 
-        component.Solution =
-            _solutionContainerSystem.EnsureSolution(uid, component.SolutionName, out var solutionExisted);
+        _solutionContainerSystem.EnsureSolution(uid, component.SolutionName, out var solutionExisted, out var solution);
+        component.Solution = solution!;
 
         if (!solutionExisted)
             _sawmill.Warning(
@@ -501,7 +501,7 @@ public sealed partial class DeepFryerSystem : SharedDeepfryerSystem
         var ratingStorage = args.PartRatings[component.MachinePartStorageMax];
 
         component.StorageMaxEntities = component.BaseStorageMaxEntities +
-                                       (int) (component.StoragePerPartRating * (ratingStorage - 1));
+                                       (int)(component.StoragePerPartRating * (ratingStorage - 1));
     }
 
     /// <summary>
@@ -585,7 +585,7 @@ public sealed partial class DeepFryerSystem : SharedDeepfryerSystem
 
     private void OnRemoveItem(EntityUid uid, DeepFryerComponent component, DeepFryerRemoveItemMessage args)
     {
-        var removedItem = EntityManager.GetEntity(args.Item);
+        var removedItem = GetEntity(args.Item);
         if (removedItem.Valid)
         {
             //JJ Comment - This line should be unnecessary. Some issue is keeping the UI from updating when converting straight to a Burned Mess while the UI is still open. To replicate, put a Raw Meat in the fryer with no oil in it. Wait until it sputters with no effect. It should transform to Burned Mess, but doesn't.
@@ -601,7 +601,7 @@ public sealed partial class DeepFryerSystem : SharedDeepfryerSystem
 
             _audioSystem.PlayPvs(component.SoundRemoveItem, uid, AudioParamsInsertRemove);
 
-            UpdateUserInterface(component.Owner, component);
+            UpdateUserInterface(uid, component);
         }
     }
 
@@ -647,12 +647,11 @@ public sealed partial class DeepFryerSystem : SharedDeepfryerSystem
     {
         var user = args.Actor;
 
-        if (user == null ||
-            !TryGetActiveHandSolutionContainer(uid, user, out var heldItem, out var heldSolution,
+        if (!TryGetActiveHandSolutionContainer(uid, user, out var heldItem, out var heldSolution,
                 out var transferAmount))
             return;
 
-        if (!_solutionContainerSystem.TryGetSolution(component.Owner, component.Solution.Name, out var solution))
+        if (!_solutionContainerSystem.TryGetSolution(uid, component.Solution.Name, out var solution))
             return;
 
         _solutionTransferSystem.Transfer(user,
@@ -684,7 +683,7 @@ public sealed partial class DeepFryerSystem : SharedDeepfryerSystem
             return;
         }
 
-        var delay = TimeSpan.FromSeconds(Math.Clamp((float) wasteVolume * 0.1f, 1f, 5f));
+        var delay = TimeSpan.FromSeconds(Math.Clamp((float)wasteVolume * 0.1f, 1f, 5f));
 
         var ev = new ClearSlagDoAfterEvent(heldSolution.Value.Comp.Solution, transferAmount);
 
@@ -700,7 +699,6 @@ public sealed partial class DeepFryerSystem : SharedDeepfryerSystem
         _doAfterSystem.TryStartDoAfter(doAfterArgs);
     }
 
-    [Obsolete("Obsolete")]
     private void OnRemoveAllItems(EntityUid uid, DeepFryerComponent component, DeepFryerRemoveAllItemsMessage args)
     {
         if (component.Storage.ContainedEntities.Count == 0)
@@ -715,7 +713,7 @@ public sealed partial class DeepFryerSystem : SharedDeepfryerSystem
 
         _audioSystem.PlayPvs(component.SoundRemoveItem, uid, AudioParamsInsertRemove);
 
-        UpdateUserInterface(component.Owner, component);
+        UpdateUserInterface(uid, component);
     }
 
     private void OnClearSlag(EntityUid uid, DeepFryerComponent component, ClearSlagDoAfterEvent args)
@@ -758,7 +756,7 @@ public sealed partial class DeepFryerSystem : SharedDeepfryerSystem
             if (crispinessLevels.Levels.Count <= 0)
                 return;
 
-            int crispiness = int.Max(0, component.Crispiness);
+            var crispiness = int.Max(0, component.Crispiness);
             {
                 string examineString;
                 if (crispiness < crispinessLevels.Levels.Count)
@@ -808,25 +806,14 @@ public sealed partial class DeepFryerSystem : SharedDeepfryerSystem
     }
 }
 
-public sealed class DeepFryAttemptEvent : CancellableEntityEventArgs
+public sealed class DeepFryAttemptEvent(EntityUid deepFryer) : CancellableEntityEventArgs
 {
-    public EntityUid DeepFryer { get; }
-
-    public DeepFryAttemptEvent(EntityUid deepFryer)
-    {
-        DeepFryer = deepFryer;
-    }
+    public EntityUid DeepFryer { get; } = deepFryer;
 }
 
-public sealed class BeingDeepFriedEvent : EntityEventArgs
+public sealed class BeingDeepFriedEvent(EntityUid deepFryer, EntityUid item) : EntityEventArgs
 {
-    public EntityUid DeepFryer { get; }
-    public EntityUid Item { get; }
+    public EntityUid DeepFryer { get; } = deepFryer;
+    public EntityUid Item { get; } = item;
     public bool TurnIntoFood { get; set; }
-
-    public BeingDeepFriedEvent(EntityUid deepFryer, EntityUid item)
-    {
-        DeepFryer = deepFryer;
-        Item = item;
-    }
 }

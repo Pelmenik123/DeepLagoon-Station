@@ -108,7 +108,7 @@ namespace Content.Server.GameTicking
         public void SetGamePreset(string preset, bool force = false)
         {
             var proto = FindGamePreset(preset);
-            if(proto != null)
+            if (proto != null)
                 SetGamePreset(proto, force);
         }
 

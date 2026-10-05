@@ -47,19 +47,19 @@ namespace Content.Server.Zombies;
 /// </remarks>
 public sealed partial class ZombieSystem
 {
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly IChatManager _chatMan = default!;
-    [Dependency] private readonly SharedCombatModeSystem _combat = default!;
-    [Dependency] private readonly NpcFactionSystem _faction = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly HumanoidAppearanceSystem _humanoidAppearance = default!;
-    [Dependency] private readonly IdentitySystem _identity = default!;
-    [Dependency] private readonly ServerInventorySystem _inventory = default!;
-    [Dependency] private readonly MindSystem _mind = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movementSpeedModifier = default!;
-    [Dependency] private readonly NPCSystem _npc = default!;
-    [Dependency] private readonly SharedRoleSystem _roles = default!;
-    [Dependency] private readonly TagSystem _tag = default!;
+    [Dependency] SharedAudioSystem _audio = default!;
+    [Dependency] private IChatManager _chatMan = default!;
+    [Dependency] SharedCombatModeSystem _combat = default!;
+    [Dependency] NpcFactionSystem _faction = default!;
+    [Dependency] SharedHandsSystem _hands = default!;
+    [Dependency] HumanoidAppearanceSystem _humanoidAppearance = default!;
+    [Dependency] IdentitySystem _identity = default!;
+    [Dependency] ServerInventorySystem _inventory = default!;
+    [Dependency] MindSystem _mind = default!;
+    [Dependency] MovementSpeedModifierSystem _movementSpeedModifier = default!;
+    [Dependency] NPCSystem _npc = default!;
+    [Dependency] SharedRoleSystem _roles = default!;
+    [Dependency] TagSystem _tag = default!;
 
     /// <summary>
     /// Handles an entity turning into a zombie when they die or go into crit

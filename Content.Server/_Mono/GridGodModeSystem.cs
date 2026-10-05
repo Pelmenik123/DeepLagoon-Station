@@ -13,11 +13,11 @@ namespace Content.Server._Mono;
 /// <summary>
 /// System that handles the GridGodModeComponent, which applies GodMode to all non-organic entities on a grid.
 /// </summary>
-public sealed class GridGodModeSystem : EntitySystem
+public sealed partial class GridGodModeSystem : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly GodmodeSystem _godmode = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private GodmodeSystem _godmode = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
 
     public override void Initialize()
     {
@@ -54,7 +54,7 @@ public sealed class GridGodModeSystem : EntitySystem
         // When the component is removed, remove GodMode from all protected entities
         foreach (var entity in component.ProtectedEntities.ToList())
         {
-            if (EntityManager.EntityExists(entity))
+            if (Exists(entity))
             {
                 RemoveGodMode(entity);
             }

@@ -1,4 +1,5 @@
 using Content.Shared._DeepLagoon.InteractionPanel;
+using System.Numerics;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Shared.Enums;
@@ -6,18 +7,18 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client._DeepLagoon.InteractionPanel;
 
-public sealed class InteractionPanelManaOverlay : Overlay
+public sealed partial class InteractionPanelManaOverlay : Overlay
 {
-    [Dependency] private readonly IEntityManager _entities = default!;
-    [Dependency] private readonly IPlayerManager _players = default!;
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
+    [Dependency] private IEntityManager _entities = default!;
+    [Dependency] private IPlayerManager _players = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
     private readonly ShaderInstance _shader;
     public override OverlaySpace Space => OverlaySpace.WorldSpace;
 
     public InteractionPanelManaOverlay()
     {
         IoCManager.InjectDependencies(this);
-        _shader = _prototypes.Index<ShaderPrototype>("GradientCircleMask").InstanceUnique();
+        _shader = _prototypes.Index<ShaderPrototype>(new ProtoId<ShaderPrototype>("GradientCircleMask")).InstanceUnique();
     }
 
     protected override void Draw(in OverlayDrawArgs args)
@@ -26,7 +27,7 @@ public sealed class InteractionPanelManaOverlay : Overlay
         if (!_entities.TryGetComponent(_players.LocalEntity, out InteractionPanelManaComponent? mana) ||
             !_entities.TryGetComponent(_players.LocalEntity, out EyeComponent? eye) || args.Viewport.Eye != eye.Eye ||
             mana.Current <= 0 || mana.Maximum <= 0) return;
-        var settings = _prototypes.Index<InteractionPanelManaPrototype>("InteractionPanelMana");
+        var settings = _prototypes.Index<InteractionPanelManaPrototype>(new ProtoId<InteractionPanelManaPrototype>("InteractionPanelMana"));
         var fraction = Math.Clamp(mana.Current / mana.Maximum, 0, 1);
         var width = args.ViewportBounds.Width;
         var color = settings.VignetteColor;
@@ -50,9 +51,9 @@ public sealed class InteractionPanelManaOverlay : Overlay
     }
 }
 
-public sealed class InteractionPanelManaVisualSystem : EntitySystem
+public sealed partial class InteractionPanelManaVisualSystem : EntitySystem
 {
-    [Dependency] private readonly IOverlayManager _overlays = default!;
+    [Dependency] private IOverlayManager _overlays = default!;
     private InteractionPanelManaOverlay? _overlay;
     public override void Initialize()
     {

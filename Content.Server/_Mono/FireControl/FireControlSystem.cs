@@ -36,13 +36,13 @@ namespace Content.Server._Mono.FireControl;
 
 public sealed partial class FireControlSystem : EntitySystem
 {
-    [Dependency] private readonly SharedTransformSystem _xform = default!;
-    [Dependency] private readonly GunSystem _gun = default!;
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly PowerReceiverSystem _power = default!;
-    [Dependency] private readonly RotateToFaceSystem _rotateToFace = default!;
-    [Dependency] private readonly CombatMusicSystem _combatMusic = default!;
+    [Dependency] private SharedTransformSystem _xform = default!;
+    [Dependency] private GunSystem _gun = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private PowerReceiverSystem _power = default!;
+    [Dependency] private RotateToFaceSystem _rotateToFace = default!;
+    [Dependency] private CombatMusicSystem _combatMusic = default!;
 
     /// <summary>
     /// Dictionary of entities that have visualization enabled
@@ -212,7 +212,7 @@ public sealed partial class FireControlSystem : EntitySystem
 
         while (query.MoveNext(out var controllable, out var controlComp))
         {
-            if (_xform.GetGrid(controllable) == grid && EntityManager.GetComponent<TransformComponent>(controllable).Anchored)
+            if (_xform.GetGrid(controllable) == grid && Transform(controllable).Anchored)
                 TryRegister(controllable, controlComp);
         }
 
@@ -400,7 +400,7 @@ public sealed partial class FireControlSystem : EntitySystem
 
         // Check if the weapon is an expedition
         if (grid != null &&
-            TryComp<TransformComponent>((EntityUid)grid, out var gridXform) &&
+            TryComp((EntityUid)grid, out TransformComponent? gridXform) &&
             gridXform.MapUid != null &&
             HasComp<SalvageExpeditionComponent>(gridXform.MapUid.Value))
             return;
@@ -417,29 +417,29 @@ public sealed partial class FireControlSystem : EntitySystem
             if (!TryComp<GunComponent>(localWeapon, out var gun))
                 continue;
 
-            if (TryComp<TransformComponent>(localWeapon, out var weaponXform))
+            if (TryComp(localWeapon, out TransformComponent? weaponXform))
             {
                 var currentMapCoords = _xform.GetMapCoordinates(localWeapon, weaponXform);
-                var destinationMapCoords = targetCoords.ToMap(EntityManager, _xform);
+                var destinationMapCoords = _xform.ToMapCoordinates(targetCoords);
 
                 if (destinationMapCoords.MapId == currentMapCoords.MapId && currentMapCoords.MapId != MapId.Nullspace)
                 {
                     var diff = destinationMapCoords.Position - currentMapCoords.Position;
                     if (TryComp<FireControlRotateComponent>(localWeapon, out var rotateEnabled))
-                    if (diff.LengthSquared() > 0.01f)
-                    {
-                        // Only rotate the gun if it has line of sight to the target
-                        if (HasLineOfSight(localWeapon, currentMapCoords.Position, destinationMapCoords.Position, currentMapCoords.MapId))
+                        if (diff.LengthSquared() > 0.01f)
                         {
-                            var goalAngle = Angle.FromWorldVec(diff);
-                            _rotateToFace.TryRotateTo(localWeapon, goalAngle, 0f, Angle.FromDegrees(1), float.MaxValue, weaponXform);
+                            // Only rotate the gun if it has line of sight to the target
+                            if (HasLineOfSight(localWeapon, currentMapCoords.Position, destinationMapCoords.Position, currentMapCoords.MapId))
+                            {
+                                var goalAngle = Angle.FromWorldVec(diff);
+                                _rotateToFace.TryRotateTo(localWeapon, goalAngle, 0f, Angle.FromDegrees(1), float.MaxValue, weaponXform);
+                            }
                         }
-                    }
                 }
             }
 
             var weaponX = Transform(localWeapon);
-            var targetPos = targetCoords.ToMap(EntityManager, _xform);
+            var targetPos = _xform.ToMapCoordinates(targetCoords);
 
             if (targetPos.MapId != weaponX.MapID)
                 continue;
@@ -540,7 +540,7 @@ public sealed partial class FireControlSystem : EntitySystem
         // Get weapon and target positions
         var weaponXform = Transform(weapon);
         var weaponPos = _xform.GetWorldPosition(weaponXform);
-        var targetPos = coords.ToMap(EntityManager, _xform).Position;
+        var targetPos = _xform.ToMapCoordinates(coords).Position;
 
         // Calculate direction
         var direction = targetPos - weaponPos;

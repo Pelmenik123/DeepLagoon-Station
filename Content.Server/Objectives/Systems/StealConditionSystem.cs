@@ -16,20 +16,20 @@ using Content.Shared.Stacks;
 
 namespace Content.Server.Objectives.Systems;
 
-public sealed class StealConditionSystem : EntitySystem
+public sealed partial class StealConditionSystem : EntitySystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly IPrototypeManager _proto = default!;
-    [Dependency] private readonly MetaDataSystem _metaData = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly SharedInteractionSystem _interaction = default!;
-    [Dependency] private readonly SharedObjectivesSystem _objectives = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private MetaDataSystem _metaData = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedInteractionSystem _interaction = default!;
+    [Dependency] private SharedObjectivesSystem _objectives = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
 
     private EntityQuery<ContainerManagerComponent> _containerQuery;
 
-    private HashSet<Entity<TransformComponent>> _nearestEnts = new();
-    private HashSet<EntityUid> _countedItems = new();
+    private readonly HashSet<Entity<TransformComponent>> _nearestEnts = [];
+    private readonly HashSet<EntityUid> _countedItems = [];
 
     public override void Initialize()
     {
@@ -45,7 +45,7 @@ public sealed class StealConditionSystem : EntitySystem
     /// start checks of target acceptability, and generation of start values.
     private void OnAssigned(Entity<StealConditionComponent> condition, ref ObjectiveAssignedEvent args)
     {
-        List<StealTargetComponent?> targetList = new();
+        List<StealTargetComponent?> targetList = [];
 
         var query = AllEntityQuery<StealTargetComponent>();
         while (query.MoveNext(out var target))
@@ -78,9 +78,9 @@ public sealed class StealConditionSystem : EntitySystem
     private void OnAfterAssign(Entity<StealConditionComponent> condition, ref ObjectiveAfterAssignEvent args)
     {
         var group = _proto.Index(condition.Comp.StealGroup);
-        string localizedName = Loc.GetString(group.Name);
+        var localizedName = Loc.GetString(group.Name);
 
-        var title =condition.Comp.OwnerText == null
+        var title = condition.Comp.OwnerText == null
             ? Loc.GetString(condition.Comp.ObjectiveNoOwnerText, ("itemName", localizedName))
             : Loc.GetString(condition.Comp.ObjectiveText, ("owner", Loc.GetString(condition.Comp.OwnerText)), ("itemName", localizedName));
 
@@ -94,10 +94,10 @@ public sealed class StealConditionSystem : EntitySystem
     }
     private void OnGetProgress(Entity<StealConditionComponent> condition, ref ObjectiveGetProgressEvent args)
     {
-        args.Progress = GetProgress(args.Mind, condition);
+        args.Progress = GetProgress(args.MindId, args.Mind, condition);
     }
 
-    private float GetProgress(MindComponent mind, StealConditionComponent condition)
+    private float GetProgress(EntityUid mindId, MindComponent mind, StealConditionComponent condition)
     {
         if (!_containerQuery.TryGetComponent(mind.OwnedEntity, out var currentManager))
             return 0;
@@ -113,7 +113,7 @@ public sealed class StealConditionSystem : EntitySystem
             var areasQuery = AllEntityQuery<StealAreaComponent, TransformComponent>();
             while (areasQuery.MoveNext(out var uid, out var area, out var xform))
             {
-                if (!area.Owners.Contains(mind.Owner))
+                if (!area.Owners.Contains(mindId))
                     continue;
 
                 _nearestEnts.Clear();
@@ -156,7 +156,7 @@ public sealed class StealConditionSystem : EntitySystem
             }
         } while (containerStack.TryPop(out currentManager));
 
-        var result = count / (float) condition.CollectionSize;
+        var result = count / (float)condition.CollectionSize;
         result = Math.Clamp(result, 0, 1);
         return result;
     }

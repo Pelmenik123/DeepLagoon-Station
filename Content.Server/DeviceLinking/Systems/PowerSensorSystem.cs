@@ -15,15 +15,15 @@ using Robust.Shared.Timing;
 
 namespace Content.Server.DeviceLinking.Systems;
 
-public sealed class PowerSensorSystem : EntitySystem
+public sealed partial class PowerSensorSystem : EntitySystem
 {
-    [Dependency] private readonly DeviceLinkSystem _deviceLink = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly PowerNetSystem _powerNet = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly SharedToolSystem _tool = default!;
-    [Dependency] private readonly UseDelaySystem _useDelay = default!;
+    [Dependency] private DeviceLinkSystem _deviceLink = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private PowerNetSystem _powerNet = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedToolSystem _tool = default!;
+    [Dependency] private UseDelaySystem _useDelay = default!;
 
     private EntityQuery<NodeContainerComponent> _nodeQuery;
     private EntityQuery<TransformComponent> _xformQuery;
@@ -95,7 +95,7 @@ public sealed class PowerSensorSystem : EntitySystem
         var powerSwitchable = Comp<PowerSwitchableComponent>(uid);
         var cable = powerSwitchable.Cables[powerSwitchable.ActiveIndex];
         var nodeContainer = Comp<NodeContainerComponent>(uid);
-        var deviceNode = (CableDeviceNode) nodeContainer.Nodes[cable.Node];
+        var deviceNode = (CableDeviceNode)nodeContainer.Nodes[cable.Node];
 
         var charge = 0f;
         var chargingState = false;
@@ -112,7 +112,7 @@ public sealed class PowerSensorSystem : EntitySystem
             if (node.NodeGroup == null)
                 continue;
 
-            var group = (IBasePowerNet) node.NodeGroup;
+            var group = (IBasePowerNet)node.NodeGroup;
             var stats = _powerNet.GetNetworkStatistics(group.NetworkNode);
             charge = comp.Output ? stats.OutStorageCurrent : stats.InStorageCurrent;
             chargingState = charge > comp.LastCharge;

@@ -19,7 +19,7 @@ namespace Content.Client._Mono.FireControl.UI;
 [GenerateTypedNameReferences]
 public sealed partial class FireControlWindow : FancyWindow
 {
-    [Dependency] private readonly IEntityManager _entityManager = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
 
     public FireControlNavControl Radar => NavRadar;
     public Action? OnServerRefresh;
@@ -235,7 +235,7 @@ public sealed partial class FireControlWindow : FancyWindow
         if (state.FireControllables == null)
         {
             WeaponsList.Clear();
-            ControllablesBox.DisposeAllChildren();
+            ControllablesBox.RemoveAllChildren();
             _weaponNameToEntity.Clear();
             _weaponTypes.Clear();
             return;

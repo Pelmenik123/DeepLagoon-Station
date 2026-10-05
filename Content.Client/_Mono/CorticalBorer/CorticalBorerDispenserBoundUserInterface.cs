@@ -45,7 +45,7 @@ namespace Content.Client._Mono.CorticalBorer
         {
             base.UpdateState(state);
 
-            var castState = (CorticalBorerDispenserBoundUserInterfaceState) state;
+            var castState = (CorticalBorerDispenserBoundUserInterfaceState)state;
             _window?.UpdateState(castState);
         }
     }

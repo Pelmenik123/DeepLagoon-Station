@@ -19,15 +19,14 @@ namespace Content.Server.Shuttles.Systems
 {
     public sealed partial class DockingSystem : SharedDockingSystem
     {
-        [Dependency] private readonly IMapManager _mapManager = default!;
-        [Dependency] private readonly SharedMapSystem _mapSystem = default!;
-        [Dependency] private readonly DoorSystem _doorSystem = default!;
-        [Dependency] private readonly EntityLookupSystem _lookup = default!;
-        [Dependency] private readonly PathfindingSystem _pathfinding = default!;
-        [Dependency] private readonly ShuttleConsoleSystem _console = default!;
-        [Dependency] private readonly SharedJointSystem _jointSystem = default!;
-        [Dependency] private readonly SharedPopupSystem _popup = default!;
-        [Dependency] private readonly SharedTransformSystem _transform = default!;
+        [Dependency] private SharedMapSystem _mapSystem = default!;
+        [Dependency] private DoorSystem _doorSystem = default!;
+        [Dependency] private EntityLookupSystem _lookup = default!;
+        [Dependency] private PathfindingSystem _pathfinding = default!;
+        [Dependency] private ShuttleConsoleSystem _console = default!;
+        [Dependency] private SharedJointSystem _jointSystem = default!;
+        [Dependency] private SharedPopupSystem _popup = default!;
+        [Dependency] private SharedTransformSystem _transform = default!;
 
         private const string DockingJoint = "docking";
 
@@ -92,7 +91,7 @@ namespace Content.Server.Shuttles.Systems
         private void OnShutdown(EntityUid uid, DockingComponent component, ComponentShutdown args)
         {
             if (component.DockedWith == null ||
-                EntityManager.GetComponent<MetaDataComponent>(uid).EntityLifeStage > EntityLifeStage.MapInitialized)
+                MetaData(uid).EntityLifeStage > EntityLifeStage.MapInitialized)
             {
                 return;
             }
@@ -135,8 +134,8 @@ namespace Content.Server.Shuttles.Systems
             dockA.DockJointId = null;
 
             // If these grids are ever null then need to look at fixing ordering for unanchored events elsewhere.
-            var gridAUid = EntityManager.GetComponent<TransformComponent>(dockAUid).GridUid;
-            var gridBUid = EntityManager.GetComponent<TransformComponent>(dockBUid.Value).GridUid;
+            var gridAUid = Transform(dockAUid).GridUid;
+            var gridBUid = Transform(dockBUid.Value).GridUid;
 
             var msg = new UndockEvent
             {
@@ -157,7 +156,7 @@ namespace Content.Server.Shuttles.Systems
             var component = entity.Comp;
 
             // Use startup so transform already initialized
-            if (!EntityManager.GetComponent<TransformComponent>(uid).Anchored)
+            if (!Transform(uid).Anchored)
                 return;
 
             // This little gem is for docking deserialization
@@ -167,7 +166,7 @@ namespace Content.Server.Shuttles.Systems
                 if (MetaData(component.DockedWith.Value).EntityLifeStage < EntityLifeStage.Initialized)
                     return;
 
-                var otherDock = EntityManager.GetComponent<DockingComponent>(component.DockedWith.Value);
+                var otherDock = Comp<DockingComponent>(component.DockedWith.Value);
                 DebugTools.Assert(otherDock.DockedWith != null);
 
                 Dock((uid, component), (component.DockedWith.Value, otherDock));
@@ -218,8 +217,8 @@ namespace Content.Server.Shuttles.Systems
             // https://gamedev.stackexchange.com/questions/98772/b2distancejoint-with-frequency-equal-to-0-vs-b2weldjoint
 
             // We could also potentially use a prismatic joint? Depending if we want clamps that can extend or whatever
-            var dockAXform = EntityManager.GetComponent<TransformComponent>(dockAUid);
-            var dockBXform = EntityManager.GetComponent<TransformComponent>(dockBUid);
+            var dockAXform = Transform(dockAUid);
+            var dockBXform = Transform(dockBUid);
 
             DebugTools.Assert(dockAXform.GridUid != null);
             DebugTools.Assert(dockBXform.GridUid != null);
@@ -233,8 +232,8 @@ namespace Content.Server.Shuttles.Systems
                 SharedJointSystem.LinearStiffness(
                     2f,
                     0.7f,
-                    EntityManager.GetComponent<PhysicsComponent>(gridA).Mass,
-                    EntityManager.GetComponent<PhysicsComponent>(gridB).Mass,
+                    Comp<PhysicsComponent>(gridA).Mass,
+                    Comp<PhysicsComponent>(gridB).Mass,
                     out var stiffness,
                     out var damping);
 
@@ -253,8 +252,8 @@ namespace Content.Server.Shuttles.Systems
                     joint = _jointSystem.GetOrCreateWeldJoint(gridA, gridB, DockingJoint + dockAUid);
                 }
 
-                var gridAXform = EntityManager.GetComponent<TransformComponent>(gridA);
-                var gridBXform = EntityManager.GetComponent<TransformComponent>(gridB);
+                var gridAXform = Transform(gridA);
+                var gridBXform = Transform(gridB);
 
                 var anchorA = dockAXform.LocalPosition + dockAXform.LocalRotation.ToWorldVec() / 2f;
                 var anchorB = dockBXform.LocalPosition + dockBXform.LocalRotation.ToWorldVec() / 2f;

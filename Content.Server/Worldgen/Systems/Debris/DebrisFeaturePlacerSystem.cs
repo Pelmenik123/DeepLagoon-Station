@@ -17,15 +17,15 @@ namespace Content.Server.Worldgen.Systems.Debris;
 /// <summary>
 ///     This handles placing debris within the world evenly with rng, primarily for structures like asteroid fields.
 /// </summary>
-public sealed class DebrisFeaturePlacerSystem : BaseWorldSystem
+public sealed partial class DebrisFeaturePlacerSystem : BaseWorldSystem
 {
-    [Dependency] private readonly GCQueueSystem _gc = default!;
-    [Dependency] private readonly NoiseIndexSystem _noiseIndex = default!;
-    [Dependency] private readonly PoissonDiskSampler _sampler = default!;
-    [Dependency] private readonly TransformSystem _xformSys = default!;
-    [Dependency] private readonly ILogManager _logManager = default!;
-    [Dependency] private readonly IMapManager _mapManager = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private GCQueueSystem _gc = default!;
+    [Dependency] private NoiseIndexSystem _noiseIndex = default!;
+    [Dependency] private PoissonDiskSampler _sampler = default!;
+    [Dependency] private TransformSystem _xformSys = default!;
+    [Dependency] private ILogManager _logManager = default!;
+    [Dependency] private SharedMapSystem _mapManager = default!;
+    [Dependency] private IRobustRandom _random = default!;
 
     private ISawmill _sawmill = default!;
 
@@ -264,7 +264,7 @@ public sealed class DebrisFeaturePlacerSystem : BaseWorldSystem
     /// </summary>
     private List<Vector2> GeneratePointsInChunk(EntityUid chunk, float density, Vector2 coords, EntityUid map)
     {
-        var offs = (int) ((WorldGen.ChunkSize - WorldGen.ChunkSize / 8.0f) / 2.0f);
+        var offs = (int)((WorldGen.ChunkSize - WorldGen.ChunkSize / 8.0f) / 2.0f);
         var topLeft = new Vector2(-offs, -offs);
         var lowerRight = new Vector2(offs, offs);
         var enumerator = _sampler.SampleRectangle(topLeft, lowerRight, density);

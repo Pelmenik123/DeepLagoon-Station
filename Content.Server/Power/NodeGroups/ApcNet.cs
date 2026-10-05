@@ -9,13 +9,13 @@ namespace Content.Server.Power.NodeGroups
 {
     public interface IApcNet : IBasePowerNet
     {
-        void AddApc(EntityUid uid, ApcComponent apc);
+        void AddApc(Entity<ApcComponent> apc);
 
-        void RemoveApc(EntityUid uid, ApcComponent apc);
+        void RemoveApc(Entity<ApcComponent> apc);
 
-        void AddPowerProvider(ApcPowerProviderComponent provider);
+        void AddPowerProvider(Entity<ApcPowerProviderComponent> provider);
 
-        void RemovePowerProvider(ApcPowerProviderComponent provider);
+        void RemovePowerProvider(Entity<ApcPowerProviderComponent> provider);
 
         void QueueNetworkReconnect();
     }
@@ -24,15 +24,15 @@ namespace Content.Server.Power.NodeGroups
     [UsedImplicitly]
     public sealed partial class ApcNet : BasePowerNet<IApcNet>, IApcNet
     {
-        [ViewVariables] public readonly List<ApcComponent> Apcs = new();
-        [ViewVariables] public readonly List<ApcPowerProviderComponent> Providers = new();
+        [ViewVariables] public readonly List<Entity<ApcComponent>> Apcs = [];
+        [ViewVariables] public readonly List<Entity<ApcPowerProviderComponent>> Providers = [];
 
         //Debug property
-        [ViewVariables] private int TotalReceivers => Providers.Sum(provider => provider.LinkedReceivers.Count);
+        [ViewVariables] private int TotalReceivers => Providers.Sum(provider => provider.Comp.LinkedReceivers.Count);
 
         [ViewVariables]
         private IEnumerable<ApcPowerReceiverComponent> AllReceivers =>
-            Providers.SelectMany(provider => provider.LinkedReceivers);
+            Providers.SelectMany(provider => provider.Comp.LinkedReceivers);
 
         public override void Initialize(Node sourceNode, IEntityManager entMan)
         {
@@ -47,32 +47,32 @@ namespace Content.Server.Power.NodeGroups
             PowerNetSystem?.DestroyApcNet(this);
         }
 
-        public void AddApc(EntityUid uid, ApcComponent apc)
+        public void AddApc(Entity<ApcComponent> apc)
         {
-            if (EntMan.TryGetComponent(uid, out PowerNetworkBatteryComponent? netBattery))
+            if (EntMan.TryGetComponent(apc.Owner, out PowerNetworkBatteryComponent? netBattery))
                 netBattery.NetworkBattery.LinkedNetworkDischarging = default;
 
             QueueNetworkReconnect();
             Apcs.Add(apc);
         }
 
-        public void RemoveApc(EntityUid uid, ApcComponent apc)
+        public void RemoveApc(Entity<ApcComponent> apc)
         {
-            if (EntMan.TryGetComponent(uid, out PowerNetworkBatteryComponent? netBattery))
+            if (EntMan.TryGetComponent(apc.Owner, out PowerNetworkBatteryComponent? netBattery))
                 netBattery.NetworkBattery.LinkedNetworkDischarging = default;
 
             QueueNetworkReconnect();
             Apcs.Remove(apc);
         }
 
-        public void AddPowerProvider(ApcPowerProviderComponent provider)
+        public void AddPowerProvider(Entity<ApcPowerProviderComponent> provider)
         {
             Providers.Add(provider);
 
             QueueNetworkReconnect();
         }
 
-        public void RemovePowerProvider(ApcPowerProviderComponent provider)
+        public void RemovePowerProvider(Entity<ApcPowerProviderComponent> provider)
         {
             Providers.Remove(provider);
 
@@ -84,9 +84,9 @@ namespace Content.Server.Power.NodeGroups
             PowerNetSystem?.QueueReconnectApcNet(this);
         }
 
-        protected override void SetNetConnectorNet(IBaseNetConnectorComponent<IApcNet> netConnectorComponent)
+        protected override void SetNetConnectorNet(EntityUid owner, IBaseNetConnectorComponent<IApcNet> netConnectorComponent)
         {
-            netConnectorComponent.Net = this;
+            netConnectorComponent.SetNet(owner, this);
         }
 
         public override string? GetDebugData()
@@ -95,8 +95,8 @@ namespace Content.Server.Power.NodeGroups
 
             var ps = PowerNetSystem.GetNetworkStatistics(NetworkNode);
 
-            float storageRatio = ps.InStorageCurrent / Math.Max(ps.InStorageMax, 1.0f);
-            float outStorageRatio = ps.OutStorageCurrent / Math.Max(ps.OutStorageMax, 1.0f);
+            var storageRatio = ps.InStorageCurrent / Math.Max(ps.InStorageMax, 1.0f);
+            var outStorageRatio = ps.OutStorageCurrent / Math.Max(ps.OutStorageMax, 1.0f);
             return @$"Current Supply: {ps.SupplyCurrent:G3}
 From Batteries: {ps.SupplyBatteries:G3}
 Theoretical Supply: {ps.SupplyTheoretical:G3}

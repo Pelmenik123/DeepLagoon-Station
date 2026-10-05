@@ -15,15 +15,12 @@ using Content.Shared.Access.Systems;
 using Content.Shared.Database;
 using Robust.Shared.Containers;
 using System.Linq;
-using Content.Shared._NF.Bank.BUI;
 
 namespace Content.Server._NF.Bank;
 
 public sealed partial class BankSystem
 {
-    [Dependency] private readonly StationSystem _station = default!;
-    [Dependency] private readonly CargoSystem _cargo = default!;
-    [Dependency] private readonly AccessReaderSystem _access = default!;
+    [Dependency] AccessReaderSystem _access = default!;
 
     private void InitializeStationATM()
     {
@@ -157,7 +154,7 @@ public sealed partial class BankSystem
 
         // validate stack prototypes
         if (!TryComp<StackComponent>(component.CashSlot.ContainerSlot.ContainedEntity, out var stackComponent) ||
-            stackComponent.StackTypeId == null)
+            stackComponent.StackTypeId == default)
         {
             _log.Info($"ATM cash slot contains bad stack prototype");
             ConsolePopup(args.Actor, Loc.GetString("bank-atm-menu-wrong-cash"));
@@ -261,7 +258,7 @@ public sealed partial class BankSystem
 
     private void OnATMUIOpen(EntityUid uid, StationBankATMComponent component, BoundUIOpenedEvent args)
     {
-        if (args.Actor is not { Valid : true } player)
+        if (args.Actor is not { Valid: true } player)
             return;
 
         GetInsertedCashAmount(component, out var deposit);
@@ -323,11 +320,11 @@ public sealed partial class BankSystem
 
     private void PlayDenySound(EntityUid uid, StationBankATMComponent component)
     {
-        _audio.PlayPvs(_audio.GetSound(component.ErrorSound), uid);
+        _audio.PlayPvs(_audio.ResolveSound(component.ErrorSound), uid);
     }
 
     private void PlayConfirmSound(EntityUid uid, StationBankATMComponent component)
     {
-        _audio.PlayPvs(_audio.GetSound(component.ConfirmSound), uid);
+        _audio.PlayPvs(_audio.ResolveSound(component.ConfirmSound), uid);
     }
 }

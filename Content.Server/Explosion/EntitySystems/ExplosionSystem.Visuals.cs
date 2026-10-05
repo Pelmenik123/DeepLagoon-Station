@@ -18,7 +18,7 @@ public sealed partial class ExplosionSystem
 
     private void OnGetState(EntityUid uid, ExplosionVisualsComponent component, ref ComponentGetState args)
     {
-        Dictionary<NetEntity, Dictionary<int, List<Vector2i>>> tileLists = new();
+        Dictionary<NetEntity, Dictionary<int, List<Vector2i>>> tileLists = [];
         foreach (var (grid, data) in component.Tiles)
         {
             tileLists.Add(GetNetEntity(grid), data);
@@ -57,7 +57,7 @@ public sealed partial class ExplosionSystem
 
         // Light, sound & visuals may extend well beyond normal PVS range. In principle, this should probably still be
         // restricted to something like the same map, but whatever.
-        _pvsSys.AddGlobalOverride(GetNetEntity(explosionEntity));
+        _pvsSys.AddGlobalOverride(explosionEntity);
 
         var appearance = AddComp<AppearanceComponent>(explosionEntity);
         _appearance.SetData(explosionEntity, ExplosionAppearanceData.Progress, 1, appearance);

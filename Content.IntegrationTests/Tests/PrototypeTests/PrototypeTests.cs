@@ -18,7 +18,7 @@ public sealed class PrototypeTests
     public async Task TestAllServerPrototypesAreSerializable()
     {
         await using var pair = await PoolManager.GetServerClient();
-        var context = new PrototypeSaveTest.TestEntityUidContext();
+        var context = new PrototypeSaveTest.TestEntityUidContext(pair.Server.ResolveDependency<ISerializationManager>());
         await SaveThenValidatePrototype(pair.Server, "server", context);
         await pair.CleanReturnAsync();
     }
@@ -31,7 +31,7 @@ public sealed class PrototypeTests
     public async Task TestAllClientPrototypesAreSerializable()
     {
         await using var pair = await PoolManager.GetServerClient();
-        var context = new PrototypeSaveTest.TestEntityUidContext();
+        var context = new PrototypeSaveTest.TestEntityUidContext(pair.Client.ResolveDependency<ISerializationManager>());
         await SaveThenValidatePrototype(pair.Client, "client", context);
         await pair.CleanReturnAsync();
     }
@@ -70,7 +70,7 @@ public sealed class PrototypeTests
     public async Task ServerPrototypeSaveLoadSaveTest()
     {
         await using var pair = await PoolManager.GetServerClient();
-        var context = new PrototypeSaveTest.TestEntityUidContext();
+        var context = new PrototypeSaveTest.TestEntityUidContext(pair.Server.ResolveDependency<ISerializationManager>());
         await SaveLoadSavePrototype(pair.Server, context);
         await pair.CleanReturnAsync();
     }
@@ -82,7 +82,7 @@ public sealed class PrototypeTests
     public async Task ClientPrototypeSaveLoadSaveTest()
     {
         await using var pair = await PoolManager.GetServerClient();
-        var context = new PrototypeSaveTest.TestEntityUidContext();
+        var context = new PrototypeSaveTest.TestEntityUidContext(pair.Client.ResolveDependency<ISerializationManager>());
         await SaveLoadSavePrototype(pair.Client, context);
         await pair.CleanReturnAsync();
     }
@@ -131,7 +131,7 @@ public sealed class PrototypeTests
 
         try
         {
-            first = seriMan.WriteValue(kind, proto, alwaysWrite: true, context:ctx);
+            first = seriMan.WriteValue(kind, proto, alwaysWrite: true, context: ctx);
         }
         catch (Exception e)
         {
@@ -143,7 +143,7 @@ public sealed class PrototypeTests
         object? obj;
         try
         {
-            obj = seriMan.Read(kind, first, context:ctx);
+            obj = seriMan.Read(kind, first, context: ctx);
         }
         catch (Exception e)
         {
@@ -156,11 +156,11 @@ public sealed class PrototypeTests
         }
 
         Assert.That(obj?.GetType(), Is.EqualTo(proto.GetType()));
-        var deserialized = (IPrototype) obj!;
+        var deserialized = (IPrototype)obj!;
 
         try
         {
-            second = seriMan.WriteValue(kind, deserialized, alwaysWrite: true, context:ctx);
+            second = seriMan.WriteValue(kind, deserialized, alwaysWrite: true, context: ctx);
         }
         catch (Exception e)
         {

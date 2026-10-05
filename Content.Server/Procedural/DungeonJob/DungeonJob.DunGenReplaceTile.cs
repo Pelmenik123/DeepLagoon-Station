@@ -12,9 +12,9 @@ public sealed partial class DungeonJob
     /// <summary>
     /// <see cref="ReplaceTileDunGen"/>
     /// </summary>
-    private async Task<Dungeon> GenerateTileReplacementDunGen(ReplaceTileDunGen gen, DungeonData data, HashSet<Vector2i> reservedTiles, Random random)
+    private async Task<Dungeon> GenerateTileReplacementDunGen(ReplaceTileDunGen gen, DungeonData data, HashSet<Vector2i> reservedTiles, IRobustRandom random)
     {
-        var tiles = _maps.GetAllTilesEnumerator(_gridUid, _grid);
+        var tiles = _maps.GetAllTiles(_gridUid, _grid);
         var replacements = new List<(Vector2i Index, Tile Tile)>();
         var reserved = new HashSet<Vector2i>();
 
@@ -33,7 +33,6 @@ public sealed partial class DungeonJob
                     continue;
 
                 Tile tile;
-
                 if (random.Prob(gen.VariantWeight))
                 {
                     tile = _tileDefManager.GetVariantTile(_prototype.Index(layer.Tile), random);
@@ -52,9 +51,9 @@ public sealed partial class DungeonJob
         }
 
         _maps.SetTiles(_gridUid, _grid, replacements);
-        return new Dungeon(new List<DungeonRoom>()
-        {
-            new DungeonRoom(reserved, _position, Box2i.Empty, new HashSet<Vector2i>()),
-        });
+        return new Dungeon(
+        [
+            new DungeonRoom(reserved, _position, Box2i.Empty, []),
+        ]);
     }
 }

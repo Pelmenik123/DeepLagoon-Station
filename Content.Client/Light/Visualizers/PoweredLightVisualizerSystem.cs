@@ -8,10 +8,11 @@ using Robust.Shared.Random;
 
 namespace Content.Client.Light.Visualizers;
 
-public sealed class PoweredLightVisualizerSystem : VisualizerSystem<PoweredLightVisualsComponent>
+public sealed partial class PoweredLightVisualizerSystem : VisualizerSystem<PoweredLightVisualsComponent>
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
 
     public override void Initialize()
     {
@@ -28,16 +29,16 @@ public sealed class PoweredLightVisualizerSystem : VisualizerSystem<PoweredLight
             return;
 
         if (comp.SpriteStateMap.TryGetValue(state, out var spriteState))
-            args.Sprite.LayerSetState(PoweredLightLayers.Base, spriteState);
+            _sprite.LayerSetRsiState(args.Sprite.AsEntity(), PoweredLightLayers.Base, spriteState);
 
-        if (args.Sprite.LayerExists(PoweredLightLayers.Glow))
+        if (_sprite.LayerExists(args.Sprite.AsEntity(), PoweredLightLayers.Glow))
         {
             if (TryComp<PointLightComponent>(uid, out var light))
             {
-                args.Sprite.LayerSetColor(PoweredLightLayers.Glow, light.Color);
+                _sprite.LayerSetColor(args.Sprite.AsEntity(), PoweredLightLayers.Glow, light.Color);
             }
 
-            args.Sprite.LayerSetVisible(PoweredLightLayers.Glow, state == PoweredLightState.On);
+            _sprite.LayerSetVisible(args.Sprite.AsEntity(), PoweredLightLayers.Glow, state == PoweredLightState.On);
         }
 
         SetBlinkingAnimation(
@@ -56,10 +57,10 @@ public sealed class PoweredLightVisualizerSystem : VisualizerSystem<PoweredLight
         if (args.Key != PoweredLightVisualsComponent.BlinkingAnimationKey)
             return;
 
-        if(!comp.IsBlinking)
+        if (!comp.IsBlinking)
             return;
 
-        AnimationSystem.Play(uid, Comp<AnimationPlayerComponent>(uid), BlinkingAnimation(comp), PoweredLightVisualsComponent.BlinkingAnimationKey);
+        AnimationSystem.Play(uid, BlinkingAnimation(comp), PoweredLightVisualsComponent.BlinkingAnimationKey);
     }
 
     /// <summary>
@@ -76,7 +77,7 @@ public sealed class PoweredLightVisualizerSystem : VisualizerSystem<PoweredLight
         var animationPlayer = EnsureComp<AnimationPlayerComponent>(uid);
         if (shouldBeBlinking)
         {
-            AnimationSystem.Play(uid, animationPlayer, BlinkingAnimation(comp), PoweredLightVisualsComponent.BlinkingAnimationKey);
+            AnimationSystem.Play(uid, BlinkingAnimation(comp), PoweredLightVisualsComponent.BlinkingAnimationKey);
         }
         else if (AnimationSystem.HasRunningAnimation(uid, animationPlayer, PoweredLightVisualsComponent.BlinkingAnimationKey))
         {
