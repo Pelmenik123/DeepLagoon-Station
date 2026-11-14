@@ -356,7 +356,10 @@ public sealed partial class HumanoidProfileEditor
             .Number("unavailable", (int)p.PreferenceUnavailable).String("company", p.Company);
         if (mode == "appearance" && includeCatalogs)
         {
-            data.Array("speciesOptions", _species.Select(s => Choice(s.ID, Loc.GetString(s.Name))))
+            data.Array("erpChoices", ConsentChoices(InteractionPanelCategory.Erotic))
+                .Array("nonconChoices", ConsentChoices(InteractionPanelCategory.NonCon))
+                .Array("voreChoices", ConsentChoices(InteractionPanelCategory.Vore))
+                .Array("speciesOptions", _species.Select(s => Choice(s.ID, Loc.GetString(s.Name))))
                 .Array("sexOptions", species.Sexes.Select(s => Choice(((int)s).ToString(), Loc.GetString($"humanoid-profile-editor-sex-{s.ToString().ToLowerInvariant()}-text"))))
                 .Array("genderOptions", Enum.GetValues<Gender>().Select(g => Choice(((int)g).ToString(), Loc.GetString($"humanoid-profile-editor-pronouns-{g.ToString().ToLowerInvariant()}-text"))))
                 .Array("spawnOptions", Enum.GetValues<SpawnPriorityPreference>().Select(s => Choice(((int)s).ToString(), Loc.GetString($"humanoid-profile-editor-preference-spawn-priority-{s.ToString().ToLowerInvariant()}"))))
@@ -412,6 +415,10 @@ public sealed partial class HumanoidProfileEditor
     }
 
     private static TguiData Choice(string id, string name) => new TguiData().String("id", id).String("name", name);
+
+    private static IEnumerable<TguiData> ConsentChoices(InteractionPanelCategory category) =>
+        InteractionPanelConsentRules.Options(category)
+            .Select(consent => Choice(((int)consent).ToString(), Loc.GetString(InteractionPanelConsentRules.LabelKey(consent))));
 
     private void EnsureHeadshotPreview(int slot, string id)
     {
@@ -779,6 +786,7 @@ public sealed partial class HumanoidProfileEditor
             case "vore":
                 if (!args.TryInt("value", out var consent) || !Enum.IsDefined((InteractionPanelConsent)consent)) return false;
                 var consentCategory = action == "erp" ? InteractionPanelCategory.Erotic : action == "noncon" ? InteractionPanelCategory.NonCon : InteractionPanelCategory.Vore;
+                if (!InteractionPanelConsentRules.Options(consentCategory).Contains((InteractionPanelConsent)consent)) return false;
                 Profile = Profile.WithInteractionPanelConsent(consentCategory, (InteractionPanelConsent)consent); UpdateInteractionPanelPreferences(); SetDirty(); break;
             case "physiology":
                 if (args.String("id") is not { } physiologyId || !args.TryFloat("value", out var physiologyValue) || !float.IsFinite(physiologyValue)) return false;

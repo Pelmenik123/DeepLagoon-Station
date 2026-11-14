@@ -255,7 +255,8 @@ public sealed partial class NativeInterfacePanel : BoxContainer
         NativeImage.Add(column, _data.String("headshot"));
         foreach (var image in _data.Array("headshots")) NativeImage.Add(column, image.String("image"));
         foreach (var key in new[] { "erp", "noncon", "vore" })
-            Text(column, key.ToUpperInvariant() + ": " + (InteractionPanelConsent)_data.Int(key));
+            Text(column, key.ToUpperInvariant() + ": " +
+                Loc.GetString(InteractionPanelConsentRules.LabelKey((InteractionPanelConsent)_data.Int(key))));
     }
 
     private void ApartmentGallery()

@@ -9,9 +9,6 @@ using Content.Shared.DoAfter;
 namespace Content.Shared._DeepLagoon.InteractionPanel;
 
 [Serializable, NetSerializable]
-public enum InteractionPanelConsent : byte { No, Ask, Yes }
-
-[Serializable, NetSerializable]
 public enum InteractionPanelCategory : byte { Erotic, NonCon, Vore, Neutral }
 
 [Flags]

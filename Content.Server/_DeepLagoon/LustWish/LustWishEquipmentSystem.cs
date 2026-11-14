@@ -181,7 +181,7 @@ public sealed partial class LustWishEquipmentSystem : EntitySystem
             controller.Device != item || !RemoteInRange(user, target, controller.Range))) return;
         if (user == target) { Apply(user, target, item, held, operation, slot, value, remote, native); return; }
         if (Consent(user) == InteractionPanelConsent.No || Consent(target) == InteractionPanelConsent.No) return;
-        if (Consent(target) == InteractionPanelConsent.Yes)
+        if (Consent(target).IsYes())
         { Apply(user, target, item, held, operation, slot, value, remote, native); return; }
         if (!TryComp<ActorComponent>(target, out var actor) || _blocked.Contains((target, user)) ||
             _pending.Values.Any(p => p.Target == target) || _askCooldown.GetValueOrDefault((user, target)) > _timing.CurTime) return;

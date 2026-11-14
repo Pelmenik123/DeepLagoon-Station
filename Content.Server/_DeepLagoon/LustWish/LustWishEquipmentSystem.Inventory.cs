@@ -20,7 +20,7 @@ public sealed partial class LustWishEquipmentSystem
     {
         if (user == target || component.InventorySlots.Length == 0 || !component.InventorySlots.Contains(slot) || _approvedNative.Contains((user,target,item))) return;
         if (_blocked.Contains((target, user)) || Consent(user) == InteractionPanelConsent.No || Consent(target) == InteractionPanelConsent.No) { attempt.Cancel(); return; }
-        if (Consent(target) == InteractionPanelConsent.Yes) return;
+        if (Consent(target).IsYes()) return;
         attempt.Cancel();
         Request(user, target, item, _hands.GetActiveItem(user), operation, slot, "", false, true);
     }

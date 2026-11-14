@@ -151,7 +151,7 @@ public sealed partial class InteractionPanelSystem : EntitySystem
         foreach (var category in Enum.GetValues<InteractionPanelCategory>().Where(c => c != InteractionPanelCategory.Neutral))
             args.PushText(Loc.GetString("dl-interaction-panel-examine",
                 ("category", Loc.GetString($"dl-interaction-panel-category-{category.ToString().ToLowerInvariant()}")),
-                ("status", Consent(uid, category).ToString())));
+                ("status", Loc.GetString(InteractionPanelConsentRules.LabelKey(Consent(uid, category))))));
     }
 
     private bool ValidPanel(EntityUid user, ICommonSession session, NetEntity target) =>

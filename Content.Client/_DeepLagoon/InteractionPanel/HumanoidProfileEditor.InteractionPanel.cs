@@ -1,5 +1,6 @@
 using Content.Shared._DeepLagoon.InteractionPanel;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Localization;
 
 namespace Content.Client.Lobby.UI;
 
@@ -14,8 +15,8 @@ public sealed partial class HumanoidProfileEditor
 
     private void SetupInteractionPanelOption(OptionButton button, InteractionPanelCategory category)
     {
-        foreach (var consent in Enum.GetValues<InteractionPanelConsent>())
-            button.AddItem(consent.ToString(), (int)consent);
+        foreach (var consent in InteractionPanelConsentRules.Options(category))
+            button.AddItem(Loc.GetString(InteractionPanelConsentRules.LabelKey(consent)), (int)consent);
         button.OnItemSelected += args =>
         {
             if (Profile == null) return;
